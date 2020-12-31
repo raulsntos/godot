@@ -1658,7 +1658,7 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const RES &p_r
 
 		List<PropertyInfo> property_list;
 		res->get_property_list(&property_list);
-		//property_list.sort();
+		property_list.sort();
 		for (List<PropertyInfo>::Element *PE = property_list.front(); PE; PE = PE->next()) {
 			if (skip_editor && PE->get().name.begins_with("__editor")) {
 				continue;
