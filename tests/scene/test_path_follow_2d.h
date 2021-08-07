@@ -32,22 +32,26 @@
 #define TEST_PATH_FOLLOW_2D_H
 
 #include "scene/2d/path_2d.h"
+#include "scene/main/window.h"
 
 #include "tests/test_macros.h"
 
 namespace TestPathFollow2D {
 
-TEST_CASE("[PathFollow2D] Sampling with progress ratio") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Sampling with progress ratio") {
+	Ref<Curve2D> curve = memnew(Curve2D);
+	curve->set_bake_interval(1);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
 	curve->add_point(Vector2(100, 100));
 	curve->add_point(Vector2(0, 100));
 	curve->add_point(Vector2(0, 0));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	path_follow_2d->set_loop(false);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0);
 	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
@@ -79,17 +83,20 @@ TEST_CASE("[PathFollow2D] Sampling with progress ratio") {
 	memdelete(path);
 }
 
-TEST_CASE("[PathFollow2D] Sampling with progress") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Sampling with progress") {
+	Ref<Curve2D> curve = memnew(Curve2D);
+	curve->set_bake_interval(1);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
 	curve->add_point(Vector2(100, 100));
 	curve->add_point(Vector2(0, 100));
 	curve->add_point(Vector2(0, 0));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	path_follow_2d->set_loop(false);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress(0);
 	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
@@ -121,15 +128,16 @@ TEST_CASE("[PathFollow2D] Sampling with progress") {
 	memdelete(path);
 }
 
-TEST_CASE("[PathFollow2D] Removal of a point in curve") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Removal of a point in curve") {
+	Ref<Curve2D> curve = memnew(Curve2D);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
 	curve->add_point(Vector2(100, 100));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0.5);
 	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 0)));
@@ -143,14 +151,15 @@ TEST_CASE("[PathFollow2D] Removal of a point in curve") {
 	memdelete(path);
 }
 
-TEST_CASE("[PathFollow2D] Setting h_offset and v_offset") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Setting h_offset and v_offset") {
+	Ref<Curve2D> curve = memnew(Curve2D);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0.5);
 	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 0)));
@@ -164,73 +173,75 @@ TEST_CASE("[PathFollow2D] Setting h_offset and v_offset") {
 	memdelete(path);
 }
 
-TEST_CASE("[PathFollow2D] Unit offset out of range") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Progress ratio out of range") {
+	Ref<Curve2D> curve = memnew(Curve2D);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_loop(true);
 
 	path_follow_2d->set_progress_ratio(-0.3);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress_ratio() == 0.7,
+			Math::is_equal_approx(path_follow_2d->get_progress_ratio(), (real_t)0.7),
 			"Progress Ratio should loop back from the end in the opposite direction");
 
 	path_follow_2d->set_progress_ratio(1.3);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress_ratio() == 0.3,
+			Math::is_equal_approx(path_follow_2d->get_progress_ratio(), (real_t)0.3),
 			"Progress Ratio should loop back from the end in the opposite direction");
 
 	path_follow_2d->set_loop(false);
 
 	path_follow_2d->set_progress_ratio(-0.3);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress_ratio() == 0,
+			Math::is_equal_approx(path_follow_2d->get_progress_ratio(), 0),
 			"Progress Ratio should be clamped at 0");
 
 	path_follow_2d->set_progress_ratio(1.3);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress_ratio() == 1,
+			Math::is_equal_approx(path_follow_2d->get_progress_ratio(), 1),
 			"Progress Ratio should be clamped at 1");
 
 	memdelete(path);
 }
 
-TEST_CASE("[PathFollow2D] Progress out of range") {
-	const Ref<Curve2D> &curve = memnew(Curve2D());
+TEST_CASE("[SceneTree][PathFollow2D] Progress out of range") {
+	Ref<Curve2D> curve = memnew(Curve2D);
 	curve->add_point(Vector2(0, 0));
 	curve->add_point(Vector2(100, 0));
-	const Path2D *path = memnew(Path2D);
+	Path2D *path = memnew(Path2D);
 	path->set_curve(curve);
-	const PathFollow2D *path_follow_2d = memnew(PathFollow2D);
+	PathFollow2D *path_follow_2d = memnew(PathFollow2D);
 	path->add_child(path_follow_2d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_loop(true);
 
 	path_follow_2d->set_progress(-50);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress() == 50,
+			Math::is_equal_approx(path_follow_2d->get_progress(), 50),
 			"Progress should loop back from the end in the opposite direction");
 
 	path_follow_2d->set_progress(150);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress() == 50,
+			Math::is_equal_approx(path_follow_2d->get_progress(), 50),
 			"Progress should loop back from the end in the opposite direction");
 
 	path_follow_2d->set_loop(false);
 
 	path_follow_2d->set_progress(-50);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress() == 0,
+			Math::is_equal_approx(path_follow_2d->get_progress(), 0),
 			"Progress should be clamped at 0");
 
 	path_follow_2d->set_progress(150);
 	CHECK_MESSAGE(
-			path_follow_2d->get_progress() == 100,
+			Math::is_equal_approx(path_follow_2d->get_progress(), 100),
 			"Progress should be clamped at 1");
 
 	memdelete(path);
