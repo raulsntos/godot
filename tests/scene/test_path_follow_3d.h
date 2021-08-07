@@ -222,6 +222,58 @@ TEST_CASE("[SceneTree][PathFollow3D] Progress out of range") {
 
 	memdelete(path);
 }
+
+TEST_CASE("[SceneTree][PathFollow3D] Calculate forward vector") {
+	Ref<Curve3D> curve = memnew(Curve3D);
+	curve->add_point(Vector3(0, 0, 0));
+	curve->add_point(Vector3(100, 0, 0));
+	curve->add_point(Vector3(100, 100, 0));
+	curve->add_point(Vector3(100, 100, 100));
+	curve->add_point(Vector3(100, 0, 100));
+	Path3D *path = memnew(Path3D);
+	path->set_curve(curve);
+	PathFollow3D *path_follow_3d = memnew(PathFollow3D);
+	path->add_child(path_follow_3d);
+	SceneTree::get_singleton()->get_root()->add_child(path);
+
+	path_follow_3d->set_loop(false);
+	path_follow_3d->set_rotation_mode(PathFollow3D::RotationMode::ROTATION_XYZ);
+
+	path_follow_3d->set_progress(-50);
+	CHECK(Vector3(-1, 0, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(0);
+	CHECK(Vector3(-1, 0, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(50);
+	CHECK(Vector3(-1, 0, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(100);
+	CHECK(Vector3(-1, 0, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(150);
+	CHECK(Vector3(0, -1, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(200);
+	CHECK(Vector3(0, -1, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(250);
+	CHECK(Vector3(0, 0, -1).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(300);
+	CHECK(Vector3(0, 0, -1).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(350);
+	CHECK(Vector3(0, 1, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(400);
+	CHECK(Vector3(0, 1, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	path_follow_3d->set_progress(450);
+	CHECK(Vector3(0, 1, 0).is_equal_approx(path_follow_3d->get_transform().get_basis().get_column(2)));
+
+	memdelete(path);
+}
 } // namespace TestPathFollow3D
 
 #endif // TEST_PATH_FOLLOW_3D_H
