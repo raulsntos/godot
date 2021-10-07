@@ -38,6 +38,12 @@
 
 namespace TestPathFollow2D {
 
+bool is_equal_approx(const Vector2 &p_a, const Vector2 &p_b) {
+	const real_t tolerance = 0.001;
+	return Math::is_equal_approx(p_a.x, p_b.x, tolerance) &&
+			Math::is_equal_approx(p_a.y, p_b.y, tolerance);
+}
+
 TEST_CASE("[SceneTree][PathFollow2D] Sampling with progress ratio") {
 	Ref<Curve2D> curve = memnew(Curve2D);
 	curve->set_bake_interval(1);
@@ -54,31 +60,31 @@ TEST_CASE("[SceneTree][PathFollow2D] Sampling with progress ratio") {
 	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
+	CHECK(is_equal_approx(Vector2(0, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.125);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 0)));
+	CHECK(is_equal_approx(Vector2(50, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.25);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 0)));
+	CHECK(is_equal_approx(Vector2(100, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.375);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 50)));
+	CHECK(is_equal_approx(Vector2(100, 50), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.5);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 100)));
+	CHECK(is_equal_approx(Vector2(100, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.625);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 100)));
+	CHECK(is_equal_approx(Vector2(50, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.75);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 100)));
+	CHECK(is_equal_approx(Vector2(0, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(0.875);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 50)));
+	CHECK(is_equal_approx(Vector2(0, 50), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress_ratio(1);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
+	CHECK(is_equal_approx(Vector2(0, 0), path_follow_2d->get_transform().get_origin()));
 
 	memdelete(path);
 }
@@ -99,31 +105,31 @@ TEST_CASE("[SceneTree][PathFollow2D] Sampling with progress") {
 	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress(0);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
+	CHECK(is_equal_approx(Vector2(0, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(50);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 0)));
+	CHECK(is_equal_approx(Vector2(50, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(100);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 0)));
+	CHECK(is_equal_approx(Vector2(100, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(150);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 50)));
+	CHECK(is_equal_approx(Vector2(100, 50), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(200);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 100)));
+	CHECK(is_equal_approx(Vector2(100, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(250);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 100)));
+	CHECK(is_equal_approx(Vector2(50, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(300);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 100)));
+	CHECK(is_equal_approx(Vector2(0, 100), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(350);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 50)));
+	CHECK(is_equal_approx(Vector2(0, 50), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_progress(400);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(0, 0)));
+	CHECK(is_equal_approx(Vector2(0, 0), path_follow_2d->get_transform().get_origin()));
 
 	memdelete(path);
 }
@@ -140,12 +146,12 @@ TEST_CASE("[SceneTree][PathFollow2D] Removal of a point in curve") {
 	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0.5);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(100, 0)));
+	CHECK(is_equal_approx(Vector2(100, 0), path_follow_2d->get_transform().get_origin()));
 
 	curve->remove_point(1);
 
 	CHECK_MESSAGE(
-			path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 50)),
+			is_equal_approx(Vector2(50, 50), path_follow_2d->get_transform().get_origin()),
 			"Path follow's position should be updated after removing a point from the curve");
 
 	memdelete(path);
@@ -162,13 +168,13 @@ TEST_CASE("[SceneTree][PathFollow2D] Setting h_offset and v_offset") {
 	SceneTree::get_singleton()->get_root()->add_child(path);
 
 	path_follow_2d->set_progress_ratio(0.5);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(50, 0)));
+	CHECK(is_equal_approx(Vector2(50, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_h_offset(25);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(75, 0)));
+	CHECK(is_equal_approx(Vector2(75, 0), path_follow_2d->get_transform().get_origin()));
 
 	path_follow_2d->set_v_offset(25);
-	CHECK(path_follow_2d->get_transform().get_origin().is_equal_approx(Vector2(75, 25)));
+	CHECK(is_equal_approx(Vector2(75, 25), path_follow_2d->get_transform().get_origin()));
 
 	memdelete(path);
 }
