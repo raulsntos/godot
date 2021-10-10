@@ -138,6 +138,7 @@ void CachedData::clear_godot_api_cache() {
 	class_ExportAttribute = nullptr;
 	field_ExportAttribute_hint = nullptr;
 	field_ExportAttribute_hintString = nullptr;
+	field_ExportAttribute_usage = nullptr;
 	class_SignalAttribute = nullptr;
 	class_ToolAttribute = nullptr;
 	class_AnyPeerAttribute = nullptr;
@@ -263,6 +264,7 @@ void update_godot_api_cache() {
 	CACHE_CLASS_AND_CHECK(ExportAttribute, GODOT_API_CLASS(ExportAttribute));
 	CACHE_FIELD_AND_CHECK(ExportAttribute, hint, CACHED_CLASS(ExportAttribute)->get_field("hint"));
 	CACHE_FIELD_AND_CHECK(ExportAttribute, hintString, CACHED_CLASS(ExportAttribute)->get_field("hintString"));
+	CACHE_FIELD_AND_CHECK(ExportAttribute, usage, CACHED_CLASS(ExportAttribute)->get_field("usage"));
 	CACHE_CLASS_AND_CHECK(SignalAttribute, GODOT_API_CLASS(SignalAttribute));
 	CACHE_CLASS_AND_CHECK(ToolAttribute, GODOT_API_CLASS(ToolAttribute));
 	CACHE_CLASS_AND_CHECK(AnyPeerAttribute, GODOT_API_CLASS(AnyPeerAttribute));

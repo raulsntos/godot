@@ -2772,6 +2772,7 @@ bool CSharpScript::_get_member_export(IMonoClassMember *p_member, bool p_inspect
 
 	PropertyHint hint = PROPERTY_HINT_NONE;
 	String hint_string;
+	uint32_t prop_usage = PROPERTY_USAGE_DEFAULT;
 
 	if (variant_type == Variant::NIL && !nil_is_variant) {
 #ifdef TOOLS_ENABLED
@@ -2791,9 +2792,11 @@ bool CSharpScript::_get_member_export(IMonoClassMember *p_member, bool p_inspect
 		hint = PropertyHint(CACHED_FIELD(ExportAttribute, hint)->get_int_value(attr));
 		hint_string = CACHED_FIELD(ExportAttribute, hintString)->get_string_value(attr);
 	}
+
+	prop_usage = PropertyUsageFlags(CACHED_FIELD(ExportAttribute, usage)->get_int_value(attr));
 #endif
 
-	uint32_t prop_usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SCRIPT_VARIABLE;
+	prop_usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
 
 	if (variant_type == Variant::NIL) {
 		// System.Object (Variant)
