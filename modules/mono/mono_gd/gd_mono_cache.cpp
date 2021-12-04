@@ -187,6 +187,15 @@ void CachedData::clear_godot_api_cache() {
 
 	// End of MarshalUtils methods
 
+	// Start of RoslynUtils methods
+
+	methodthunk_RoslynUtils_FindMethod.nullify();
+	methodthunk_RoslynUtils_FindMember.nullify();
+
+	methodthunk_RoslynUtils_AddMethod.nullify();
+
+	// End of RoslynUtils methods
+
 	task_scheduler_handle = Ref<MonoGCHandleRef>();
 }
 
@@ -310,6 +319,15 @@ void update_godot_api_cache() {
 	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, MakeGenericDictionaryType, GODOT_API_CLASS(MarshalUtils)->get_method("MakeGenericDictionaryType", 2));
 
 	// End of MarshalUtils methods
+
+	// Start of RoslynUtils methods
+
+	CACHE_METHOD_THUNK_AND_CHECK(RoslynUtils, FindMethod, GODOT_API_CLASS(RoslynUtils)->get_method("FindMethod", 2));
+	CACHE_METHOD_THUNK_AND_CHECK(RoslynUtils, FindMember, GODOT_API_CLASS(RoslynUtils)->get_method("FindMember", 2));
+
+	CACHE_METHOD_THUNK_AND_CHECK(RoslynUtils, AddMethod, GODOT_API_CLASS(RoslynUtils)->get_method("AddMethod", 3));
+
+	// End of RoslynUtils methods
 
 #ifdef DEBUG_ENABLED
 	CACHE_METHOD_THUNK_AND_CHECK(DebuggingUtils, GetStackFrameInfo, GODOT_API_CLASS(DebuggingUtils)->get_method("GetStackFrameInfo", 4));

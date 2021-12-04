@@ -474,7 +474,8 @@ public:
 	Script *create_script() const override;
 	bool has_named_classes() const override;
 	bool supports_builtin_mode() const override;
-	/* TODO? */ int find_function(const String &p_function, const String &p_code) const override { return -1; }
+	int find_function(const String &p_function, const String &p_code) const override;
+	void append_function(const String &p_class, const String &p_name, const PackedStringArray &p_args, Ref<Script> &p_script) const override;
 	String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const override;
 	virtual String _get_indentation() const;
 	/* TODO? */ void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const override {}

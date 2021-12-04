@@ -158,6 +158,15 @@ struct CachedData {
 
 	// End of MarshalUtils methods
 
+	// Start of RoslynUtils methods
+
+	GDMonoMethodThunkR<MonoObject *, MonoString *, MonoString *> methodthunk_RoslynUtils_FindMethod;
+	GDMonoMethodThunkR<MonoObject *, MonoString *, MonoString *> methodthunk_RoslynUtils_FindMember;
+
+	GDMonoMethodThunkR<MonoString *, MonoString *, MonoString *, MonoString *> methodthunk_RoslynUtils_AddMethod;
+
+	// End of RoslynUtils methods
+
 	Ref<MonoGCHandleRef> task_scheduler_handle;
 
 	bool corlib_cache_updated;

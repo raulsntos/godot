@@ -71,6 +71,14 @@ GDMonoClass *make_generic_array_type(MonoReflectionType *p_elem_reftype);
 GDMonoClass *make_generic_dictionary_type(MonoReflectionType *p_key_reftype, MonoReflectionType *p_value_reftype);
 } // namespace Marshal
 
+namespace Roslyn {
+
+int find_method(const String &p_method, const String &p_code);
+int find_member(const String &p_member, const String &p_code);
+
+String add_method(const String &p_class_name, const String &p_method_code, const String &p_script_code);
+} // namespace Roslyn
+
 _FORCE_INLINE_ void hash_combine(uint32_t &p_hash, const uint32_t &p_with_hash) {
 	p_hash ^= p_with_hash + 0x9e3779b9 + (p_hash << 6) + (p_hash >> 2);
 }

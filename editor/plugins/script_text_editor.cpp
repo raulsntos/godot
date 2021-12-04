@@ -275,14 +275,11 @@ void ScriptTextEditor::add_callback(const String &p_function, PackedStringArray 
 	String code = code_editor->get_text_editor()->get_text();
 	int pos = script->get_language()->find_function(p_function, code);
 	if (pos == -1) {
-		//does not exist
+		// Function does not exist.
 		code_editor->get_text_editor()->deselect();
-		pos = code_editor->get_text_editor()->get_line_count() + 2;
-		String func = script->get_language()->make_function("", p_function, p_args);
-		//code=code+func;
-		code_editor->get_text_editor()->set_caret_line(pos + 1);
-		code_editor->get_text_editor()->set_caret_column(1000000); //none shall be that big
-		code_editor->get_text_editor()->insert_text_at_caret("\n\n" + func);
+		script->get_language()->append_function("", p_function, p_args, script);
+		pos = script->get_language()->find_function(p_function, script->get_source_code());
+		code_editor->get_text_editor()->set_text(script->get_source_code());
 	}
 	code_editor->get_text_editor()->set_caret_line(pos);
 	code_editor->get_text_editor()->set_caret_column(1);

@@ -5,6 +5,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RootNamespace>Godot</RootNamespace>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <DocumentationFile>$(OutputPath)/$(AssemblyName).xml</DocumentationFile>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
@@ -54,6 +55,7 @@
     <Compile Include="Core\Rect2.cs" />
     <Compile Include="Core\Rect2i.cs" />
     <Compile Include="Core\RID.cs" />
+    <Compile Include="Core\RoslynUtils.cs" />
     <Compile Include="Core\SignalInfo.cs" />
     <Compile Include="Core\SignalAwaiter.cs" />
     <Compile Include="Core\StringExtensions.cs" />
@@ -74,4 +76,8 @@
   Fortunately code completion, go to definition and such still work.
   -->
   <Import Project="Generated\GeneratedIncludes.props" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+  </ItemGroup>
 </Project>

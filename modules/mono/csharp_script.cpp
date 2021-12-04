@@ -523,10 +523,24 @@ static String variant_type_to_managed_name(const String &p_var_type_name) {
 	return "object";
 }
 
+int CSharpLanguage::find_function(const String &p_function, const String &p_code) const {
+	return GDMonoUtils::Roslyn::find_method(p_function, p_code);
+}
+
+void CSharpLanguage::append_function(const String &p_class, const String &p_name, const PackedStringArray &p_args, Ref<Script> &p_script) const {
+	Ref<CSharpScript> cs = p_script;
+	if (cs.is_null()) {
+		// This should be unreachable.
+		CRASH_NOW_MSG("Can't append a C# function to a script in a different language.");
+	}
+
+	String code = p_script->get_source_code();
+	code = GDMonoUtils::Roslyn::add_method(cs->name, make_function(p_class, p_name, p_args), code);
+	p_script->set_source_code(code);
+}
+
 String CSharpLanguage::make_function(const String &, const String &p_name, const PackedStringArray &p_args) const {
-	// FIXME
-	// - Due to Godot's API limitation this just appends the function to the end of the file
-	// - Use fully qualified name if there is ambiguity
+	// FIXME: Use fully qualified name if there is ambiguity.
 	String s = "private void " + p_name + "(";
 	for (int i = 0; i < p_args.size(); i++) {
 		const String &arg = p_args[i];
@@ -542,10 +556,12 @@ String CSharpLanguage::make_function(const String &, const String &p_name, const
 	return s;
 }
 #else
+int CSharpLanguage::find_function(const String &, const String &) const { return -1; }
+
 String CSharpLanguage::make_function(const String &, const String &, const PackedStringArray &) const {
 	return String();
 }
-#endif
+#endif // TOOLS_ENABLED
 
 String CSharpLanguage::_get_indentation() const {
 #ifdef TOOLS_ENABLED
@@ -3002,7 +3018,7 @@ void CSharpScript::initialize_for_managed_type(Ref<CSharpScript> p_script, GDMon
 
 	CRASH_COND(p_class == nullptr);
 
-	p_script->name = p_class->get_name();
+	p_script->name = p_class->get_name(); // HERE IS ASSIGNED
 	p_script->script_class = p_class;
 	p_script->native = p_native;
 
@@ -3512,8 +3528,7 @@ void CSharpScript::get_script_property_list(List<PropertyInfo> *r_list) const {
 }
 
 int CSharpScript::get_member_line(const StringName &p_member) const {
-	// TODO omnisharp
-	return -1;
+	return GDMonoUtils::Roslyn::find_member(p_member, get_source_code());
 }
 
 Multiplayer::RPCMode CSharpScript::_member_get_rpc_mode(IMonoClassMember *p_member) const {

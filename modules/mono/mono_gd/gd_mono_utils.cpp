@@ -649,6 +649,40 @@ GDMonoClass *make_generic_dictionary_type(MonoReflectionType *p_key_reftype, Mon
 }
 } // namespace Marshal
 
+namespace Roslyn {
+
+int find_method(const String &p_method, const String &p_code) {
+	NO_GLUE_RET(-1);
+	MonoException *exc = nullptr;
+	MonoString *method = GDMonoMarshal::mono_string_from_godot(p_method);
+	MonoString *code = GDMonoMarshal::mono_string_from_godot(p_code);
+	MonoObject *res = CACHED_METHOD_THUNK(RoslynUtils, FindMethod).invoke(method, code, &exc);
+	UNHANDLED_EXCEPTION(exc);
+	return GDMonoMarshal::unbox<int32_t>(res);
+}
+
+int find_member(const String &p_member, const String &p_code) {
+	NO_GLUE_RET(-1);
+	MonoException *exc = nullptr;
+	MonoString *member = GDMonoMarshal::mono_string_from_godot(p_member);
+	MonoString *code = GDMonoMarshal::mono_string_from_godot(p_code);
+	MonoObject *res = CACHED_METHOD_THUNK(RoslynUtils, FindMember).invoke(member, code, &exc);
+	UNHANDLED_EXCEPTION(exc);
+	return GDMonoMarshal::unbox<int32_t>(res);
+}
+
+String add_method(const String &p_class_name, const String &p_method_code, const String &p_script_code) {
+	NO_GLUE_RET(p_script_code);
+	MonoException *exc = nullptr;
+	MonoString *class_name = GDMonoMarshal::mono_string_from_godot(p_class_name);
+	MonoString *method_code = GDMonoMarshal::mono_string_from_godot(p_method_code);
+	MonoString *script_code = GDMonoMarshal::mono_string_from_godot(p_script_code);
+	MonoString *res = CACHED_METHOD_THUNK(RoslynUtils, AddMethod).invoke(class_name, method_code, script_code, &exc);
+	UNHANDLED_EXCEPTION(exc);
+	return GDMonoMarshal::mono_string_to_godot(res);
+}
+} // namespace Roslyn
+
 ScopeThreadAttach::ScopeThreadAttach() {
 	if (likely(GDMono::get_singleton()->is_runtime_initialized()) && unlikely(!mono_domain_get())) {
 		mono_thread = GDMonoUtils::attach_current_thread();

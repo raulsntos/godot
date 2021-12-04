@@ -376,6 +376,12 @@ void ScriptLanguage::get_core_type_words(List<String> *p_core_type_words) const 
 	p_core_type_words->push_back("PackedColorArray");
 }
 
+void ScriptLanguage::append_function(const String &p_class, const String &p_name, const PackedStringArray &p_args, Ref<Script> &p_script) const {
+	String code = p_script->get_source_code();
+	code += "\n\n" + make_function(p_class, p_name, p_args);
+	p_script->set_source_code(code);
+}
+
 void ScriptLanguage::frame() {
 }
 
