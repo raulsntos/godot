@@ -46,7 +46,7 @@ class BindingsGenerator {
 		String name;
 		String proxy_name;
 		int64_t value = 0;
-		const DocData::ConstantDoc *const_doc;
+		const DocData::ConstantDoc *const_doc = nullptr;
 
 		ConstantInterface() {}
 
@@ -209,7 +209,7 @@ class BindingsGenerator {
 		String name;
 		StringName cname;
 
-		int type_parameter_count;
+		int type_parameter_count = 0;
 
 		/**
 		 * Identifier name of the base class.
