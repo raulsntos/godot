@@ -1005,6 +1005,31 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 				Array methods;
 				List<MethodInfo> method_list;
 				ClassDB::get_method_list(class_name, &method_list, true);
+
+				HashSet<StringName> property_accessors;
+				{
+					List<PropertyInfo> property_list;
+					ClassDB::get_property_list(class_name, &property_list, true);
+					for (const PropertyInfo &F : property_list) {
+						// Check if the property will be included in the dump, otherwise we don't need its property accessors either.
+						if (F.usage & PROPERTY_USAGE_CATEGORY || F.usage & PROPERTY_USAGE_GROUP || F.usage & PROPERTY_USAGE_SUBGROUP || (F.type == Variant::NIL && F.usage & PROPERTY_USAGE_ARRAY)) {
+							// Not real properties.
+							continue;
+						}
+						if (F.name.begins_with("_")) {
+							// Hidden property.
+							continue;
+						}
+						if (F.name.contains("/")) {
+							// Ignore properties with '/' (slash) in the name. These are only meant for use in the inspector.
+							continue;
+						}
+
+						property_accessors.insert(ClassDB::get_property_setter(class_name, F.name));
+						property_accessors.insert(ClassDB::get_property_getter(class_name, F.name));
+					}
+				}
+
 				for (const MethodInfo &F : method_list) {
 					StringName method_name = F.name;
 					if ((F.flags & METHOD_FLAG_VIRTUAL) && !(F.flags & METHOD_FLAG_OBJECT_CORE)) {
@@ -1016,6 +1041,7 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 						d2["is_static"] = (F.flags & METHOD_FLAG_STATIC) ? true : false;
 						d2["is_vararg"] = false;
 						d2["is_virtual"] = true;
+						d2["is_property_accessor"] = property_accessors.has(method_name);
 						// virtual functions have no hash since no MethodBind is involved
 						bool has_return = mi.return_val.type != Variant::NIL || (mi.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
 						if (has_return) {
@@ -1063,8 +1089,8 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 
 						methods.push_back(d2);
 
-					} else if (F.name.begins_with("_")) {
-						//hidden method, ignore
+					} else if (F.name.begins_with("_") && !property_accessors.has(method_name)) {
+						// Hidden method, ignore.
 
 					} else {
 						Dictionary d2;
@@ -1079,6 +1105,7 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 						d2["is_vararg"] = method->is_vararg();
 						d2["is_static"] = method->is_static();
 						d2["is_virtual"] = false;
+						d2["is_property_accessor"] = property_accessors.has(method_name);
 						d2["hash"] = method->get_hash();
 
 						Vector<uint32_t> compat_hashes = ClassDB::get_method_compatibility_hashes(class_name, method_name);
@@ -1196,10 +1223,12 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 				ClassDB::get_property_list(class_name, &property_list, true);
 				for (const PropertyInfo &F : property_list) {
 					if (F.usage & PROPERTY_USAGE_CATEGORY || F.usage & PROPERTY_USAGE_GROUP || F.usage & PROPERTY_USAGE_SUBGROUP || (F.type == Variant::NIL && F.usage & PROPERTY_USAGE_ARRAY)) {
-						continue; //not real properties
+						// Not real properties.
+						continue;
 					}
 					if (F.name.begins_with("_")) {
-						continue; //hidden property
+						// Hidden property.
+						continue;
 					}
 					if (F.name.contains("/")) {
 						// Ignore properties with '/' (slash) in the name. These are only meant for use in the inspector.
