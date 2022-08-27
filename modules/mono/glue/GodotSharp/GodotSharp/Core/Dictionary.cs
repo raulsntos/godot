@@ -30,7 +30,9 @@ namespace Godot.Collections
     /// typed elements allocated in the engine in C++. Useful when
     /// interfacing with the engine.
     /// </summary>
-    public class Dictionary : IDictionary, IDisposable
+    public class Dictionary :
+        IDictionary,
+        IDisposable
     {
         private DictionarySafeHandle _safeHandle;
         private bool _disposed = false;
@@ -363,7 +365,9 @@ namespace Godot.Collections
     /// </summary>
     /// <typeparam name="TKey">The type of the dictionary's keys.</typeparam>
     /// <typeparam name="TValue">The type of the dictionary's values.</typeparam>
-    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    public class Dictionary<TKey, TValue> :
+        IDictionary<TKey, TValue>,
+        IReadOnlyDictionary<TKey, TValue>
     {
         private readonly Dictionary _objectDict;
 

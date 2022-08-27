@@ -31,7 +31,10 @@ namespace Godot.Collections
     /// interfacing with the engine. Otherwise prefer .NET collections
     /// such as <see cref="System.Array"/> or <see cref="List{T}"/>.
     /// </summary>
-    public class Array : IList, IDisposable
+    public class Array :
+        IList,
+        ICollection,
+        IDisposable
     {
         private ArraySafeHandle _safeHandle;
         private bool _disposed = false;
@@ -342,7 +345,11 @@ namespace Godot.Collections
     /// such as arrays or <see cref="List{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the array.</typeparam>
-    public class Array<T> : IList<T>, ICollection<T>, IEnumerable<T>
+    public class Array<T> :
+        IList<T>,
+        IReadOnlyList<T>,
+        ICollection<T>,
+        IEnumerable<T>
     {
         private Array _objectArray;
 
