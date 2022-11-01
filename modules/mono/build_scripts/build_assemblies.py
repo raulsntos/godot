@@ -193,7 +193,7 @@ def run_msbuild(tools: ToolsLocation, sln: str, msbuild_args: Optional[List[str]
     return subprocess.call(args, env=msbuild_env)
 
 
-def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, float_size):
+def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, float_size, ci_build):
     target_filenames = [
         "GodotSharp.dll",
         "GodotSharp.pdb",
@@ -216,6 +216,8 @@ def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, flo
             args += ["/p:ClearNuGetLocalCache=true", "/p:PushNuGetToLocalSource=" + push_nupkgs_local]
         if float_size == "64":
             args += ["/p:GodotFloat64=true"]
+        if ci_build:
+            args += ["/p:ContinuousIntegrationBuild=true"]
 
         sln = os.path.join(module_dir, "glue/GodotSharp/GodotSharp.sln")
         exit_code = run_msbuild(
@@ -303,12 +305,12 @@ def generate_sdk_package_versions():
         f.close()
 
 
-def build_all(msbuild_tool, module_dir, output_dir, godot_platform, dev_debug, push_nupkgs_local, float_size):
+def build_all(msbuild_tool, module_dir, output_dir, godot_platform, dev_debug, push_nupkgs_local, float_size, ci_build):
     # Generate SdkPackageVersions.props
     generate_sdk_package_versions()
 
     # Godot API
-    exit_code = build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, float_size)
+    exit_code = build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, float_size, ci_build)
     if exit_code != 0:
         return exit_code
 
@@ -355,6 +357,12 @@ def main():
     parser.add_argument("--mono-prefix", type=str, default="")
     parser.add_argument("--push-nupkgs-local", type=str, default="")
     parser.add_argument("--float", type=str, default="32", choices=["32", "64"], help="Floating-point precision")
+    parser.add_argument(
+        "--ci-build",
+        action="store_true",
+        default=False,
+        help="Normalize source paths (only enable to publish to NuGet)",
+    )
 
     args = parser.parse_args()
 
@@ -379,6 +387,7 @@ def main():
         args.dev_debug,
         push_nupkgs_local,
         args.float,
+        args.ci_build,
     )
     sys.exit(exit_code)
 
