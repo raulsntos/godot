@@ -137,7 +137,7 @@ void ReplicationEditor::_pick_new_property() {
 void ReplicationEditor::_add_sync_property(String p_path) {
 	config = current->get_replication_config();
 
-	if (config.is_valid() && config->has_property(p_path)) {
+	if (config.is_valid() && config->has_replication_property(p_path)) {
 		EditorNode::get_singleton()->show_warning(TTR("Property is already being synchronized."));
 		return;
 	}
@@ -432,7 +432,7 @@ void ReplicationEditor::_update_config() {
 	if (!config.is_valid()) {
 		return;
 	}
-	TypedArray<NodePath> props = config->get_properties();
+	TypedArray<NodePath> props = config->get_replication_properties();
 	if (props.size()) {
 		drop_label->set_visible(false);
 	}

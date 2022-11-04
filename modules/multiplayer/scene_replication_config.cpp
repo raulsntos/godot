@@ -44,7 +44,7 @@ bool SceneReplicationConfig::_set(const StringName &p_name, const Variant &p_val
 			ERR_FAIL_COND_V(p_value.get_type() != Variant::NODE_PATH, false);
 			NodePath path = p_value;
 			ERR_FAIL_COND_V(path.is_empty() || path.get_subname_count() == 0, false);
-			add_property(path);
+			add_replication_property(path);
 			return true;
 		}
 		ERR_FAIL_COND_V(p_value.get_type() != Variant::BOOL, false);
@@ -101,7 +101,7 @@ void SceneReplicationConfig::_get_property_list(List<PropertyInfo> *p_list) cons
 	}
 }
 
-TypedArray<NodePath> SceneReplicationConfig::get_properties() const {
+TypedArray<NodePath> SceneReplicationConfig::get_replication_properties() const {
 	TypedArray<NodePath> paths;
 	for (const ReplicationProperty &prop : properties) {
 		paths.push_back(prop.name);
@@ -109,7 +109,7 @@ TypedArray<NodePath> SceneReplicationConfig::get_properties() const {
 	return paths;
 }
 
-void SceneReplicationConfig::add_property(const NodePath &p_path, int p_index) {
+void SceneReplicationConfig::add_replication_property(const NodePath &p_path, int p_index) {
 	ERR_FAIL_COND(properties.find(p_path));
 
 	if (p_index < 0 || p_index == properties.size()) {
@@ -128,11 +128,11 @@ void SceneReplicationConfig::add_property(const NodePath &p_path, int p_index) {
 	properties.insert_before(I, ReplicationProperty(p_path));
 }
 
-void SceneReplicationConfig::remove_property(const NodePath &p_path) {
+void SceneReplicationConfig::remove_replication_property(const NodePath &p_path) {
 	properties.erase(p_path);
 }
 
-bool SceneReplicationConfig::has_property(const NodePath &p_path) const {
+bool SceneReplicationConfig::has_replication_property(const NodePath &p_path) const {
 	for (int i = 0; i < properties.size(); i++) {
 		if (properties[i].name == p_path) {
 			return true;
@@ -193,10 +193,10 @@ void SceneReplicationConfig::property_set_sync(const NodePath &p_path, bool p_en
 }
 
 void SceneReplicationConfig::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_properties"), &SceneReplicationConfig::get_properties);
-	ClassDB::bind_method(D_METHOD("add_property", "path", "index"), &SceneReplicationConfig::add_property, DEFVAL(-1));
-	ClassDB::bind_method(D_METHOD("has_property", "path"), &SceneReplicationConfig::has_property);
-	ClassDB::bind_method(D_METHOD("remove_property", "path"), &SceneReplicationConfig::remove_property);
+	ClassDB::bind_method(D_METHOD("get_replication_properties"), &SceneReplicationConfig::get_replication_properties);
+	ClassDB::bind_method(D_METHOD("add_replication_property", "path", "index"), &SceneReplicationConfig::add_replication_property, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("has_replication_property", "path"), &SceneReplicationConfig::has_replication_property);
+	ClassDB::bind_method(D_METHOD("remove_replication_property", "path"), &SceneReplicationConfig::remove_replication_property);
 	ClassDB::bind_method(D_METHOD("property_get_index", "path"), &SceneReplicationConfig::property_get_index);
 	ClassDB::bind_method(D_METHOD("property_get_spawn", "path"), &SceneReplicationConfig::property_get_spawn);
 	ClassDB::bind_method(D_METHOD("property_set_spawn", "path", "enabled"), &SceneReplicationConfig::property_set_spawn);

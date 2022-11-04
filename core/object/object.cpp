@@ -1356,6 +1356,12 @@ Variant Object::_get_bind(const StringName &p_name) const {
 	return get(p_name);
 }
 
+bool Object::_has_property_bind(const StringName &p_name) const {
+	bool exists;
+	get(p_name, &exists);
+	return exists;
+}
+
 void Object::_set_indexed_bind(const NodePath &p_name, const Variant &p_value) {
 	set_indexed(p_name.get_as_property_path().get_subnames(), p_value);
 }
@@ -1469,6 +1475,7 @@ void Object::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_class", "class"), &Object::is_class);
 	ClassDB::bind_method(D_METHOD("set", "property", "value"), &Object::_set_bind);
 	ClassDB::bind_method(D_METHOD("get", "property"), &Object::_get_bind);
+	ClassDB::bind_method(D_METHOD("has_property", "property"), &Object::_has_property_bind);
 	ClassDB::bind_method(D_METHOD("set_indexed", "property_path", "value"), &Object::_set_indexed_bind);
 	ClassDB::bind_method(D_METHOD("get_indexed", "property_path"), &Object::_get_indexed_bind);
 	ClassDB::bind_method(D_METHOD("get_property_list"), &Object::_get_property_list_bind);
