@@ -395,7 +395,7 @@ namespace Godot
         /// <returns>A hash code for this plane.</returns>
         public override readonly int GetHashCode()
         {
-            return _normal.GetHashCode() ^ D.GetHashCode();
+            return HashCode.Combine(_normal, D);
         }
 
         /// <summary>

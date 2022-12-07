@@ -994,7 +994,7 @@ namespace Godot
         /// <returns>A hash code for this vector.</returns>
         public override readonly int GetHashCode()
         {
-            return y.GetHashCode() ^ x.GetHashCode();
+            return HashCode.Combine(x, y);
         }
 
         /// <summary>

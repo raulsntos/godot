@@ -1183,7 +1183,7 @@ namespace Godot
         /// <returns>A hash code for this color.</returns>
         public override readonly int GetHashCode()
         {
-            return r.GetHashCode() ^ g.GetHashCode() ^ b.GetHashCode() ^ a.GetHashCode();
+            return HashCode.Combine(r, g, b, a);
         }
 
         /// <summary>

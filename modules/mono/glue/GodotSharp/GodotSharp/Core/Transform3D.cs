@@ -628,7 +628,7 @@ namespace Godot
         /// <returns>A hash code for this transform.</returns>
         public override readonly int GetHashCode()
         {
-            return basis.GetHashCode() ^ origin.GetHashCode();
+            return HashCode.Combine(basis, origin);
         }
 
         /// <summary>
