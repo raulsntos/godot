@@ -244,6 +244,10 @@ namespace Godot.NativeInterop
                     return callable;
                 }
             }
+            else if (p_managed_callable.CustomCallablePtr != IntPtr.Zero)
+            {
+                return new godot_callable(p_managed_callable.CustomCallablePtr);
+            }
             else
             {
                 godot_string_name method;
@@ -267,7 +271,7 @@ namespace Godot.NativeInterop
         {
             if (NativeFuncs.godotsharp_callable_get_data_for_marshalling(p_callable,
                     out IntPtr delegateGCHandle, out IntPtr trampoline,
-                    out IntPtr godotObject, out godot_string_name name).ToBool())
+                    out IntPtr godotObject, out godot_string_name name, out IntPtr customCallablePtr).ToBool())
             {
                 if (delegateGCHandle != IntPtr.Zero)
                 {
@@ -277,6 +281,11 @@ namespace Godot.NativeInterop
                             (Delegate?)GCHandle.FromIntPtr(delegateGCHandle).Target,
                             (delegate* managed<object, NativeVariantPtrArgs, out godot_variant, void>)trampoline);
                     }
+                }
+
+                if (customCallablePtr != IntPtr.Zero)
+                {
+                    return Callable.CreateCustom(customCallablePtr);
                 }
 
                 return new Callable(

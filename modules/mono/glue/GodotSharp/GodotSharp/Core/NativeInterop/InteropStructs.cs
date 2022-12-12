@@ -665,6 +665,11 @@ namespace Godot.NativeInterop
             _objectId = objectId;
         }
 
+        internal godot_callable(IntPtr custom) : this()
+        {
+            _custom = custom;
+        }
+
         public void Dispose()
         {
             // _custom needs freeing as well

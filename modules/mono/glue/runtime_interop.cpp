@@ -459,7 +459,7 @@ void godotsharp_callable_new_with_delegate(GCHandleIntPtr p_delegate_handle, voi
 }
 
 bool godotsharp_callable_get_data_for_marshalling(const Callable *p_callable,
-		GCHandleIntPtr *r_delegate_handle, void **r_trampoline, Object **r_object, StringName *r_name) {
+		GCHandleIntPtr *r_delegate_handle, void **r_trampoline, Object **r_object, StringName *r_name, CallableCustom **r_custom) {
 	if (p_callable->is_custom()) {
 		CallableCustom *custom = p_callable->get_custom();
 		CallableCustom::CompareEqualFunc compare_equal_func = custom->get_compare_equal_func();
@@ -470,6 +470,7 @@ bool godotsharp_callable_get_data_for_marshalling(const Callable *p_callable,
 			*r_trampoline = managed_callable->get_trampoline();
 			*r_object = nullptr;
 			memnew_placement(r_name, StringName());
+			*r_custom = nullptr;
 			return true;
 		} else if (compare_equal_func == SignalAwaiterCallable::compare_equal_func_ptr) {
 			SignalAwaiterCallable *signal_awaiter_callable = static_cast<SignalAwaiterCallable *>(custom);
@@ -477,6 +478,7 @@ bool godotsharp_callable_get_data_for_marshalling(const Callable *p_callable,
 			*r_trampoline = nullptr;
 			*r_object = ObjectDB::get_instance(signal_awaiter_callable->get_object());
 			memnew_placement(r_name, StringName(signal_awaiter_callable->get_signal()));
+			*r_custom = nullptr;
 			return true;
 		} else if (compare_equal_func == EventSignalCallable::compare_equal_func_ptr) {
 			EventSignalCallable *event_signal_callable = static_cast<EventSignalCallable *>(custom);
@@ -484,20 +486,23 @@ bool godotsharp_callable_get_data_for_marshalling(const Callable *p_callable,
 			*r_trampoline = nullptr;
 			*r_object = ObjectDB::get_instance(event_signal_callable->get_object());
 			memnew_placement(r_name, StringName(event_signal_callable->get_signal()));
+			*r_custom = nullptr;
 			return true;
 		}
 
-		// Some other CallableCustom. We only support ManagedCallable.
+		// Some other CallableCustom.
 		*r_delegate_handle = { nullptr };
 		*r_trampoline = nullptr;
 		*r_object = nullptr;
 		memnew_placement(r_name, StringName());
-		return false;
+		*r_custom = custom;
+		return true;
 	} else {
 		*r_delegate_handle = { nullptr };
 		*r_trampoline = nullptr;
 		*r_object = ObjectDB::get_instance(p_callable->get_object_id());
 		memnew_placement(r_name, StringName(p_callable->get_method()));
+		*r_custom = nullptr;
 		return true;
 	}
 }
@@ -515,6 +520,14 @@ godot_variant godotsharp_callable_call(Callable *p_callable, const Variant **p_a
 
 void godotsharp_callable_call_deferred(Callable *p_callable, const Variant **p_args, const int32_t p_arg_count) {
 	p_callable->call_deferredp(p_args, p_arg_count);
+}
+
+void godotsharp_callable_bind(Callable *p_callable, const Variant **p_args, const int32_t p_arg_count, Callable *r_callable) {
+	*r_callable = p_callable->bindp(p_args, p_arg_count);
+}
+
+void godotsharp_callable_unbind(Callable *p_callable, const int32_t p_arg_count, Callable *r_callable) {
+	*r_callable = p_callable->unbind(p_arg_count);
 }
 
 godot_color godotsharp_color_from_ok_hsl(float p_h, float p_s, float p_l, float p_alpha) {
@@ -1432,6 +1445,8 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_callable_get_data_for_marshalling,
 	(void *)godotsharp_callable_call,
 	(void *)godotsharp_callable_call_deferred,
+	(void *)godotsharp_callable_bind,
+	(void *)godotsharp_callable_unbind,
 	(void *)godotsharp_color_from_ok_hsl,
 	(void *)godotsharp_method_bind_ptrcall,
 	(void *)godotsharp_method_bind_call,

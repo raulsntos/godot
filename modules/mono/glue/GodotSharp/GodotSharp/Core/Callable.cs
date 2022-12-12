@@ -32,6 +32,7 @@ namespace Godot
         private readonly StringName _method;
         private readonly Delegate _delegate;
         private readonly unsafe delegate* managed<object, NativeVariantPtrArgs, out godot_variant, void> _trampoline;
+        private readonly IntPtr _customCallablePtr;
 
         /// <summary>
         /// Object that contains the method.
@@ -47,6 +48,8 @@ namespace Godot
         /// Delegate of the method that will be called.
         /// </summary>
         public Delegate Delegate => _delegate;
+
+        internal IntPtr CustomCallablePtr => _customCallablePtr;
 
         /// <summary>
         /// Trampoline function pointer for dynamically invoking <see cref="Callable.Delegate"/>.
@@ -66,6 +69,7 @@ namespace Godot
             _method = method;
             _delegate = null;
             _trampoline = null;
+            _customCallablePtr = IntPtr.Zero;
         }
 
         private unsafe Callable(Delegate @delegate,
@@ -75,6 +79,16 @@ namespace Godot
             _method = null;
             _delegate = @delegate;
             _trampoline = trampoline;
+            _customCallablePtr = IntPtr.Zero;
+        }
+
+        private unsafe Callable(IntPtr customCallablePtr)
+        {
+            _target = null;
+            _method = null;
+            _delegate = null;
+            _trampoline = null;
+            _customCallablePtr = customCallablePtr;
         }
 
         private const int VarArgsSpanThreshold = 10;
@@ -147,6 +161,56 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns a copy of this <see cref="Callable"/> with one or more arguments bound. When called,
+        /// the bound arguments are passed <i>after</i> the arguments supplied by <see cref="Call"/>.
+        /// </summary>
+        /// <param name="args">The arguments to bind to the Callable.</param>
+        /// <returns>The bound Callable.</returns>
+        public unsafe Callable Bind(params Variant[] args)
+        {
+            using godot_callable callable = Marshaling.ConvertCallableToNative(this);
+
+            int argc = args.Length;
+
+            Span<godot_variant.movable> argsStoreSpan = argc <= VarArgsSpanThreshold ?
+                stackalloc godot_variant.movable[VarArgsSpanThreshold] :
+                new godot_variant.movable[argc];
+
+            Span<IntPtr> argsSpan = argc <= VarArgsSpanThreshold ?
+                stackalloc IntPtr[VarArgsSpanThreshold] :
+                new IntPtr[argc];
+
+            fixed (godot_variant* varargs = &MemoryMarshal.GetReference(argsStoreSpan).DangerousSelfRef)
+            fixed (IntPtr* argsPtr = &MemoryMarshal.GetReference(argsSpan))
+            {
+                for (int i = 0; i < argc; i++)
+                {
+                    varargs[i] = (godot_variant)args[i].NativeVar;
+                    argsPtr[i] = new IntPtr(&varargs[i]);
+                }
+
+                NativeFuncs.godotsharp_callable_bind(callable, (godot_variant**)argsPtr, argc, out godot_callable newCallable);
+                return Marshaling.ConvertCallableToManaged(newCallable);
+            }
+        }
+
+        /// <summary>
+        /// Returns a copy of this <see cref="Callable"/> with the arguments unbound, as defined by
+        /// <paramref name="argCount"/>. Calling the returned <see cref="Callable"/> will call the method
+        /// without the extra arguments that are supplied in the <see cref="Callable"/> on which you are
+        /// calling this method.
+        /// </summary>
+        /// <param name="argCount">The number of arguments to unbound.</param>
+        /// <returns>The unbound Callable.</returns>
+        public unsafe Callable Unbind(int argCount)
+        {
+            using godot_callable callable = Marshaling.ConvertCallableToNative(this);
+
+            NativeFuncs.godotsharp_callable_unbind(callable, argCount, out godot_callable newCallable);
+            return Marshaling.ConvertCallableToManaged(newCallable);
+        }
+
+        /// <summary>
         /// <para>
         /// Constructs a new <see cref="Callable"/> using the <paramref name="trampoline"/>
         /// function pointer to dynamically invoke the given <paramref name="delegate"/>.
@@ -199,5 +263,8 @@ namespace Godot
         public static unsafe Callable CreateWithUnsafeTrampoline(Delegate @delegate,
             delegate* managed<object, NativeVariantPtrArgs, out godot_variant, void> trampoline)
             => new(@delegate, trampoline);
+
+        internal static Callable CreateCustom(IntPtr ptr)
+            => new(ptr);
     }
 }

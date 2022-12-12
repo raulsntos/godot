@@ -145,13 +145,19 @@ namespace Godot.NativeInterop
             IntPtr p_object, out godot_callable r_callable);
 
         internal static partial godot_bool godotsharp_callable_get_data_for_marshalling(in godot_callable p_callable,
-            out IntPtr r_delegate_handle, out IntPtr r_trampoline, out IntPtr r_object, out godot_string_name r_name);
+            out IntPtr r_delegate_handle, out IntPtr r_trampoline, out IntPtr r_object, out godot_string_name r_name, out IntPtr r_custom);
 
         internal static partial godot_variant godotsharp_callable_call(in godot_callable p_callable,
             godot_variant** p_args, int p_arg_count, out godot_variant_call_error p_call_error);
 
         internal static partial void godotsharp_callable_call_deferred(in godot_callable p_callable,
             godot_variant** p_args, int p_arg_count);
+
+        internal static partial void godotsharp_callable_bind(in godot_callable p_callable,
+            godot_variant** p_args, int p_arg_count, out godot_callable r_callable);
+
+        internal static partial void godotsharp_callable_unbind(in godot_callable p_callable,
+            int p_arg_count, out godot_callable r_callable);
 
         internal static partial Color godotsharp_color_from_ok_hsl(float p_h, float p_s, float p_l, float p_alpha);
 
