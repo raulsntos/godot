@@ -18,6 +18,7 @@
   <!-- C# source generators -->
   <ItemGroup Condition=" '$(DisableImplicitGodotGeneratorReferences)' != 'true' ">
     <PackageReference Include="Godot.SourceGenerators" Version="$(PackageVersion_Godot_SourceGenerators)" />
+    <PackageReference Include="Godot.Analyzers" Version="$(PackageVersion_Godot_Analyzers)" />
   </ItemGroup>
 
   <!-- Godot API references -->

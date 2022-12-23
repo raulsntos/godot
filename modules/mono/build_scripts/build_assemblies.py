@@ -291,6 +291,7 @@ def generate_sdk_package_versions():
     <PackageVersion_GodotSharp>{0}</PackageVersion_GodotSharp>
     <PackageVersion_Godot_NET_Sdk>{0}</PackageVersion_Godot_NET_Sdk>
     <PackageVersion_Godot_SourceGenerators>{0}</PackageVersion_Godot_SourceGenerators>
+    <PackageVersion_Godot_Analyzers>{0}</PackageVersion_Godot_Analyzers>
   </PropertyGroup>
 </Project>
 """.format(

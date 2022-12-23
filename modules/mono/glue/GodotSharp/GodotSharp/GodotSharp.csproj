@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Godot.SourceGenerators.Internal\Godot.SourceGenerators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\editor\Godot.NET.Sdk\Godot.Analyzers\Godot.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <!-- Sources -->
   <ItemGroup>

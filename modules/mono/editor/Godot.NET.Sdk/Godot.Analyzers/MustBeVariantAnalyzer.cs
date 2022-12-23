@@ -109,6 +109,7 @@ namespace Godot.SourceGenerators
         /// <returns><see langword="true"/> if the type must be variant and must be analyzed.</returns>
         private bool ShouldCheckTypeArgument(SyntaxNodeAnalysisContext context, SyntaxNode parentSyntax, ISymbol parentSymbol, TypeSyntax typeArgumentSyntax, ITypeSymbol typeArgumentSymbol, int typeArgumentIndex)
         {
+            //
             var typeParamSymbol = parentSymbol switch
             {
                 IMethodSymbol methodSymbol => methodSymbol.TypeParameters[typeArgumentIndex],
