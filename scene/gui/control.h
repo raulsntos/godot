@@ -102,6 +102,7 @@ public:
 	};
 
 	enum LayoutPreset {
+		PRESET_CUSTOM = -1,
 		PRESET_TOP_LEFT,
 		PRESET_TOP_RIGHT,
 		PRESET_BOTTOM_LEFT,
@@ -282,8 +283,8 @@ private:
 	void _set_layout_mode(LayoutMode p_mode);
 	LayoutMode _get_layout_mode() const;
 	LayoutMode _get_default_layout_mode() const;
-	void _set_anchors_layout_preset(int p_preset);
-	int _get_anchors_layout_preset() const;
+	void _set_anchors_layout_preset(LayoutPreset p_preset);
+	LayoutPreset _get_anchors_layout_preset() const;
 
 	void _update_minimum_size_cache();
 	void _update_minimum_size();

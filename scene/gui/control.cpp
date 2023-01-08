@@ -106,7 +106,7 @@ void Control::_edit_set_state(const Dictionary &p_state) {
 
 	_set_layout_mode(_layout);
 	if (_layout == LayoutMode::LAYOUT_MODE_ANCHORS) {
-		_set_anchors_layout_preset((int)state["anchors_layout_preset"]);
+		_set_anchors_layout_preset((LayoutPreset)(int)state["anchors_layout_preset"]);
 	}
 
 	data.anchor[SIDE_LEFT] = anchors[0];
@@ -886,7 +886,7 @@ Control::LayoutMode Control::_get_default_layout_mode() const {
 	return LayoutMode::LAYOUT_MODE_POSITION;
 }
 
-void Control::_set_anchors_layout_preset(int p_preset) {
+void Control::_set_anchors_layout_preset(Control::LayoutPreset p_preset) {
 	bool list_changed = false;
 
 	if (data.stored_layout_mode != LayoutMode::LAYOUT_MODE_ANCHORS) {
@@ -894,7 +894,7 @@ void Control::_set_anchors_layout_preset(int p_preset) {
 		data.stored_layout_mode = LayoutMode::LAYOUT_MODE_ANCHORS;
 	}
 
-	if (p_preset == -1) {
+	if (p_preset == LayoutPreset::PRESET_CUSTOM) {
 		if (!data.stored_use_custom_anchors) {
 			data.stored_use_custom_anchors = true;
 			notify_property_list_changed();
@@ -907,12 +907,11 @@ void Control::_set_anchors_layout_preset(int p_preset) {
 		data.stored_use_custom_anchors = false;
 	}
 
-	LayoutPreset preset = (LayoutPreset)p_preset;
 	// Set correct anchors.
-	set_anchors_preset(preset);
+	set_anchors_preset(p_preset);
 
 	// Select correct preset mode.
-	switch (preset) {
+	switch (p_preset) {
 		case PRESET_TOP_LEFT:
 		case PRESET_TOP_RIGHT:
 		case PRESET_BOTTOM_LEFT:
@@ -922,7 +921,7 @@ void Control::_set_anchors_layout_preset(int p_preset) {
 		case PRESET_CENTER_RIGHT:
 		case PRESET_CENTER_BOTTOM:
 		case PRESET_CENTER:
-			set_offsets_preset(preset, LayoutPresetMode::PRESET_MODE_KEEP_SIZE);
+			set_offsets_preset(p_preset, LayoutPresetMode::PRESET_MODE_KEEP_SIZE);
 			break;
 		case PRESET_LEFT_WIDE:
 		case PRESET_TOP_WIDE:
@@ -931,22 +930,24 @@ void Control::_set_anchors_layout_preset(int p_preset) {
 		case PRESET_VCENTER_WIDE:
 		case PRESET_HCENTER_WIDE:
 		case PRESET_FULL_RECT:
-			set_offsets_preset(preset, LayoutPresetMode::PRESET_MODE_MINSIZE);
+			set_offsets_preset(p_preset, LayoutPresetMode::PRESET_MODE_MINSIZE);
 			break;
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Select correct grow directions.
-	set_grow_direction_preset(preset);
+	set_grow_direction_preset(p_preset);
 
 	if (list_changed) {
 		notify_property_list_changed();
 	}
 }
 
-int Control::_get_anchors_layout_preset() const {
+Control::LayoutPreset Control::_get_anchors_layout_preset() const {
 	// If the custom preset was selected by user, use it.
 	if (data.stored_use_custom_anchors) {
-		return -1;
+		return LayoutPreset::PRESET_CUSTOM;
 	}
 
 	// Check anchors to determine if the current state matches a preset, or not.
@@ -957,63 +958,63 @@ int Control::_get_anchors_layout_preset() const {
 	float bottom = get_anchor(SIDE_BOTTOM);
 
 	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
-		return (int)LayoutPreset::PRESET_TOP_LEFT;
+		return LayoutPreset::PRESET_TOP_LEFT;
 	}
 	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
-		return (int)LayoutPreset::PRESET_TOP_RIGHT;
+		return LayoutPreset::PRESET_TOP_RIGHT;
 	}
 	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_END && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_BOTTOM_LEFT;
+		return LayoutPreset::PRESET_BOTTOM_LEFT;
 	}
 	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_END && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_BOTTOM_RIGHT;
+		return LayoutPreset::PRESET_BOTTOM_RIGHT;
 	}
 
 	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == 0.5 && bottom == 0.5) {
-		return (int)LayoutPreset::PRESET_CENTER_LEFT;
+		return LayoutPreset::PRESET_CENTER_LEFT;
 	}
 	if (left == ANCHOR_END && right == ANCHOR_END && top == 0.5 && bottom == 0.5) {
-		return (int)LayoutPreset::PRESET_CENTER_RIGHT;
+		return LayoutPreset::PRESET_CENTER_RIGHT;
 	}
 	if (left == 0.5 && right == 0.5 && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
-		return (int)LayoutPreset::PRESET_CENTER_TOP;
+		return LayoutPreset::PRESET_CENTER_TOP;
 	}
 	if (left == 0.5 && right == 0.5 && top == ANCHOR_END && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_CENTER_BOTTOM;
+		return LayoutPreset::PRESET_CENTER_BOTTOM;
 	}
 	if (left == 0.5 && right == 0.5 && top == 0.5 && bottom == 0.5) {
-		return (int)LayoutPreset::PRESET_CENTER;
+		return LayoutPreset::PRESET_CENTER;
 	}
 
 	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_LEFT_WIDE;
+		return LayoutPreset::PRESET_LEFT_WIDE;
 	}
 	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_RIGHT_WIDE;
+		return LayoutPreset::PRESET_RIGHT_WIDE;
 	}
 	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
-		return (int)LayoutPreset::PRESET_TOP_WIDE;
+		return LayoutPreset::PRESET_TOP_WIDE;
 	}
 	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_END && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_BOTTOM_WIDE;
+		return LayoutPreset::PRESET_BOTTOM_WIDE;
 	}
 
 	if (left == 0.5 && right == 0.5 && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_VCENTER_WIDE;
+		return LayoutPreset::PRESET_VCENTER_WIDE;
 	}
 	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == 0.5 && bottom == 0.5) {
-		return (int)LayoutPreset::PRESET_HCENTER_WIDE;
+		return LayoutPreset::PRESET_HCENTER_WIDE;
 	}
 
 	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
-		return (int)LayoutPreset::PRESET_FULL_RECT;
+		return LayoutPreset::PRESET_FULL_RECT;
 	}
 
 	// Does not match any preset, return "Custom".
-	return -1;
+	return LayoutPreset::PRESET_CUSTOM;
 }
 
-void Control::set_anchors_preset(LayoutPreset p_preset, bool p_keep_offsets) {
+void Control::set_anchors_preset(Control::LayoutPreset p_preset, bool p_keep_offsets) {
 	ERR_FAIL_INDEX((int)p_preset, 16);
 
 	//Left
@@ -1042,6 +1043,9 @@ void Control::set_anchors_preset(LayoutPreset p_preset, bool p_keep_offsets) {
 		case PRESET_RIGHT_WIDE:
 			set_anchor(SIDE_LEFT, ANCHOR_END, p_keep_offsets);
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Top
@@ -1070,6 +1074,9 @@ void Control::set_anchors_preset(LayoutPreset p_preset, bool p_keep_offsets) {
 		case PRESET_BOTTOM_WIDE:
 			set_anchor(SIDE_TOP, ANCHOR_END, p_keep_offsets);
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Right
@@ -1098,6 +1105,9 @@ void Control::set_anchors_preset(LayoutPreset p_preset, bool p_keep_offsets) {
 		case PRESET_FULL_RECT:
 			set_anchor(SIDE_RIGHT, ANCHOR_END, p_keep_offsets);
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Bottom
@@ -1126,6 +1136,9 @@ void Control::set_anchors_preset(LayoutPreset p_preset, bool p_keep_offsets) {
 		case PRESET_FULL_RECT:
 			set_anchor(SIDE_BOTTOM, ANCHOR_END, p_keep_offsets);
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 }
 
@@ -1175,6 +1188,9 @@ void Control::set_offsets_preset(LayoutPreset p_preset, LayoutPresetMode p_resiz
 		case PRESET_RIGHT_WIDE:
 			data.offset[0] = x * (1.0 - data.anchor[0]) - new_size.x - p_margin + parent_rect.position.x;
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Top
@@ -1203,6 +1219,9 @@ void Control::set_offsets_preset(LayoutPreset p_preset, LayoutPresetMode p_resiz
 		case PRESET_BOTTOM_WIDE:
 			data.offset[1] = parent_rect.size.y * (1.0 - data.anchor[1]) - new_size.y - p_margin + parent_rect.position.y;
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Right
@@ -1231,6 +1250,9 @@ void Control::set_offsets_preset(LayoutPreset p_preset, LayoutPresetMode p_resiz
 		case PRESET_FULL_RECT:
 			data.offset[2] = x * (1.0 - data.anchor[2]) - p_margin + parent_rect.position.x;
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Bottom
@@ -1259,6 +1281,9 @@ void Control::set_offsets_preset(LayoutPreset p_preset, LayoutPresetMode p_resiz
 		case PRESET_FULL_RECT:
 			data.offset[3] = parent_rect.size.y * (1.0 - data.anchor[3]) - p_margin + parent_rect.position.y;
 			break;
+
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	_size_changed();
@@ -1270,6 +1295,8 @@ void Control::set_anchors_and_offsets_preset(LayoutPreset p_preset, LayoutPreset
 }
 
 void Control::set_grow_direction_preset(LayoutPreset p_preset) {
+	ERR_FAIL_INDEX((int)p_preset, 16);
+
 	// Select correct horizontal grow direction.
 	switch (p_preset) {
 		case PRESET_TOP_LEFT:
@@ -1294,6 +1321,8 @@ void Control::set_grow_direction_preset(LayoutPreset p_preset) {
 		case PRESET_FULL_RECT:
 			set_h_grow_direction(GrowDirection::GROW_DIRECTION_BOTH);
 			break;
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 
 	// Select correct vertical grow direction.
@@ -1322,6 +1351,8 @@ void Control::set_grow_direction_preset(LayoutPreset p_preset) {
 		case PRESET_FULL_RECT:
 			set_v_grow_direction(GrowDirection::GROW_DIRECTION_BOTH);
 			break;
+		case PRESET_CUSTOM:
+			break; // Unreachable.
 	}
 }
 
@@ -3335,6 +3366,11 @@ void Control::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(ANCHOR_BEGIN);
 	BIND_ENUM_CONSTANT(ANCHOR_END);
+
+	BIND_ENUM_CONSTANT(LAYOUT_MODE_POSITION);
+	BIND_ENUM_CONSTANT(LAYOUT_MODE_ANCHORS);
+	BIND_ENUM_CONSTANT(LAYOUT_MODE_CONTAINER);
+	BIND_ENUM_CONSTANT(LAYOUT_MODE_UNCONTROLLED);
 
 	BIND_ENUM_CONSTANT(LAYOUT_DIRECTION_INHERITED);
 	BIND_ENUM_CONSTANT(LAYOUT_DIRECTION_LOCALE);
