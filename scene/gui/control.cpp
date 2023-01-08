@@ -1676,7 +1676,7 @@ void Control::_clear_size_warning() {
 
 // Container sizing.
 
-void Control::set_h_size_flags(int p_flags) {
+void Control::set_h_size_flags(BitField<Control::SizeFlags> p_flags) {
 	if (data.h_size_flags == p_flags) {
 		return;
 	}
@@ -1684,11 +1684,11 @@ void Control::set_h_size_flags(int p_flags) {
 	emit_signal(SceneStringNames::get_singleton()->size_flags_changed);
 }
 
-int Control::get_h_size_flags() const {
+BitField<Control::SizeFlags> Control::get_h_size_flags() const {
 	return data.h_size_flags;
 }
 
-void Control::set_v_size_flags(int p_flags) {
+void Control::set_v_size_flags(BitField<Control::SizeFlags> p_flags) {
 	if (data.v_size_flags == p_flags) {
 		return;
 	}
@@ -1696,7 +1696,7 @@ void Control::set_v_size_flags(int p_flags) {
 	emit_signal(SceneStringNames::get_singleton()->size_flags_changed);
 }
 
-int Control::get_v_size_flags() const {
+BitField<Control::SizeFlags> Control::get_v_size_flags() const {
 	return data.v_size_flags;
 }
 
@@ -3318,12 +3318,12 @@ void Control::_bind_methods() {
 	BIND_ENUM_CONSTANT(PRESET_MODE_KEEP_HEIGHT);
 	BIND_ENUM_CONSTANT(PRESET_MODE_KEEP_SIZE);
 
-	BIND_ENUM_CONSTANT(SIZE_SHRINK_BEGIN);
-	BIND_ENUM_CONSTANT(SIZE_FILL);
-	BIND_ENUM_CONSTANT(SIZE_EXPAND);
-	BIND_ENUM_CONSTANT(SIZE_EXPAND_FILL);
-	BIND_ENUM_CONSTANT(SIZE_SHRINK_CENTER);
-	BIND_ENUM_CONSTANT(SIZE_SHRINK_END);
+	BIND_BITFIELD_FLAG(SIZE_SHRINK_BEGIN);
+	BIND_BITFIELD_FLAG(SIZE_FILL);
+	BIND_BITFIELD_FLAG(SIZE_EXPAND);
+	BIND_BITFIELD_FLAG(SIZE_EXPAND_FILL);
+	BIND_BITFIELD_FLAG(SIZE_SHRINK_CENTER);
+	BIND_BITFIELD_FLAG(SIZE_SHRINK_END);
 
 	BIND_ENUM_CONSTANT(MOUSE_FILTER_STOP);
 	BIND_ENUM_CONSTANT(MOUSE_FILTER_PASS);

@@ -470,10 +470,10 @@ public:
 
 	// Container sizing.
 
-	void set_h_size_flags(int p_flags);
-	int get_h_size_flags() const;
-	void set_v_size_flags(int p_flags);
-	int get_v_size_flags() const;
+	void set_h_size_flags(BitField<SizeFlags> p_flags);
+	BitField<SizeFlags> get_h_size_flags() const;
+	void set_v_size_flags(BitField<SizeFlags> p_flags);
+	BitField<SizeFlags> get_v_size_flags() const;
 	void set_stretch_ratio(real_t p_ratio);
 	real_t get_stretch_ratio() const;
 
