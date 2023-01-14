@@ -607,14 +607,19 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns this vector with each component snapped to the nearest multiple of <paramref name="step"/>.
-        /// This can also be used to round to an arbitrary number of decimals.
+        /// Returns a new vector with each component snapped to the nearest multiple
+        /// of the corresponding component in <paramref name="step"/>. This can also
+        /// be used to round the components to an arbitrary number of decimals.
         /// </summary>
         /// <param name="step">A vector value representing the step size to snap to.</param>
         /// <returns>The snapped vector.</returns>
         public readonly Vector2 Snapped(Vector2 step)
         {
-            return new Vector2(Mathf.Snapped(x, step.x), Mathf.Snapped(y, step.y));
+            return new Vector2
+            (
+                Mathf.Snapped(x, step.x),
+                Mathf.Snapped(y, step.y)
+            );
         }
 
         /// <summary>

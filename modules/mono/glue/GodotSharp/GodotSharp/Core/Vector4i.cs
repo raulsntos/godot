@@ -227,6 +227,24 @@ namespace Godot
             return new Vector4i(Mathf.Sign(x), Mathf.Sign(y), Mathf.Sign(z), Mathf.Sign(w));
         }
 
+        /// <summary>
+        /// Returns a new vector with each component snapped to the nearest multiple
+        /// of the corresponding component in <paramref name="step"/>. This can also
+        /// be used to round the components to an arbitrary number of decimals.
+        /// </summary>
+        /// <param name="step">A vector value representing the step size to snap to.</param>
+        /// <returns>The snapped vector.</returns>
+        public readonly Vector4i Snapped(Vector4i step)
+        {
+            return new Vector4i
+            (
+                (int)Mathf.Snapped(x, step.x),
+                (int)Mathf.Snapped(y, step.y),
+                (int)Mathf.Snapped(z, step.z),
+                (int)Mathf.Snapped(w, step.w)
+            );
+        }
+
         // Constants
         private static readonly Vector4i _zero = new Vector4i(0, 0, 0, 0);
         private static readonly Vector4i _one = new Vector4i(1, 1, 1, 1);
