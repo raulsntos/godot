@@ -43,6 +43,7 @@
 #include "core/templates/safe_refcount.h"
 #include "core/templates/vmap.h"
 #include "core/variant/callable_bind.h"
+#include "core/variant/type_info.h"
 #include "core/variant/variant.h"
 
 template <typename T>
@@ -866,7 +867,7 @@ public:
 	int get_persistent_signal_connection_count() const;
 	void get_signals_connected_to_this(List<Connection> *p_connections) const;
 
-	Error connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags = 0);
+	Error connect(const StringName &p_signal, const Callable &p_callable, BitField<ConnectFlags> p_flags = 0);
 	void disconnect(const StringName &p_signal, const Callable &p_callable);
 	bool is_connected(const StringName &p_signal, const Callable &p_callable) const;
 

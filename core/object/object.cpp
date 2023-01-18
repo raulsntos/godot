@@ -1229,7 +1229,7 @@ void Object::get_signals_connected_to_this(List<Connection> *p_connections) cons
 	}
 }
 
-Error Object::connect(const StringName &p_signal, const Callable &p_callable, uint32_t p_flags) {
+Error Object::connect(const StringName &p_signal, const Callable &p_callable, BitField<ConnectFlags> p_flags) {
 	ERR_FAIL_COND_V_MSG(p_callable.is_null(), ERR_INVALID_PARAMETER, "Cannot connect to '" + p_signal + "': the provided callable is null.");
 
 	Object *target_object = p_callable.get_object();
@@ -1263,7 +1263,7 @@ Error Object::connect(const StringName &p_signal, const Callable &p_callable, ui
 
 	//compare with the base callable, so binds can be ignored
 	if (s->slot_map.has(*target.get_base_comparator())) {
-		if (p_flags & CONNECT_REFERENCE_COUNTED) {
+		if (p_flags.has_flag(CONNECT_REFERENCE_COUNTED)) {
 			s->slot_map[*target.get_base_comparator()].reference_count++;
 			return OK;
 		} else {
@@ -1279,7 +1279,7 @@ Error Object::connect(const StringName &p_signal, const Callable &p_callable, ui
 	conn.flags = p_flags;
 	slot.conn = conn;
 	slot.cE = target_object->connections.push_back(conn);
-	if (p_flags & CONNECT_REFERENCE_COUNTED) {
+	if (p_flags.has_flag(CONNECT_REFERENCE_COUNTED)) {
 		slot.reference_count = 1;
 	}
 
