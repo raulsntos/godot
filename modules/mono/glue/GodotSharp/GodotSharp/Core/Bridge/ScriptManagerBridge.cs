@@ -143,7 +143,7 @@ namespace Godot.Bridge
                     }
                 }
 
-                var obj = (GodotObject)FormatterServices.GetUninitializedObject(scriptType);
+                var obj = (GodotObject)RuntimeHelpers.GetUninitializedObject(scriptType);
 
                 var parameters = ctor.GetParameters();
                 int paramCount = parameters.Length;
