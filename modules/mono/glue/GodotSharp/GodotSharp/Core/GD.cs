@@ -347,6 +347,24 @@ namespace Godot
             NativeFuncs.godotsharp_printt(godotStr);
         }
 
+        public static void PrintVerbose(string what)
+        {
+            if (!OS.IsStdoutVerbose())
+                return;
+
+            using var godotStr = Marshaling.ConvertStringToNative(what);
+            NativeFuncs.godotsharp_print(godotStr);
+        }
+
+        public static void PrintVerbose(ref GDPrintVerboseInterpolatedStringHandler handler)
+        {
+            if (!OS.IsStdoutVerbose())
+                return;
+
+            using var godotStr = Marshaling.ConvertStringToNative(handler.ToStringAndClear());
+            NativeFuncs.godotsharp_print(godotStr);
+        }
+
         /// <summary>
         /// Returns a random floating point value between <c>0.0</c> and <c>1.0</c> (inclusive).
         /// </summary>

@@ -85,6 +85,7 @@
     <Compile Include="Core\Extensions\PackedSceneExtensions.cs" />
     <Compile Include="Core\Extensions\ResourceLoaderExtensions.cs" />
     <Compile Include="Core\GD.cs" />
+    <Compile Include="Core\GDPrintVerboseInterpolatedStringHandler.cs" />
     <Compile Include="Core\GodotSynchronizationContext.cs" />
     <Compile Include="Core\GodotTaskScheduler.cs" />
     <Compile Include="Core\GodotTraceListener.cs" />
