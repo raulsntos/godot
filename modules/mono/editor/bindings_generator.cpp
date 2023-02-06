@@ -3011,6 +3011,14 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 				ArgumentInterface iarg;
 				iarg.name = orig_arg_name;
 
+				// Hardcode delta parameter type as real_t.
+				if ((method_info.name == "_process" || method_info.name == "_physics_process") && arginfo.name == "delta") {
+					iarg.type.cname = "real_t";
+					iarg.name = "delta";
+					imethod.add_argument(iarg);
+					continue;
+				}
+
 				if (arginfo.type == Variant::INT && arginfo.usage & (PROPERTY_USAGE_CLASS_IS_ENUM | PROPERTY_USAGE_CLASS_IS_BITFIELD)) {
 					iarg.type.cname = arginfo.class_name;
 					iarg.type.is_enum = true;
@@ -3546,6 +3554,24 @@ void BindingsGenerator::_populate_builtin_type_interfaces() {
 		itype.cs_type = itype.proxy_name;
 		itype.c_type = "double";
 		itype.c_arg_in = "&%s";
+		itype.c_type_in = itype.proxy_name;
+		itype.c_type_out = itype.proxy_name;
+		itype.c_in_vararg = "%5using godot_variant %1_in = VariantUtils.CreateFromFloat(%1);\n";
+		builtin_types.insert(itype.cname, itype);
+
+		// real_t
+		itype = TypeInterface();
+		itype.name = "real_t";
+		itype.cname = itype.name;
+		itype.proxy_name = "real_t";
+		itype.cs_type = itype.proxy_name;
+		{
+			// Even if real_t is 'float', the expected type in ptrcall is 'double'
+			itype.c_in = "%5%0 %1_in = %1;\n";
+			itype.c_out = "%5return (%0)%1;\n";
+			itype.c_type = "double";
+			itype.c_arg_in = "&%s_in";
+		}
 		itype.c_type_in = itype.proxy_name;
 		itype.c_type_out = itype.proxy_name;
 		itype.c_in_vararg = "%5using godot_variant %1_in = VariantUtils.CreateFromFloat(%1);\n";

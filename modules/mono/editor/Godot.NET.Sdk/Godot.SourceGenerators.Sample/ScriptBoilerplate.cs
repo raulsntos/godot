@@ -7,7 +7,11 @@ namespace Godot.SourceGenerators.Sample
         private NodePath _nodePath;
         private int _velocity;
 
+#if REAL_T_IS_DOUBLE
         public override void _Process(double delta)
+#else
+        public override void _Process(float delta)
+#endif
         {
             _ = delta;
 
