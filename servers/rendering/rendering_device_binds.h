@@ -363,6 +363,10 @@ public:
 		return ret;
 	}
 
+	Vector<String> get_version_list_compat_76418() const {
+		return Variant(get_version_list()).operator Vector<String>();
+	}
+
 	void set_base_error(const String &p_error) {
 		base_error = p_error;
 		emit_changed();
@@ -425,6 +429,7 @@ protected:
 		ClassDB::bind_method(D_METHOD("set_bytecode", "bytecode", "version"), &RDShaderFile::set_bytecode, DEFVAL(StringName()));
 		ClassDB::bind_method(D_METHOD("get_spirv", "version"), &RDShaderFile::get_spirv, DEFVAL(StringName()));
 		ClassDB::bind_method(D_METHOD("get_version_list"), &RDShaderFile::get_version_list);
+		ClassDB::bind_compatibility_method(D_METHOD("get_version_list"), &RDShaderFile::get_version_list_compat_76418);
 
 		ClassDB::bind_method(D_METHOD("set_base_error", "error"), &RDShaderFile::set_base_error);
 		ClassDB::bind_method(D_METHOD("get_base_error"), &RDShaderFile::get_base_error);

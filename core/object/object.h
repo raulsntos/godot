@@ -719,6 +719,7 @@ protected:
 	}
 
 	TypedArray<StringName> _get_meta_list_bind() const;
+	Vector<String> _get_meta_list_bind_compat_76418() const;
 	TypedArray<Dictionary> _get_property_list_bind() const;
 	TypedArray<Dictionary> _get_method_list_bind() const;
 

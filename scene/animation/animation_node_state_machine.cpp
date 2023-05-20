@@ -309,6 +309,10 @@ TypedArray<StringName> AnimationNodeStateMachinePlayback::_get_travel_path() con
 	return Variant(get_travel_path()).operator Array();
 }
 
+Vector<String> AnimationNodeStateMachinePlayback::_get_travel_path_compat_76418() const {
+	return Variant(get_travel_path()).operator Vector<String>();
+}
+
 float AnimationNodeStateMachinePlayback::get_current_play_pos() const {
 	return pos_current;
 }
@@ -1185,6 +1189,7 @@ void AnimationNodeStateMachinePlayback::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_current_length"), &AnimationNodeStateMachinePlayback::get_current_length);
 	ClassDB::bind_method(D_METHOD("get_fading_from_node"), &AnimationNodeStateMachinePlayback::get_fading_from_node);
 	ClassDB::bind_method(D_METHOD("get_travel_path"), &AnimationNodeStateMachinePlayback::_get_travel_path);
+	ClassDB::bind_compatibility_method(D_METHOD("get_travel_path"), &AnimationNodeStateMachinePlayback::_get_travel_path_compat_76418);
 }
 
 AnimationNodeStateMachinePlayback::AnimationNodeStateMachinePlayback() {

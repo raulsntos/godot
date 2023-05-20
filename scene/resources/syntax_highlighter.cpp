@@ -103,11 +103,16 @@ TextEdit *SyntaxHighlighter::get_text_edit() const {
 	return text_edit;
 }
 
+TextEdit *SyntaxHighlighter::get_text_edit_compat_75777() {
+	return get_text_edit();
+}
+
 void SyntaxHighlighter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_line_syntax_highlighting", "line"), &SyntaxHighlighter::get_line_syntax_highlighting);
 	ClassDB::bind_method(D_METHOD("update_cache"), &SyntaxHighlighter::update_cache);
 	ClassDB::bind_method(D_METHOD("clear_highlighting_cache"), &SyntaxHighlighter::clear_highlighting_cache);
 	ClassDB::bind_method(D_METHOD("get_text_edit"), &SyntaxHighlighter::get_text_edit);
+	ClassDB::bind_compatibility_method(D_METHOD("get_text_edit"), &SyntaxHighlighter::get_text_edit_compat_75777);
 
 	GDVIRTUAL_BIND(_get_line_syntax_highlighting, "line")
 	GDVIRTUAL_BIND(_clear_highlighting_cache)

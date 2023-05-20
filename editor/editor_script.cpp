@@ -60,6 +60,14 @@ EditorInterface *EditorScript::get_editor_interface() const {
 	return EditorInterface::get_singleton();
 }
 
+Node *EditorScript::get_scene_compat_76026() {
+	return get_scene();
+}
+
+EditorInterface *EditorScript::get_editor_interface_compat_76026() {
+	return EditorInterface::get_singleton();
+}
+
 void EditorScript::run() {
 	if (!GDVIRTUAL_CALL(_run)) {
 		EditorNode::add_io_error(TTR("Couldn't run editor script, did you forget to override the '_run' method?"));
@@ -70,6 +78,8 @@ void EditorScript::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_root_node", "node"), &EditorScript::add_root_node);
 	ClassDB::bind_method(D_METHOD("get_scene"), &EditorScript::get_scene);
 	ClassDB::bind_method(D_METHOD("get_editor_interface"), &EditorScript::get_editor_interface);
+	ClassDB::bind_compatibility_method(D_METHOD("get_scene"), &EditorScript::get_scene_compat_76026);
+	ClassDB::bind_compatibility_method(D_METHOD("get_editor_interface"), &EditorScript::get_editor_interface_compat_76026);
 
 	GDVIRTUAL_BIND(_run);
 }

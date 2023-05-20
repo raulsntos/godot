@@ -50,6 +50,8 @@ public:
 	void add_root_node(Node *p_node);
 	Node *get_scene() const;
 	EditorInterface *get_editor_interface() const;
+	Node *get_scene_compat_76026();
+	EditorInterface *get_editor_interface_compat_76026();
 
 	virtual void run();
 

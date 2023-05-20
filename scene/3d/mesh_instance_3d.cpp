@@ -326,6 +326,10 @@ void MeshInstance3D::create_multiple_convex_collisions(const Ref<MeshConvexDecom
 	}
 }
 
+void MeshInstance3D::create_multiple_convex_collisions_compat_72152() {
+	create_multiple_convex_collisions();
+}
+
 void MeshInstance3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
@@ -512,6 +516,7 @@ void MeshInstance3D::_bind_methods() {
 	ClassDB::set_method_flags("MeshInstance3D", "create_convex_collision", METHOD_FLAGS_DEFAULT);
 	ClassDB::bind_method(D_METHOD("create_multiple_convex_collisions", "settings"), &MeshInstance3D::create_multiple_convex_collisions, DEFVAL(Ref<MeshConvexDecompositionSettings>()));
 	ClassDB::set_method_flags("MeshInstance3D", "create_multiple_convex_collisions", METHOD_FLAGS_DEFAULT);
+	ClassDB::bind_compatibility_method(D_METHOD("create_multiple_convex_collisions"), &MeshInstance3D::create_multiple_convex_collisions_compat_72152);
 
 	ClassDB::bind_method(D_METHOD("get_blend_shape_count"), &MeshInstance3D::get_blend_shape_count);
 	ClassDB::bind_method(D_METHOD("find_blend_shape_by_name", "name"), &MeshInstance3D::find_blend_shape_by_name);

@@ -77,6 +77,11 @@ public:
 	EditorResourcePreview *get_resource_previewer() const;
 	EditorSelection *get_selection() const;
 	Ref<EditorSettings> get_editor_settings() const;
+	EditorFileSystem *get_resource_file_system_compat_76176();
+	EditorPaths *get_editor_paths_compat_76176();
+	EditorResourcePreview *get_resource_previewer_compat_76176();
+	EditorSelection *get_selection_compat_76176();
+	Ref<EditorSettings> get_editor_settings_compat_76176();
 
 	Vector<Ref<Texture2D>> make_mesh_previews(const Vector<Ref<Mesh>> &p_meshes, Vector<Transform3D> *p_transforms, int p_preview_size);
 
@@ -88,6 +93,9 @@ public:
 	Control *get_base_control() const;
 	VBoxContainer *get_editor_main_screen() const;
 	ScriptEditor *get_script_editor() const;
+	Control *get_base_control_compat_76176();
+	VBoxContainer *get_editor_main_screen_compat_76176();
+	ScriptEditor *get_script_editor_compat_76176();
 
 	void set_main_screen_editor(const String &p_name);
 	void set_distraction_free_mode(bool p_enter);
@@ -103,6 +111,7 @@ public:
 	// Editor docks.
 
 	FileSystemDock *get_file_system_dock() const;
+	FileSystemDock *get_file_system_dock_compat_76176();
 	void select_file(const String &p_file);
 	Vector<String> get_selected_paths() const;
 	String get_current_path() const;
@@ -122,6 +131,7 @@ public:
 
 	PackedStringArray get_open_scenes() const;
 	Node *get_edited_scene_root() const;
+	Node *get_edited_scene_root_compat_76176();
 
 	Error save_scene();
 	void save_scene_as(const String &p_scene, bool p_with_preview = true);

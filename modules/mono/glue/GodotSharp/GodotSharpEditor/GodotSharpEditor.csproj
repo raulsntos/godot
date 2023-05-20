@@ -34,6 +34,11 @@
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
+  <!-- Check API for breaking compatibility changes -->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>4.0.0</PackageValidationBaselineVersion>
+  </PropertyGroup>
   <!--
   We import a props file with auto-generated includes. This works well with Rider.
   However, Visual Studio and MonoDevelop won't list them in the solution explorer.

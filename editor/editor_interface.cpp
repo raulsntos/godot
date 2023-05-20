@@ -79,6 +79,26 @@ Ref<EditorSettings> EditorInterface::get_editor_settings() const {
 	return EditorSettings::get_singleton();
 }
 
+EditorFileSystem *EditorInterface::get_resource_file_system_compat_76176() {
+	return get_resource_file_system();
+}
+
+EditorPaths *EditorInterface::get_editor_paths_compat_76176() {
+	return get_editor_paths();
+}
+
+EditorResourcePreview *EditorInterface::get_resource_previewer_compat_76176() {
+	return get_resource_previewer();
+}
+
+EditorSelection *EditorInterface::get_selection_compat_76176() {
+	return get_selection();
+}
+
+Ref<EditorSettings> EditorInterface::get_editor_settings_compat_76176() {
+	return get_editor_settings();
+}
+
 TypedArray<Texture2D> EditorInterface::_make_mesh_previews(const TypedArray<Mesh> &p_meshes, int p_preview_size) {
 	Vector<Ref<Mesh>> meshes;
 
@@ -206,6 +226,18 @@ ScriptEditor *EditorInterface::get_script_editor() const {
 	return ScriptEditor::get_singleton();
 }
 
+Control *EditorInterface::get_base_control_compat_76176() {
+	return get_base_control();
+}
+
+VBoxContainer *EditorInterface::get_editor_main_screen_compat_76176() {
+	return get_editor_main_screen();
+}
+
+ScriptEditor *EditorInterface::get_script_editor_compat_76176() {
+	return get_script_editor();
+}
+
 void EditorInterface::set_main_screen_editor(const String &p_name) {
 	EditorNode::get_singleton()->select_editor_by_name(p_name);
 }
@@ -242,6 +274,10 @@ void EditorInterface::popup_dialog_centered_clamped(Window *p_dialog, const Size
 
 FileSystemDock *EditorInterface::get_file_system_dock() const {
 	return FileSystemDock::get_singleton();
+}
+
+FileSystemDock *EditorInterface::get_file_system_dock_compat_76176() {
+	return get_file_system_dock();
 }
 
 void EditorInterface::select_file(const String &p_file) {
@@ -300,6 +336,10 @@ void EditorInterface::reload_scene_from_path(const String &scene_path) {
 
 Node *EditorInterface::get_edited_scene_root() const {
 	return EditorNode::get_singleton()->get_edited_scene();
+}
+
+Node *EditorInterface::get_edited_scene_root_compat_76176() {
+	return get_edited_scene_root();
 }
 
 PackedStringArray EditorInterface::get_open_scenes() const {
@@ -379,6 +419,11 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_resource_previewer"), &EditorInterface::get_resource_previewer);
 	ClassDB::bind_method(D_METHOD("get_selection"), &EditorInterface::get_selection);
 	ClassDB::bind_method(D_METHOD("get_editor_settings"), &EditorInterface::get_editor_settings);
+	ClassDB::bind_compatibility_method(D_METHOD("get_resource_filesystem"), &EditorInterface::get_resource_file_system_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_editor_paths"), &EditorInterface::get_editor_paths_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_resource_previewer"), &EditorInterface::get_resource_previewer_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_selection"), &EditorInterface::get_selection_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_editor_settings"), &EditorInterface::get_editor_settings_compat_76176);
 
 	ClassDB::bind_method(D_METHOD("make_mesh_previews", "meshes", "preview_size"), &EditorInterface::_make_mesh_previews);
 
@@ -390,6 +435,9 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_base_control"), &EditorInterface::get_base_control);
 	ClassDB::bind_method(D_METHOD("get_editor_main_screen"), &EditorInterface::get_editor_main_screen);
 	ClassDB::bind_method(D_METHOD("get_script_editor"), &EditorInterface::get_script_editor);
+	ClassDB::bind_compatibility_method(D_METHOD("get_base_control"), &EditorInterface::get_base_control_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_editor_main_screen"), &EditorInterface::get_editor_main_screen_compat_76176);
+	ClassDB::bind_compatibility_method(D_METHOD("get_script_editor"), &EditorInterface::get_script_editor_compat_76176);
 
 	ClassDB::bind_method(D_METHOD("set_main_screen_editor", "name"), &EditorInterface::set_main_screen_editor);
 	ClassDB::bind_method(D_METHOD("set_distraction_free_mode", "enter"), &EditorInterface::set_distraction_free_mode);
@@ -407,6 +455,7 @@ void EditorInterface::_bind_methods() {
 	// Editor docks.
 
 	ClassDB::bind_method(D_METHOD("get_file_system_dock"), &EditorInterface::get_file_system_dock);
+	ClassDB::bind_compatibility_method(D_METHOD("get_file_system_dock"), &EditorInterface::get_file_system_dock_compat_76176);
 	ClassDB::bind_method(D_METHOD("select_file", "file"), &EditorInterface::select_file);
 	ClassDB::bind_method(D_METHOD("get_selected_paths"), &EditorInterface::get_selected_paths);
 	ClassDB::bind_method(D_METHOD("get_current_path"), &EditorInterface::get_current_path);
@@ -426,6 +475,7 @@ void EditorInterface::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_open_scenes"), &EditorInterface::get_open_scenes);
 	ClassDB::bind_method(D_METHOD("get_edited_scene_root"), &EditorInterface::get_edited_scene_root);
+	ClassDB::bind_compatibility_method(D_METHOD("get_edited_scene_root"), &EditorInterface::get_edited_scene_root_compat_76176);
 
 	ClassDB::bind_method(D_METHOD("save_scene"), &EditorInterface::save_scene);
 	ClassDB::bind_method(D_METHOD("save_scene_as", "path", "with_preview"), &EditorInterface::save_scene_as, DEFVAL(true));

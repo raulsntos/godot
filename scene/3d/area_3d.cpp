@@ -132,6 +132,14 @@ int Area3D::get_priority() const {
 	return priority;
 }
 
+void Area3D::set_priority_compat_72749(float p_priority) {
+	set_priority(p_priority);
+}
+
+float Area3D::get_priority_compat_72749() const {
+	return get_priority();
+}
+
 void Area3D::set_wind_force_magnitude(real_t p_wind_force_magnitude) {
 	wind_force_magnitude = p_wind_force_magnitude;
 	if (is_inside_tree()) {
@@ -681,6 +689,8 @@ void Area3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_priority", "priority"), &Area3D::set_priority);
 	ClassDB::bind_method(D_METHOD("get_priority"), &Area3D::get_priority);
+	ClassDB::bind_compatibility_method(D_METHOD("set_priority", "priority"), &Area3D::set_priority_compat_72749);
+	ClassDB::bind_compatibility_method(D_METHOD("get_priority"), &Area3D::get_priority_compat_72749);
 
 	ClassDB::bind_method(D_METHOD("set_wind_force_magnitude", "wind_force_magnitude"), &Area3D::set_wind_force_magnitude);
 	ClassDB::bind_method(D_METHOD("get_wind_force_magnitude"), &Area3D::get_wind_force_magnitude);

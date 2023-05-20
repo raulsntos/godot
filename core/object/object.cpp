@@ -959,6 +959,10 @@ TypedArray<StringName> Object::_get_meta_list_bind() const {
 	return _metaret;
 }
 
+Vector<String> Object::_get_meta_list_bind_compat_76418() const {
+	return Variant(_get_meta_list_bind()).operator Vector<String>();
+}
+
 void Object::get_meta_list(List<StringName> *p_list) const {
 	for (const KeyValue<StringName, Variant> &K : metadata) {
 		p_list->push_back(K.key);
@@ -1521,6 +1525,7 @@ void Object::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_meta", "name", "default"), &Object::get_meta, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("has_meta", "name"), &Object::has_meta);
 	ClassDB::bind_method(D_METHOD("get_meta_list"), &Object::_get_meta_list_bind);
+	ClassDB::bind_compatibility_method(D_METHOD("get_meta_list"), &Object::_get_meta_list_bind_compat_76418);
 
 	ClassDB::bind_method(D_METHOD("add_user_signal", "signal", "arguments"), &Object::_add_user_signal, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("has_user_signal", "signal"), &Object::_has_user_signal);

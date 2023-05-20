@@ -132,6 +132,14 @@ int Area2D::get_priority() const {
 	return priority;
 }
 
+void Area2D::set_priority_compat_72749(float p_priority) {
+	set_priority(p_priority);
+}
+
+float Area2D::get_priority_compat_72749() const {
+	return get_priority();
+}
+
 void Area2D::_body_enter_tree(ObjectID p_id) {
 	Object *obj = ObjectDB::get_instance(p_id);
 	Node *node = Object::cast_to<Node>(obj);
@@ -583,6 +591,8 @@ void Area2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_priority", "priority"), &Area2D::set_priority);
 	ClassDB::bind_method(D_METHOD("get_priority"), &Area2D::get_priority);
+	ClassDB::bind_compatibility_method(D_METHOD("set_priority", "priority"), &Area2D::set_priority_compat_72749);
+	ClassDB::bind_compatibility_method(D_METHOD("get_priority"), &Area2D::get_priority_compat_72749);
 
 	ClassDB::bind_method(D_METHOD("set_monitoring", "enable"), &Area2D::set_monitoring);
 	ClassDB::bind_method(D_METHOD("is_monitoring"), &Area2D::is_monitoring);

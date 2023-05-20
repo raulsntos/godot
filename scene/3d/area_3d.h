@@ -182,6 +182,9 @@ public:
 	void set_priority(int p_priority);
 	int get_priority() const;
 
+	void set_priority_compat_72749(float p_priority);
+	float get_priority_compat_72749() const;
+
 	void set_wind_force_magnitude(real_t p_wind_force_magnitude);
 	real_t get_wind_force_magnitude() const;
 

@@ -90,6 +90,7 @@ public:
 
 	Node *create_multiple_convex_collisions_node(const Ref<MeshConvexDecompositionSettings> &p_settings = Ref<MeshConvexDecompositionSettings>());
 	void create_multiple_convex_collisions(const Ref<MeshConvexDecompositionSettings> &p_settings = Ref<MeshConvexDecompositionSettings>());
+	void create_multiple_convex_collisions_compat_72152();
 
 	MeshInstance3D *create_debug_tangents_node();
 	void create_debug_tangents();

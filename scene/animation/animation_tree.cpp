@@ -187,6 +187,10 @@ double AnimationNode::blend_input(int p_input, double p_time, bool p_seek, bool 
 	return ret;
 }
 
+double AnimationNode::blend_input_compat_75759(int p_input, double p_time, bool p_seek, bool p_is_external_seeking, real_t p_blend, FilterAction p_filter, bool p_sync) {
+	return blend_input(p_input, p_time, p_seek, p_is_external_seeking, p_blend, p_filter, p_sync, false);
+}
+
 double AnimationNode::blend_node(const StringName &p_sub_path, Ref<AnimationNode> p_node, double p_time, bool p_seek, bool p_is_external_seeking, real_t p_blend, FilterAction p_filter, bool p_sync, bool p_test_only) {
 	return _blend_node(p_sub_path, Vector<StringName>(), this, p_node, p_time, p_seek, p_is_external_seeking, p_blend, p_filter, p_sync, nullptr, p_test_only);
 }
@@ -304,6 +308,10 @@ double AnimationNode::_blend_node(const StringName &p_subpath, const Vector<Stri
 		return p_node->_pre_process(new_path, new_parent, state, 0, p_seek, p_is_external_seeking, p_connections, p_test_only);
 	}
 	return p_node->_pre_process(new_path, new_parent, state, p_time, p_seek, p_is_external_seeking, p_connections, p_test_only);
+}
+
+double AnimationNode::blend_node_compat_75759(const StringName &p_sub_path, Ref<AnimationNode> p_node, double p_time, bool p_seek, bool p_is_external_seeking, real_t p_blend, FilterAction p_filter, bool p_sync) {
+	return blend_node(p_sub_path, p_node, p_time, p_seek, p_is_external_seeking, p_blend, p_filter, p_sync, false);
 }
 
 String AnimationNode::get_caption() const {
@@ -455,7 +463,9 @@ void AnimationNode::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("blend_animation", "animation", "time", "delta", "seeked", "is_external_seeking", "blend", "looped_flag"), &AnimationNode::blend_animation, DEFVAL(Animation::LOOPED_FLAG_NONE));
 	ClassDB::bind_method(D_METHOD("blend_node", "name", "node", "time", "seek", "is_external_seeking", "blend", "filter", "sync", "test_only"), &AnimationNode::blend_node, DEFVAL(FILTER_IGNORE), DEFVAL(true), DEFVAL(false));
+	ClassDB::bind_compatibility_method(D_METHOD("blend_node", "name", "node", "time", "seek", "is_external_seeking", "blend", "filter", "sync"), &AnimationNode::blend_node_compat_75759, DEFVAL(FILTER_IGNORE), DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("blend_input", "input_index", "time", "seek", "is_external_seeking", "blend", "filter", "sync", "test_only"), &AnimationNode::blend_input, DEFVAL(FILTER_IGNORE), DEFVAL(true), DEFVAL(false));
+	ClassDB::bind_compatibility_method(D_METHOD("blend_input", "input_index", "time", "seek", "is_external_seeking", "blend", "filter", "sync"), &AnimationNode::blend_input_compat_75759, DEFVAL(FILTER_IGNORE), DEFVAL(true));
 
 	ClassDB::bind_method(D_METHOD("set_parameter", "name", "value"), &AnimationNode::set_parameter);
 	ClassDB::bind_method(D_METHOD("get_parameter", "name"), &AnimationNode::get_parameter);

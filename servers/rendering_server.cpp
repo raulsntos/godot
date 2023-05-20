@@ -2721,6 +2721,7 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_add", "name", "type", "default_value"), &RenderingServer::global_shader_parameter_add);
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_remove", "name"), &RenderingServer::global_shader_parameter_remove);
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_get_list"), &RenderingServer::_global_shader_parameter_get_list);
+	ClassDB::bind_compatibility_method(D_METHOD("global_shader_parameter_get_list"), &RenderingServer::_global_shader_parameter_get_list_compat_76418);
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_set", "name", "value"), &RenderingServer::global_shader_parameter_set);
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_set_override", "name", "value"), &RenderingServer::global_shader_parameter_set_override);
 	ClassDB::bind_method(D_METHOD("global_shader_parameter_get", "name"), &RenderingServer::global_shader_parameter_get);
@@ -2867,6 +2868,10 @@ TypedArray<StringName> RenderingServer::_global_shader_parameter_get_list() cons
 		gsp[i] = gsp_sn[i];
 	}
 	return gsp;
+}
+
+Vector<String> RenderingServer::_global_shader_parameter_get_list_compat_76418() const {
+	return Variant(global_shader_parameter_get_list()).operator Vector<String>();
 }
 
 void RenderingServer::init() {

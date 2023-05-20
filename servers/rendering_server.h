@@ -58,6 +58,7 @@ class RenderingServer : public Object {
 	const Vector3 SMALL_VEC3 = Vector3(CMP_EPSILON, CMP_EPSILON, CMP_EPSILON);
 
 	virtual TypedArray<StringName> _global_shader_parameter_get_list() const;
+	Vector<String> _global_shader_parameter_get_list_compat_76418() const;
 
 protected:
 	RID _make_test_cube();
