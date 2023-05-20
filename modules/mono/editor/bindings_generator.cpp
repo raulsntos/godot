@@ -93,6 +93,7 @@ StringBuilder &operator<<(StringBuilder &r_sb, const char *p_cstring) {
 
 #define ICALL_PREFIX "godot_icall_"
 #define ICALL_CLASSDB_GET_METHOD "ClassDB_get_method"
+#define ICALL_CLASSDB_GET_METHOD_WITH_COMPATIBILITY "ClassDB_get_method_with_compatibility"
 #define ICALL_CLASSDB_GET_CONSTRUCTOR "ClassDB_get_constructor"
 
 #define C_LOCAL_RET "ret"
@@ -1764,7 +1765,13 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 	}
 	output << "\n"
 		   << INDENT1 "{\n";
+	HashMap<String, StringName> method_names;
 	for (const MethodInterface &imethod : itype.methods) {
+		if (method_names.has(imethod.proxy_name)) {
+			ERR_FAIL_COND_V_MSG(method_names[imethod.proxy_name] != imethod.cname, ERR_BUG, "Method name '" + imethod.proxy_name + "' already exists with a different value.");
+			continue;
+		}
+		method_names[imethod.proxy_name] = imethod.cname;
 		output << INDENT2 "public static readonly StringName " << imethod.proxy_name << " = \"" << imethod.cname << "\";\n";
 	}
 	output << INDENT1 "}\n";
@@ -2082,8 +2089,10 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 				p_output << "GodotObject.";
 			}
 
-			p_output << ICALL_CLASSDB_GET_METHOD "(" BINDINGS_NATIVE_NAME_FIELD ", MethodName."
+			p_output << ICALL_CLASSDB_GET_METHOD_WITH_COMPATIBILITY "(" BINDINGS_NATIVE_NAME_FIELD ", MethodName."
 					 << p_imethod.proxy_name
+					 << ", "
+					 << itos(p_imethod.hash) << "ul"
 					 << ");\n";
 		}
 
@@ -2806,6 +2815,12 @@ bool method_has_ptr_parameter(MethodInfo p_method_info) {
 	return false;
 }
 
+struct SortMethodWithHashes {
+	_FORCE_INLINE_ bool operator()(const Pair<MethodInfo, uint32_t> &p_a, const Pair<MethodInfo, uint32_t> &p_b) const {
+		return p_a.first < p_b.first;
+	}
+};
+
 bool BindingsGenerator::_populate_object_type_interfaces() {
 	obj_types.clear();
 
@@ -2932,11 +2947,14 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 		List<MethodInfo> virtual_method_list;
 		ClassDB::get_virtual_methods(type_cname, &virtual_method_list, true);
 
-		List<MethodInfo> method_list;
-		ClassDB::get_method_list(type_cname, &method_list, true);
-		method_list.sort();
+		List<Pair<MethodInfo, uint32_t>> method_list_with_hashes;
+		ClassDB::get_method_list_with_compatibility(type_cname, &method_list_with_hashes, true);
+		method_list_with_hashes.sort_custom_inplace<SortMethodWithHashes>();
 
-		for (const MethodInfo &method_info : method_list) {
+		for (const Pair<MethodInfo, uint32_t> &E : method_list_with_hashes) {
+			const MethodInfo &method_info = E.first;
+			const uint32_t hash = E.second;
+
 			int argc = method_info.arguments.size();
 
 			if (method_info.name.is_empty()) {
@@ -2958,6 +2976,7 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 			MethodInterface imethod;
 			imethod.name = method_info.name;
 			imethod.cname = cname;
+			imethod.hash = hash;
 
 			if (method_info.flags & METHOD_FLAG_STATIC) {
 				imethod.is_static = true;
@@ -2970,7 +2989,24 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 
 			PropertyInfo return_info = method_info.return_val;
 
-			MethodBind *m = imethod.is_virtual ? nullptr : ClassDB::get_method(type_cname, method_info.name);
+			MethodBind *m = nullptr;
+
+			if (!imethod.is_virtual) {
+				bool method_exists = false;
+				bool is_deprecated = false;
+				m = ClassDB::get_method_with_compatibility(type_cname, method_info.name, hash, &method_exists, &is_deprecated);
+
+				if (unlikely(!method_exists)) {
+					ERR_FAIL_COND_V_MSG(!virtual_method_list.find(method_info), false,
+							"Missing MethodBind for non-virtual method: '" + itype.name + "." + imethod.name + "'.");
+				}
+
+				if (is_deprecated) {
+					imethod.is_deprecated = true;
+					// TODO: Where to get the deprecation message from?
+					imethod.deprecation_message = "Method is deprecated.";
+				}
+			}
 
 			imethod.is_vararg = m && m->is_vararg();
 

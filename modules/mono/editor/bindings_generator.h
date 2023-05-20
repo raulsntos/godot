@@ -130,6 +130,11 @@ class BindingsGenerator {
 		String proxy_name;
 
 		/**
+		 * Hash of the ClassDB method
+		 */
+		uint64_t hash;
+
+		/**
 		 * [TypeInterface::name] of the return type
 		 */
 		TypeReference return_type;
