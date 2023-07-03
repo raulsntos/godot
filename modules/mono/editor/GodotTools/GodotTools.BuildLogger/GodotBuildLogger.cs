@@ -3,11 +3,13 @@ using System.IO;
 using System.Security;
 using Microsoft.Build.Framework;
 
+#nullable enable
+
 namespace GodotTools.BuildLogger
 {
     public class GodotBuildLogger : ILogger
     {
-        public string Parameters { get; set; }
+        public string? Parameters { get; set; }
         public LoggerVerbosity Verbosity { get; set; }
 
         private StreamWriter _logStreamWriter;
@@ -19,7 +21,7 @@ namespace GodotTools.BuildLogger
             if (null == Parameters)
                 throw new LoggerException("Log directory parameter not specified.");
 
-            string[] parameters = Parameters.Split(new[] { ';' });
+            string[] parameters = Parameters.Split(';');
 
             string logDir = parameters[0];
 
@@ -125,7 +127,7 @@ namespace GodotTools.BuildLogger
         /// </summary>
         private void WriteLineWithSenderAndMessage(string line, BuildEventArgs e)
         {
-            if (0 == string.Compare(e.SenderName, "MSBuild", StringComparison.OrdinalIgnoreCase))
+            if (e.SenderName.Equals("MSBuild", StringComparison.OrdinalIgnoreCase))
             {
                 // Well, if the sender name is MSBuild, let's leave it out for prettiness
                 WriteLine(line + e.Message);
@@ -140,7 +142,7 @@ namespace GodotTools.BuildLogger
         {
             for (int i = _indent; i > 0; i--)
             {
-                _logStreamWriter.Write("\t");
+                _logStreamWriter.Write('\t');
             }
 
             _logStreamWriter.WriteLine(line);
