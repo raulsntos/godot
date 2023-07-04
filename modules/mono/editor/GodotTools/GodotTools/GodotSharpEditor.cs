@@ -1,14 +1,12 @@
 using Godot;
 using GodotTools.Core;
 using GodotTools.Export;
-using GodotTools.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GodotTools.Build;
 using GodotTools.Ides;
-using GodotTools.Ides.Rider;
 using GodotTools.Inspector;
 using GodotTools.Internals;
 using GodotTools.ProjectEditor;
@@ -48,7 +46,7 @@ namespace GodotTools
         private WeakRef _exportPluginWeak;
         private WeakRef _inspectorPluginWeak;
 
-        public GodotIdeManager GodotIdeManager { get; private set; }
+        public IdeManager IdeManager { get; private set; }
 
         public MSBuildPanel MSBuildPanel { get; private set; }
 
@@ -177,226 +175,11 @@ namespace GodotTools
             EditorInterface.Singleton.PopupDialogCentered(_confirmCreateSlnDialog);
         }
 
-        private static string _vsCodePath = string.Empty;
-
-        private static readonly string[] VsCodeNames =
-        {
-            "code", "code-oss", "vscode", "vscode-oss", "visual-studio-code", "visual-studio-code-oss"
-        };
-
         [UsedImplicitly]
-        public Error OpenInExternalEditor(Script script, int line, int col)
+        public Error OpenInExternalEditor(Script script, int line, int column)
         {
             var editorId = _editorSettings.GetSetting(Settings.ExternalEditor).As<ExternalEditorId>();
-
-            switch (editorId)
-            {
-                case ExternalEditorId.None:
-                    // Not an error. Tells the caller to fallback to the global external editor settings or the built-in editor.
-                    return Error.Unavailable;
-                case ExternalEditorId.CustomEditor:
-                {
-                    string file = ProjectSettings.GlobalizePath(script.ResourcePath);
-                    string project = ProjectSettings.GlobalizePath("res://");
-                    // Since ProjectSettings.GlobalizePath replaces only "res:/", leaving a trailing slash, it is removed here.
-                    project = project[..^1];
-                    var execCommand = _editorSettings.GetSetting(Settings.CustomExecPath).As<string>();
-                    var execArgs = _editorSettings.GetSetting(Settings.CustomExecPathArgs).As<string>();
-                    var args = new List<string>();
-                    var from = 0;
-                    var numChars = 0;
-                    var insideQuotes = false;
-                    var hasFileFlag = false;
-
-                    execArgs = execArgs.ReplaceN("{line}", line.ToString());
-                    execArgs = execArgs.ReplaceN("{col}", col.ToString());
-                    execArgs = execArgs.StripEdges(true, true);
-                    execArgs = execArgs.Replace("\\\\", "\\");
-
-                    for (int i = 0; i < execArgs.Length; ++i)
-                    {
-                        if ((execArgs[i] == '"' && (i == 0 || execArgs[i - 1] != '\\')) && i != execArgs.Length - 1)
-                        {
-                            if (!insideQuotes)
-                            {
-                                from++;
-                            }
-                            insideQuotes = !insideQuotes;
-                        }
-                        else if ((execArgs[i] == ' ' && !insideQuotes) || i == execArgs.Length - 1)
-                        {
-                            if (i == execArgs.Length - 1 && !insideQuotes)
-                            {
-                                numChars++;
-                            }
-
-                            var arg = execArgs.Substr(from, numChars);
-                            if (arg.Contains("{file}"))
-                            {
-                                hasFileFlag = true;
-                            }
-
-                            arg = arg.ReplaceN("{project}", project);
-                            arg = arg.ReplaceN("{file}", file);
-                            args.Add(arg);
-
-                            from = i + 1;
-                            numChars = 0;
-                        }
-                        else
-                        {
-                            numChars++;
-                        }
-                    }
-
-                    if (!hasFileFlag)
-                    {
-                        args.Add(file);
-                    }
-
-                    OS.RunProcess(execCommand, args);
-
-                    break;
-                }
-                case ExternalEditorId.VisualStudio:
-                {
-                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
-
-                    var args = new List<string>
-                    {
-                        GodotSharpDirs.ProjectSlnPath,
-                        line >= 0 ? $"{scriptPath};{line + 1};{col + 1}" : scriptPath
-                    };
-
-                    string command = Path.Combine(GodotSharpDirs.DataEditorToolsDir, "GodotTools.OpenVisualStudio.exe");
-
-                    try
-                    {
-                        if (Godot.OS.IsStdOutVerbose())
-                            Console.WriteLine(
-                                $"Running: \"{command}\" {string.Join(" ", args.Select(a => $"\"{a}\""))}");
-
-                        OS.RunProcess(command, args);
-                    }
-                    catch (Exception e)
-                    {
-                        GD.PushError(
-                            $"Error when trying to run code editor: VisualStudio. Exception message: '{e.Message}'");
-                    }
-
-                    break;
-                }
-                case ExternalEditorId.VisualStudioForMac:
-                    goto case ExternalEditorId.MonoDevelop;
-                case ExternalEditorId.Rider:
-                {
-                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
-                    RiderPathManager.OpenFile(GodotSharpDirs.ProjectSlnPath, scriptPath, line + 1, col);
-                    return Error.Ok;
-                }
-                case ExternalEditorId.MonoDevelop:
-                {
-                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
-
-                    GodotIdeManager.LaunchIdeAsync().ContinueWith(launchTask =>
-                    {
-                        var editorPick = launchTask.Result;
-                        if (line >= 0)
-                            editorPick?.SendOpenFile(scriptPath, line + 1, col);
-                        else
-                            editorPick?.SendOpenFile(scriptPath);
-                    });
-
-                    break;
-                }
-                case ExternalEditorId.VsCode:
-                {
-                    if (string.IsNullOrEmpty(_vsCodePath) || !File.Exists(_vsCodePath))
-                    {
-                        // Try to search it again if it wasn't found last time or if it was removed from its location
-                        _vsCodePath = VsCodeNames.SelectFirstNotNull(OS.PathWhich, orElse: string.Empty);
-                    }
-
-                    var args = new List<string>();
-
-                    bool macOSAppBundleInstalled = false;
-
-                    if (OS.IsMacOS)
-                    {
-                        // The package path is '/Applications/Visual Studio Code.app'
-                        const string vscodeBundleId = "com.microsoft.VSCode";
-
-                        macOSAppBundleInstalled = Internal.IsMacOSAppBundleInstalled(vscodeBundleId);
-
-                        if (macOSAppBundleInstalled)
-                        {
-                            args.Add("-b");
-                            args.Add(vscodeBundleId);
-
-                            // The reusing of existing windows made by the 'open' command might not choose a wubdiw that is
-                            // editing our folder. It's better to ask for a new window and let VSCode do the window management.
-                            args.Add("-n");
-
-                            // The open process must wait until the application finishes (which is instant in VSCode's case)
-                            args.Add("--wait-apps");
-
-                            args.Add("--args");
-                        }
-                    }
-
-                    args.Add(Path.GetDirectoryName(GodotSharpDirs.ProjectSlnPath));
-
-                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
-
-                    if (line >= 0)
-                    {
-                        args.Add("-g");
-                        args.Add($"{scriptPath}:{line + 1}:{col + 1}");
-                    }
-                    else
-                    {
-                        args.Add(scriptPath);
-                    }
-
-                    string command;
-
-                    if (OS.IsMacOS)
-                    {
-                        if (!macOSAppBundleInstalled && string.IsNullOrEmpty(_vsCodePath))
-                        {
-                            GD.PushError("Cannot find code editor: VSCode");
-                            return Error.FileNotFound;
-                        }
-
-                        command = macOSAppBundleInstalled ? "/usr/bin/open" : _vsCodePath;
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(_vsCodePath))
-                        {
-                            GD.PushError("Cannot find code editor: VSCode");
-                            return Error.FileNotFound;
-                        }
-
-                        command = _vsCodePath;
-                    }
-
-                    try
-                    {
-                        OS.RunProcess(command, args);
-                    }
-                    catch (Exception e)
-                    {
-                        GD.PushError($"Error when trying to run code editor: VSCode. Exception message: '{e.Message}'");
-                    }
-
-                    break;
-                }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return Error.Ok;
+            return IdeManager.OpenInExternalEditor(editorId, script, line, column);
         }
 
         [UsedImplicitly]
@@ -569,22 +352,22 @@ namespace GodotTools
             {
                 settingsHintStr += $",Visual Studio:{(int)ExternalEditorId.VisualStudio}" +
                                    $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
-                                   $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
+                                   $",Visual Studio Code:{(int)ExternalEditorId.VSCode}" +
                                    $",JetBrains Rider and Fleet:{(int)ExternalEditorId.Rider}" +
                                    $",Custom:{(int)ExternalEditorId.CustomEditor}";
             }
             else if (OS.IsMacOS)
             {
-                settingsHintStr += $",Visual Studio:{(int)ExternalEditorId.VisualStudioForMac}" +
+                settingsHintStr += $",Visual Studio for Mac:{(int)ExternalEditorId.VisualStudioForMac}" +
                                    $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
-                                   $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
+                                   $",Visual Studio Code:{(int)ExternalEditorId.VSCode}" +
                                    $",JetBrains Rider and Fleet:{(int)ExternalEditorId.Rider}" +
                                    $",Custom:{(int)ExternalEditorId.CustomEditor}";
             }
             else if (OS.IsUnixLike)
             {
                 settingsHintStr += $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
-                                   $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
+                                   $",Visual Studio Code:{(int)ExternalEditorId.VSCode}" +
                                    $",JetBrains Rider and Fleet:{(int)ExternalEditorId.Rider}" +
                                    $",Custom:{(int)ExternalEditorId.CustomEditor}";
             }
@@ -643,10 +426,7 @@ namespace GodotTools
             BuildManager.BuildFinished += BuildFinished;
 
             BuildManager.Initialize();
-            RiderPathManager.Initialize();
-
-            GodotIdeManager = new GodotIdeManager();
-            AddChild(GodotIdeManager);
+            IdeManager = new IdeManager();
         }
 
         public override void _DisablePlugin()
@@ -699,7 +479,7 @@ namespace GodotTools
                     _inspectorPluginWeak.Dispose();
                 }
 
-                GodotIdeManager?.Dispose();
+                IdeManager.Dispose();
             }
 
             base.Dispose(disposing);
@@ -712,6 +492,7 @@ namespace GodotTools
         public void OnAfterDeserialize()
         {
             Instance = this;
+            IdeManager = new IdeManager();
         }
 
         // Singleton

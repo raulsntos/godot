@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+
+#nullable enable
 
 namespace GodotTools.Utils
 {
     public static class CollectionExtensions
     {
-        public static T SelectFirstNotNull<T>(this IEnumerable<T> enumerable, Func<T, T> predicate, T orElse = null)
-            where T : class
+        [return: NotNullIfNotNull(nameof(orElse))]
+        public static TResult? SelectFirstNotNull<TSource, TResult>(this IEnumerable<TSource> enumerable, Func<TSource, TResult?> predicate, TResult? orElse = null)
+            where TResult : class
         {
-            foreach (T elem in enumerable)
+            foreach (TSource elem in enumerable)
             {
-                T result = predicate(elem);
+                TResult? result = predicate(elem);
                 if (result != null)
                     return result;
             }
@@ -21,7 +25,7 @@ namespace GodotTools.Utils
 
         public static IEnumerable<string> EnumerateLines(this TextReader textReader)
         {
-            string line;
+            string? line;
             while ((line = textReader.ReadLine()) != null)
                 yield return line;
         }

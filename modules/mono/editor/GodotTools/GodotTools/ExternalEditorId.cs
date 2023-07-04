@@ -3,11 +3,11 @@ namespace GodotTools
     public enum ExternalEditorId : long
     {
         None,
-        VisualStudio, // TODO (Windows-only)
-        VisualStudioForMac, // Mac-only
+        VisualStudio, // Windows-only.
+        VisualStudioForMac, // MacOS-only.
         MonoDevelop,
-        VsCode,
+        VSCode,
         Rider,
-        CustomEditor
+        CustomEditor,
     }
 }
