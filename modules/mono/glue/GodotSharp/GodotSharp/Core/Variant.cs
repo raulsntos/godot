@@ -74,10 +74,10 @@ public partial struct Variant : IDisposable
                 _disposer = null;
                 break;
             default:
-            {
-                _disposer = new Disposer(NativeVar);
-                break;
-            }
+                {
+                    _disposer = new Disposer(NativeVar);
+                    break;
+                }
         }
     }
 
@@ -563,6 +563,9 @@ public partial struct Variant : IDisposable
     public static Variant CreateFrom(string from) => from;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Variant CreateFrom(Enum from) => from;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Variant CreateFrom(Vector2 from) => from;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -734,6 +737,10 @@ public partial struct Variant : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Variant(string from) =>
         CreateTakingOwnershipOfDisposableValue(VariantUtils.CreateFromString(from));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Variant(Enum from) =>
+        (Variant)Convert.ToInt64(from);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Variant(Vector2 from) =>
