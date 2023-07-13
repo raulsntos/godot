@@ -121,6 +121,7 @@ void CSharpLanguage::init() {
 #ifdef TOOLS_ENABLED
 	GLOBAL_DEF("dotnet/project/solution_directory", "");
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "dotnet/project/assembly_reload_attempts", PROPERTY_HINT_RANGE, "1,16,1,or_greater"), 3);
+	GLOBAL_DEF("dotnet/globalization/sync_culture", false);
 #endif
 
 	gdmono = memnew(GDMono);

@@ -84,6 +84,7 @@ void Translation::set_locale(const String &p_locale) {
 
 	if (OS::get_singleton()->get_main_loop() && TranslationServer::get_singleton()->get_loaded_locales().has(get_locale())) {
 		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_TRANSLATION_CHANGED);
+		emit_signal("locale_changed", locale);
 	}
 }
 
@@ -513,6 +514,7 @@ void TranslationServer::set_locale(const String &p_locale) {
 
 	if (OS::get_singleton()->get_main_loop()) {
 		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_TRANSLATION_CHANGED);
+		emit_signal("locale_changed", locale);
 	}
 
 	ResourceLoader::reload_translation_remaps();
@@ -1003,6 +1005,8 @@ void TranslationServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("reload_pseudolocalization"), &TranslationServer::reload_pseudolocalization);
 	ClassDB::bind_method(D_METHOD("pseudolocalize", "message"), &TranslationServer::pseudolocalize);
 	ADD_PROPERTY(PropertyInfo(Variant::Type::BOOL, "pseudolocalization_enabled"), "set_pseudolocalization_enabled", "is_pseudolocalization_enabled");
+
+	ADD_SIGNAL(MethodInfo("locale_changed", PropertyInfo(Variant::Type::STRING, "locale")));
 }
 
 void TranslationServer::load_translations() {

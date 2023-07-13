@@ -166,4 +166,12 @@
 			If [code]true[/code], enables the use of pseudolocalization. See [member ProjectSettings.internationalization/pseudolocalization/use_pseudolocalization] for details.
 		</member>
 	</members>
+	<signals>
+		<signal name="locale_changed">
+			<param index="0" name="locale" type="String" />
+			<description>
+				Emitted when [member locale] changes.
+			</description>
+		</signal>
+	</signals>
 </class>

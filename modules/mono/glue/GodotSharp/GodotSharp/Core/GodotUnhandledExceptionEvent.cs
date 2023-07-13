@@ -23,6 +23,12 @@ namespace Godot
                         ExceptionUtils.LogUnhandledException((Exception)e.ExceptionObject);
                     };
                 }
+
+                if ((bool)ProjectSettings.GetSetting("dotnet/globalization/sync_culture"))
+                {
+                    TranslationServer.LocaleChanged += CultureUtils.UpdateCurrentCulture;
+                    CultureUtils.UpdateCurrentCulture(TranslationServer.GetLocale());
+                }
             }
             catch (Exception e)
             {
