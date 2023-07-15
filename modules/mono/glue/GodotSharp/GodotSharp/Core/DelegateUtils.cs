@@ -510,8 +510,11 @@ namespace Godot
                 parameterTypes[i] = parameterType;
             }
 
+                // TODO: Suppressing invalid warning, remove when issue is fixed (https://github.com/DotNetAnalyzers/ReflectionAnalyzers/issues/209)
+#pragma warning disable REFL045 // These flags are insufficient to match any members
             methodInfo = declaringType.GetMethod(methodName, (BindingFlags)flags, null, parameterTypes, null);
             return methodInfo != null && methodInfo.ReturnType == returnType;
+#pragma warning restore REFL045
         }
 
         private static Type? DeserializeType(BinaryReader reader)
@@ -837,8 +840,12 @@ namespace Godot
 
                     if (genericTypeDef == typeof(Godot.Collections.Dictionary<,>))
                     {
+
+                        // TODO: Suppressing invalid warning, remove when issue is fixed (https://github.com/DotNetAnalyzers/ReflectionAnalyzers/issues/209)
+#pragma warning disable REFL045 // These flags are insufficient to match any members
                         var ctor = type.GetConstructor(BindingFlags.Default,
                             new[] { typeof(Godot.Collections.Dictionary) });
+#pragma warning restore REFL045
 
                         if (ctor == null)
                             throw new InvalidOperationException("Dictionary constructor not found");
@@ -851,8 +858,11 @@ namespace Godot
 
                     if (genericTypeDef == typeof(Godot.Collections.Array<>))
                     {
+                        // TODO: Suppressing invalid warning, remove when issue is fixed (https://github.com/DotNetAnalyzers/ReflectionAnalyzers/issues/209)
+#pragma warning disable REFL045 // These flags are insufficient to match any members
                         var ctor = type.GetConstructor(BindingFlags.Default,
                             new[] { typeof(Godot.Collections.Array) });
+#pragma warning restore REFL045
 
                         if (ctor == null)
                             throw new InvalidOperationException("Array constructor not found");
