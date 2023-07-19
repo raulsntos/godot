@@ -1349,6 +1349,7 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 
 	output.append("using System;\n"); // IntPtr
 	output.append("using System.Diagnostics;\n"); // DebuggerBrowsable
+	output.append("using System.ComponentModel;\n"); // EditorBrowsable
 	output.append("using Godot.NativeInterop;\n");
 
 	output.append("\n"
@@ -1865,6 +1866,8 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 						"' from the editor API. Core API cannot have dependencies on the editor API.");
 	}
 
+	String deprecation_message;
+
 	if (p_iprop.prop_doc && p_iprop.prop_doc->description.size()) {
 		String xml_summary = bbcode_to_xml(fix_doc_description(p_iprop.prop_doc->description), &p_itype);
 		Vector<String> summary_lines = xml_summary.length() ? xml_summary.split("\n") : Vector<String>();
@@ -1882,8 +1885,18 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 		}
 
 		if (p_iprop.prop_doc->is_deprecated) {
-			p_output.append(MEMBER_BEGIN "[Obsolete(\"This property is deprecated.\")]");
+			deprecation_message = "This property is deprecated.";
 		}
+	}
+
+	if (p_iprop.is_usage_internal) {
+		p_output.append(MEMBER_BEGIN "[EditorBrowsable(EditorBrowsableState.Never)]");
+		p_output.append(MEMBER_BEGIN "[DebuggerBrowsable(DebuggerBrowsableState.Never)]");
+		deprecation_message = "This property is internal and should not be used.";
+	}
+
+	if (!deprecation_message.is_empty()) {
+		p_output.append(MEMBER_BEGIN "[Obsolete(\"" + deprecation_message + "\")]");
 	}
 
 	p_output.append(MEMBER_BEGIN "public ");
@@ -2922,6 +2935,10 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 			}
 			if (iprop.getter != StringName()) {
 				accessor_methods[iprop.getter] = iprop.cname;
+			}
+
+			if (property.usage & PROPERTY_USAGE_INTERNAL) {
+				iprop.is_usage_internal = true;
 			}
 
 			bool valid = false;

@@ -79,6 +79,14 @@ class BindingsGenerator {
 		String proxy_name;
 		int index = 0;
 
+		/**
+		 * Determines if the property has PROPERTY_USAGE_INTERNAL.
+		 * These properties should not have been exposed to scripting, but
+		 * removing them would break compatiblity so we'll only hide and
+		 * deprecate them.
+		 */
+		bool is_usage_internal = false;
+
 		StringName setter;
 		StringName getter;
 
