@@ -41,6 +41,11 @@ namespace Godot
             }
         }
 
+        /// <summary>
+        /// Cached empty StringName.
+        /// </summary>
+        public static readonly StringName Empty = "";
+
         private StringName(godot_string_name nativeValueToOwn)
         {
             NativeValue = (godot_string_name.movable)nativeValueToOwn;
