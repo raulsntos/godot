@@ -590,44 +590,53 @@ namespace Godot.Bridge
             }
         }
 
+        private static unsafe void GetScriptTypeInfo(Type scriptType, godot_csharp_type_info* outTypeInfo)
+        {
+            godot_string className = Marshaling.ConvertStringToNative(scriptType.Name);
+
+            bool isTool = scriptType.IsDefined(typeof(ToolAttribute), inherit: false);
+
+            // If the type is nested and the parent type is a tool script,
+            // consider the nested type a tool script as well.
+            if (!isTool && scriptType.IsNested)
+            {
+                isTool = scriptType.DeclaringType?.IsDefined(typeof(ToolAttribute), inherit: false) ?? false;
+            }
+
+            // Every script in the GodotTools assembly is a tool script.
+            if (!isTool && scriptType.Assembly.GetName().Name == "GodotTools")
+            {
+                isTool = true;
+            }
+
+            bool isGlobalClass = scriptType.IsDefined(typeof(GlobalClassAttribute), inherit: false);
+
+            var iconAttr = scriptType.GetCustomAttributes(inherit: false)
+                .OfType<IconAttribute>()
+                .FirstOrDefault();
+
+            godot_string iconPath = Marshaling.ConvertStringToNative(iconAttr?.Path);
+
+            outTypeInfo->ClassName = className;
+            outTypeInfo->IconPath = iconPath;
+            outTypeInfo->IsTool = isTool.ToGodotBool();
+            outTypeInfo->IsGlobalClass = isGlobalClass.ToGodotBool();
+            outTypeInfo->IsAbstract = scriptType.IsAbstract.ToGodotBool();
+            outTypeInfo->IsGenericTypeDefinition = scriptType.IsGenericTypeDefinition.ToGodotBool();
+            outTypeInfo->IsConstructedGenericType = scriptType.IsConstructedGenericType.ToGodotBool();
+        }
+
         [UnmanagedCallersOnly]
-        internal static unsafe void UpdateScriptClassInfo(IntPtr scriptPtr, godot_string* outClassName,
-            godot_bool* outTool, godot_bool* outGlobal, godot_string* outIconPath,
-            godot_array* outMethodsDest, godot_dictionary* outRpcFunctionsDest,
-            godot_dictionary* outEventSignalsDest, godot_ref* outBaseScript)
+        internal static unsafe void UpdateScriptClassInfo(IntPtr scriptPtr, godot_csharp_type_info* outTypeInfo,
+            godot_array* outMethodsDest, godot_dictionary* outRpcFunctionsDest, godot_dictionary* outEventSignalsDest, godot_ref* outBaseScript)
         {
             try
             {
                 // Performance is not critical here as this will be replaced with source generators.
                 var scriptType = _scriptTypeBiMap.GetScriptType(scriptPtr);
+                Console.WriteLine($"UpdateScriptClassInfo for {scriptType}");
 
-                *outClassName = Marshaling.ConvertStringToNative(scriptType.Name);
-
-                *outTool = scriptType.GetCustomAttributes(inherit: false)
-                    .OfType<ToolAttribute>()
-                    .Any().ToGodotBool();
-
-                if (!(*outTool).ToBool() && scriptType.IsNested)
-                {
-                    *outTool = (scriptType.DeclaringType?.GetCustomAttributes(inherit: false)
-                        .OfType<ToolAttribute>()
-                        .Any() ?? false).ToGodotBool();
-                }
-
-                if (!(*outTool).ToBool() && scriptType.Assembly.GetName().Name == "GodotTools")
-                    *outTool = godot_bool.True;
-
-                var globalAttr = scriptType.GetCustomAttributes(inherit: false)
-                    .OfType<GlobalClassAttribute>()
-                    .FirstOrDefault();
-
-                *outGlobal = (globalAttr != null).ToGodotBool();
-
-                var iconAttr = scriptType.GetCustomAttributes(inherit: false)
-                    .OfType<IconAttribute>()
-                    .FirstOrDefault();
-
-                *outIconPath = Marshaling.ConvertStringToNative(iconAttr?.Path);
+                GetScriptTypeInfo(scriptType, outTypeInfo);
 
                 // Methods
 
@@ -789,10 +798,7 @@ namespace Godot.Bridge
             catch (Exception e)
             {
                 ExceptionUtils.LogException(e);
-                *outClassName = default;
-                *outTool = godot_bool.False;
-                *outGlobal = godot_bool.False;
-                *outIconPath = default;
+                *outTypeInfo = default;
                 *outMethodsDest = NativeFuncs.godotsharp_array_new();
                 *outRpcFunctionsDest = NativeFuncs.godotsharp_dictionary_new();
                 *outEventSignalsDest = NativeFuncs.godotsharp_dictionary_new();
