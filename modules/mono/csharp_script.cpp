@@ -550,41 +550,9 @@ bool CSharpLanguage::handles_global_class_type(const String &p_type) const {
 }
 
 String CSharpLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
-	Ref<CSharpScript> scr = ResourceLoader::load(p_path, get_type());
-	if (!scr.is_valid() || !scr->valid || !scr->global_class) {
-		// Invalid script or the script is not a global class.
-		return String();
-	}
-
-	String name = scr->class_name;
-	if (unlikely(name.is_empty())) {
-		return String();
-	}
-
-	if (r_icon_path) {
-		if (scr->icon_path.is_empty() || scr->icon_path.is_absolute_path()) {
-			*r_icon_path = scr->icon_path.simplify_path();
-		} else if (scr->icon_path.is_relative_path()) {
-			*r_icon_path = p_path.get_base_dir().path_join(scr->icon_path).simplify_path();
-		}
-	}
-	if (r_base_type) {
-		bool found_global_base_script = false;
-		const CSharpScript *top = scr->base_script.ptr();
-		while (top != nullptr) {
-			if (top->global_class) {
-				*r_base_type = top->class_name;
-				found_global_base_script = true;
-				break;
-			}
-
-			top = top->base_script.ptr();
-		}
-		if (!found_global_base_script) {
-			*r_base_type = scr->get_instance_base_type();
-		}
-	}
-	return name;
+	String class_name;
+	GDMonoCache::managed_callbacks.ScriptManagerBridge_GetGlobalClassName(&p_path, r_base_type, r_icon_path, &class_name);
+	return class_name;
 }
 
 String CSharpLanguage::debug_get_error() const {

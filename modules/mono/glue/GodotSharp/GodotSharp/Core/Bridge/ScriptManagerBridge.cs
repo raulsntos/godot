@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -215,6 +216,74 @@ namespace Godot.Bridge
                 ExceptionUtils.LogException(e);
                 *outRes = default;
             }
+        }
+
+        [UnmanagedCallersOnly]
+        internal static unsafe void GetGlobalClassName(godot_string* scriptPath, godot_string* outBaseType, godot_string* outIconPath, godot_string* outClassName)
+        {
+            // This method must always return the outBaseType for every script, even if the script is
+            // not a global class. But if the script is not a global class it must return an empty
+            // outClassName string since it should not have a name.
+            string scriptPathStr = Marshaling.ConvertStringToManaged(*scriptPath);
+            Debug.Assert(!string.IsNullOrEmpty(scriptPathStr), "Script path can't be empty.");
+
+            if (!_pathTypeBiMap.TryGetScriptType(scriptPathStr, out Type? scriptType))
+            {
+                // Script at the given path does not exist, or it's not a C# type.
+                GD.PushError($"Could not find C# type for the script. Script: '{scriptPathStr}'.");
+                return;
+            }
+
+            if (outIconPath != null)
+            {
+                var iconAttr = scriptType.GetCustomAttributes(inherit: false)
+                    .OfType<IconAttribute>()
+                    .FirstOrDefault();
+
+                *outIconPath = Marshaling.ConvertStringToNative(iconAttr?.Path);
+            }
+
+            if (outBaseType != null)
+            {
+                bool foundGlobalBaseScript = false;
+
+                Type native = GodotObject.InternalGetClassNativeBase(scriptType);
+                Type? top = scriptType.BaseType;
+
+                while (top != null && top != native)
+                {
+                    if (IsGlobalClassAndCanBeInstantiated(top))
+                    {
+                        *outBaseType = Marshaling.ConvertStringToNative(top.Name);
+                        foundGlobalBaseScript = true;
+                        break;
+                    }
+
+                    top = top.BaseType;
+                }
+                if (!foundGlobalBaseScript)
+                {
+                    *outBaseType = Marshaling.ConvertStringToNative(native.Name);
+                }
+            }
+
+            if (!IsGlobalClassAndCanBeInstantiated(scriptType))
+            {
+                // Scripts that are not global classes should not have a name, and scripts that
+                // can't be instantiated can't be global classes.
+                // Return an empty string to prevent the class from being registered as a global
+                // class in the editor.
+                *outClassName = default;
+                return;
+            }
+
+            *outClassName = Marshaling.ConvertStringToNative(scriptType.Name);
+
+            static bool IsGlobalClassAndCanBeInstantiated(Type scriptType) =>
+                // Scripts that can't be instantiated can't be global classes.
+                !scriptType.IsAbstract && !scriptType.IsGenericTypeDefinition
+                // The type must have the GlobalClassAttribute to be registered as a global class.
+                && scriptType.IsDefined(typeof(GlobalClassAttribute), inherit: false);
         }
 
         [UnmanagedCallersOnly]
