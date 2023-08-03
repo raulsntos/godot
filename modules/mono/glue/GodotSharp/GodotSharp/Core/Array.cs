@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -14,6 +15,8 @@ namespace Godot.Collections
     /// interfacing with the engine. Otherwise prefer .NET collections
     /// such as <see cref="System.Array"/> or <see cref="List{T}"/>.
     /// </summary>
+    [DebuggerTypeProxy(typeof(ArrayDebugView))]
+    [DebuggerDisplay("Count = {Count}")]
     public sealed class Array :
         IList<Variant>,
         IReadOnlyList<Variant>,
@@ -999,6 +1002,8 @@ namespace Godot.Collections
     /// <typeparam name="T">The type of the array.</typeparam>
     [SuppressMessage("ReSharper", "RedundantExtendsListEntry")]
     [SuppressMessage("Naming", "CA1710", MessageId = "Identifiers should have correct suffix")]
+    [DebuggerTypeProxy(typeof(ArrayDebugView<>))]
+    [DebuggerDisplay("Count = {Count}")]
     public sealed class Array<[MustBeVariant] T> :
         IList<T>,
         IReadOnlyList<T>,

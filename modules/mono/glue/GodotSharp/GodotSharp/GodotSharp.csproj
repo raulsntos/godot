@@ -55,6 +55,7 @@
     <Compile Include="Core\Callable.generics.cs" />
     <Compile Include="Core\CustomGCHandle.cs" />
     <Compile Include="Core\Array.cs" />
+    <Compile Include="Core\ArrayDebugView.cs" />
     <Compile Include="Core\Attributes\AssemblyHasScriptsAttribute.cs" />
     <Compile Include="Core\Attributes\ExportAttribute.cs" />
     <Compile Include="Core\Attributes\ExportCategoryAttribute.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Core\DebuggingUtils.cs" />
     <Compile Include="Core\DelegateUtils.cs" />
     <Compile Include="Core\Dictionary.cs" />
+    <Compile Include="Core\DictionaryDebugView.cs" />
     <Compile Include="Core\Dispatcher.cs" />
     <Compile Include="Core\Extensions\GodotObjectExtensions.cs" />
     <Compile Include="Core\Extensions\NodeExtensions.cs" />
