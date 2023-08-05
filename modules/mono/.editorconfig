@@ -19,6 +19,9 @@ csharp_indent_case_contents_when_block = false
 #  Maybe we could disable this selectively only
 #  where it's not desired and for generated code.
 dotnet_diagnostic.CA1707.severity = none
+# CA1710: Identifiers should have correct suffix
+# Disable warning for suffixes like Attribute, Exception, Collection, etc.
+dotnet_diagnostic.CA1710.severity = none
 # CA1711: Identifiers should not have incorrect suffix
 # Disable warning for suffixes like EventHandler, Flags, Enum, etc.
 dotnet_diagnostic.CA1711.severity = none
