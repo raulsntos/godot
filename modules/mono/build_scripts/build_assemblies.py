@@ -34,46 +34,6 @@ def find_msbuild_standalone_windows():
     return None
 
 
-def find_msbuild_mono_windows(mono_prefix):
-    assert mono_prefix is not None
-
-    mono_bin_dir = os.path.join(mono_prefix, "bin")
-    msbuild_mono = os.path.join(mono_bin_dir, "msbuild.bat")
-
-    if os.path.isfile(msbuild_mono):
-        return msbuild_mono
-
-    return None
-
-
-def find_msbuild_mono_unix():
-    import sys
-
-    hint_dirs = []
-    if sys.platform == "darwin":
-        hint_dirs[:0] = [
-            "/Library/Frameworks/Mono.framework/Versions/Current/bin",
-            "/usr/local/var/homebrew/linked/mono/bin",
-        ]
-
-    for hint_dir in hint_dirs:
-        hint_path = os.path.join(hint_dir, "msbuild")
-        if os.path.isfile(hint_path):
-            return hint_path
-        elif os.path.isfile(hint_path + ".exe"):
-            return hint_path + ".exe"
-
-    for hint_dir in os.environ["PATH"].split(os.pathsep):
-        hint_dir = hint_dir.strip('"')
-        hint_path = os.path.join(hint_dir, "msbuild")
-        if os.path.isfile(hint_path) and os.access(hint_path, os.X_OK):
-            return hint_path
-        if os.path.isfile(hint_path + ".exe") and os.access(hint_path + ".exe", os.X_OK):
-            return hint_path + ".exe"
-
-    return None
-
-
 def find_msbuild_tools_path_reg():
     import subprocess
 
@@ -119,12 +79,10 @@ def find_msbuild_tools_path_reg():
 class ToolsLocation:
     dotnet_cli: str = ""
     msbuild_standalone: str = ""
-    msbuild_mono: str = ""
-    mono_bin_dir: str = ""
 
 
-def find_any_msbuild_tool(mono_prefix):
-    # Preference order: dotnet CLI > Standalone MSBuild > Mono's MSBuild
+def find_any_msbuild_tool():
+    # Preference order: dotnet CLI > Standalone MSBuild
 
     # Find dotnet CLI
     dotnet_cli = find_dotnet_cli()
@@ -137,31 +95,15 @@ def find_any_msbuild_tool(mono_prefix):
         if msbuild_standalone:
             return ToolsLocation(msbuild_standalone=msbuild_standalone)
 
-    if mono_prefix:
-        # Find Mono's MSBuild
-        if os.name == "nt":
-            msbuild_mono = find_msbuild_mono_windows(mono_prefix)
-            if msbuild_mono:
-                return ToolsLocation(msbuild_mono=msbuild_mono)
-        else:
-            msbuild_mono = find_msbuild_mono_unix()
-            if msbuild_mono:
-                return ToolsLocation(msbuild_mono=msbuild_mono)
-
     return None
 
 
 def run_msbuild(tools: ToolsLocation, sln: str, msbuild_args: Optional[List[str]] = None):
-    using_msbuild_mono = False
-
-    # Preference order: dotnet CLI > Standalone MSBuild > Mono's MSBuild
+    # Preference order: dotnet CLI > Standalone MSBuild
     if tools.dotnet_cli:
         args = [tools.dotnet_cli, "msbuild"]
     elif tools.msbuild_standalone:
         args = [tools.msbuild_standalone]
-    elif tools.msbuild_mono:
-        args = [tools.msbuild_mono]
-        using_msbuild_mono = True
     else:
         raise RuntimeError("Path to MSBuild or dotnet CLI not provided.")
 
@@ -177,18 +119,6 @@ def run_msbuild(tools: ToolsLocation, sln: str, msbuild_args: Optional[List[str]
     # Needed when running from Developer Command Prompt for VS
     if "PLATFORM" in msbuild_env:
         del msbuild_env["PLATFORM"]
-
-    if using_msbuild_mono:
-        # The (Csc/Vbc/Fsc)ToolExe environment variables are required when
-        # building with Mono's MSBuild. They must point to the batch files
-        # in Mono's bin directory to make sure they are executed with Mono.
-        msbuild_env.update(
-            {
-                "CscToolExe": os.path.join(tools.mono_bin_dir, "csc.bat"),
-                "VbcToolExe": os.path.join(tools.mono_bin_dir, "vbc.bat"),
-                "FscToolExe": os.path.join(tools.mono_bin_dir, "fsharpc.bat"),
-            }
-        )
 
     return subprocess.call(args, env=msbuild_env)
 
@@ -392,7 +322,6 @@ def main():
         help="Build GodotTools and Godot.NET.Sdk with 'Configuration=Debug'",
     )
     parser.add_argument("--godot-platform", type=str, default="")
-    parser.add_argument("--mono-prefix", type=str, default="")
     parser.add_argument("--push-nupkgs-local", type=str, default="")
     parser.add_argument(
         "--precision", type=str, default="single", choices=["single", "double"], help="Floating-point precision level"
@@ -407,7 +336,7 @@ def main():
 
     push_nupkgs_local = os.path.abspath(args.push_nupkgs_local) if args.push_nupkgs_local else None
 
-    msbuild_tool = find_any_msbuild_tool(args.mono_prefix)
+    msbuild_tool = find_any_msbuild_tool()
 
     if msbuild_tool is None:
         print("Unable to find MSBuild")
