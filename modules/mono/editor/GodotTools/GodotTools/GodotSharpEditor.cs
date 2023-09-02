@@ -185,6 +185,8 @@ namespace GodotTools
             switch (editorId)
             {
                 case ExternalEditorId.None:
+                case ExternalEditorId.VisualStudioForMac:
+                case ExternalEditorId.MonoDevelop:
                     // Not an error. Tells the caller to fallback to the global external editor settings or the built-in editor.
                     return Error.Unavailable;
                 case ExternalEditorId.CustomEditor:
@@ -275,28 +277,11 @@ namespace GodotTools
 
                     break;
                 }
-                case ExternalEditorId.VisualStudioForMac:
-                    goto case ExternalEditorId.MonoDevelop;
                 case ExternalEditorId.Rider:
                 {
                     string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
                     RiderPathManager.OpenFile(GodotSharpDirs.ProjectSlnPath, scriptPath, line + 1, col);
                     return Error.Ok;
-                }
-                case ExternalEditorId.MonoDevelop:
-                {
-                    string scriptPath = ProjectSettings.GlobalizePath(script.ResourcePath);
-
-                    GodotIdeManager.LaunchIdeAsync().ContinueWith(launchTask =>
-                    {
-                        var editorPick = launchTask.Result;
-                        if (line >= 0)
-                            editorPick?.SendOpenFile(scriptPath, line + 1, col);
-                        else
-                            editorPick?.SendOpenFile(scriptPath);
-                    });
-
-                    break;
                 }
                 case ExternalEditorId.VsCode:
                 {
@@ -537,16 +522,13 @@ namespace GodotTools
             if (OS.IsWindows)
             {
                 settingsHintStr += $",Visual Studio:{(int)ExternalEditorId.VisualStudio}" +
-                                   $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
                                    $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
                                    $",JetBrains Rider and Fleet:{(int)ExternalEditorId.Rider}" +
                                    $",Custom:{(int)ExternalEditorId.CustomEditor}";
             }
             else if (OS.IsMacOS)
             {
-                settingsHintStr += $",Visual Studio:{(int)ExternalEditorId.VisualStudioForMac}" +
-                                   $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
-                                   $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
+                settingsHintStr += $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
                                    $",JetBrains Rider and Fleet:{(int)ExternalEditorId.Rider}" +
                                    $",Custom:{(int)ExternalEditorId.CustomEditor}";
             }

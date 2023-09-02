@@ -12,9 +12,6 @@ namespace GodotTools.Ides
     {
         private MessagingServer _messagingServer;
 
-        private MonoDevelop.Instance _monoDevelInstance;
-        private MonoDevelop.Instance _vsForMacInstance;
-
         private MessagingServer GetRunningOrNewServer()
         {
             if (_messagingServer != null && !_messagingServer.IsDisposed)
@@ -108,53 +105,9 @@ namespace GodotTools.Ides
                 case ExternalEditorId.VsCode:
                 case ExternalEditorId.Rider:
                 case ExternalEditorId.CustomEditor:
-                    throw new NotSupportedException();
                 case ExternalEditorId.VisualStudioForMac:
-                    goto case ExternalEditorId.MonoDevelop;
                 case ExternalEditorId.MonoDevelop:
-                {
-                    MonoDevelop.Instance GetMonoDevelopInstance(string solutionPath)
-                    {
-                        if (Utils.OS.IsMacOS && editorId == ExternalEditorId.VisualStudioForMac)
-                        {
-                            _vsForMacInstance = (_vsForMacInstance?.IsDisposed ?? true ? null : _vsForMacInstance) ??
-                                               new MonoDevelop.Instance(solutionPath, MonoDevelop.EditorId.VisualStudioForMac);
-                            return _vsForMacInstance;
-                        }
-
-                        _monoDevelInstance = (_monoDevelInstance?.IsDisposed ?? true ? null : _monoDevelInstance) ??
-                                            new MonoDevelop.Instance(solutionPath, MonoDevelop.EditorId.MonoDevelop);
-                        return _monoDevelInstance;
-                    }
-
-                    try
-                    {
-                        var instance = GetMonoDevelopInstance(GodotSharpDirs.ProjectSlnPath);
-
-                        if (instance.IsRunning && !GetRunningOrNewServer().IsAnyConnected(editorIdentity))
-                        {
-                            // After launch we wait up to 30 seconds for the IDE to connect to our messaging server.
-                            var waitAfterLaunch = TimeSpan.FromSeconds(30);
-                            var timeSinceLaunch = DateTime.Now - instance.LaunchTime;
-                            if (timeSinceLaunch > waitAfterLaunch)
-                            {
-                                instance.Dispose();
-                                instance.Execute();
-                            }
-                        }
-                        else if (!instance.IsRunning)
-                        {
-                            instance.Execute();
-                        }
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        string editorName = editorId == ExternalEditorId.VisualStudioForMac ? "Visual Studio" : "MonoDevelop";
-                        GD.PushError($"Cannot find code editor: {editorName}");
-                    }
-
-                    break;
-                }
+                    throw new NotSupportedException();
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(editorId));
