@@ -45,8 +45,6 @@ namespace GodotTools
         // TODO Use WeakReference once we have proper serialization.
         private WeakRef _exportPluginWeak;
 
-        public GodotIdeManager GodotIdeManager { get; private set; }
-
         public MSBuildPanel MSBuildPanel { get; private set; }
 
         public bool SkipBuildBeforePlaying { get; set; } = false;
@@ -581,9 +579,6 @@ namespace GodotTools
 
             BuildManager.Initialize();
             RiderPathManager.Initialize();
-
-            GodotIdeManager = new GodotIdeManager();
-            AddChild(GodotIdeManager);
         }
 
         public override void _DisablePlugin()
@@ -618,8 +613,6 @@ namespace GodotTools
 
                     _exportPluginWeak.Dispose();
                 }
-
-                GodotIdeManager?.Dispose();
             }
 
             base.Dispose(disposing);
