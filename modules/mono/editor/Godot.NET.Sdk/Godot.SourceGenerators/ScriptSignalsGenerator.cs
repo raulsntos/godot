@@ -195,9 +195,9 @@ namespace Godot.SourceGenerators
                     .Append("' signal.\n")
                     .Append("        /// </summary>\n");
 
-                source.Append("        public new static readonly global::Godot.StringName ");
+                source.Append("        public new static global::Godot.StringName ");
                 source.Append(signalName);
-                source.Append(" = \"");
+                source.Append("{ get; } = \"");
                 source.Append(signalName);
                 source.Append("\";\n");
             }

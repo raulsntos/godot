@@ -157,9 +157,9 @@ namespace Godot.SourceGenerators
                     .Append("' method.\n")
                     .Append("        /// </summary>\n");
 
-                source.Append("        public new static readonly global::Godot.StringName ");
+                source.Append("        public new static global::Godot.StringName ");
                 source.Append(methodName);
-                source.Append(" = \"");
+                source.Append("{ get; } = \"");
                 source.Append(methodName);
                 source.Append("\";\n");
             }

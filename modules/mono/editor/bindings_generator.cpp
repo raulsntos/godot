@@ -1836,9 +1836,11 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 		output << INDENT1 "}\n";
 	}
 
-	//Generate StringName for all class members
+	// Generate StringName properties for all class members.
+
 	bool is_inherit = !itype.is_singleton && obj_types.has(itype.base_name);
-	//PropertyName
+
+	// PropertyName.
 	output << MEMBER_BEGIN "/// <summary>\n"
 		   << INDENT1 "/// Cached StringNames for the properties and fields contained in this class, for fast lookup.\n"
 		   << INDENT1 "/// </summary>\n";
@@ -1853,10 +1855,11 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 		output << INDENT2 "/// <summary>\n"
 			   << INDENT2 "/// Cached name for the '" << iprop.cname << "' property.\n"
 			   << INDENT2 "/// </summary>\n"
-			   << INDENT2 "public static readonly StringName " << iprop.proxy_name << " = \"" << iprop.cname << "\";\n";
+			   << INDENT2 "public static StringName " << iprop.proxy_name << " { get; } = \"" << iprop.cname << "\";\n";
 	}
 	output << INDENT1 "}\n";
-	//MethodName
+
+	// MethodName.
 	output << MEMBER_BEGIN "/// <summary>\n"
 		   << INDENT1 "/// Cached StringNames for the methods contained in this class, for fast lookup.\n"
 		   << INDENT1 "/// </summary>\n";
@@ -1877,10 +1880,11 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 		output << INDENT2 "/// <summary>\n"
 			   << INDENT2 "/// Cached name for the '" << imethod.cname << "' method.\n"
 			   << INDENT2 "/// </summary>\n"
-			   << INDENT2 "public static readonly StringName " << imethod.proxy_name << " = \"" << imethod.cname << "\";\n";
+			   << INDENT2 "public static StringName " << imethod.proxy_name << " { get; } = \"" << imethod.cname << "\";\n";
 	}
 	output << INDENT1 "}\n";
-	//SignalName
+
+	// SignalName.
 	output << MEMBER_BEGIN "/// <summary>\n"
 		   << INDENT1 "/// Cached StringNames for the signals contained in this class, for fast lookup.\n"
 		   << INDENT1 "/// </summary>\n";
@@ -1895,7 +1899,7 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 		output << INDENT2 "/// <summary>\n"
 			   << INDENT2 "/// Cached name for the '" << isignal.cname << "' signal.\n"
 			   << INDENT2 "/// </summary>\n"
-			   << INDENT2 "public static readonly StringName " << isignal.proxy_name << " = \"" << isignal.cname << "\";\n";
+			   << INDENT2 "public static StringName " << isignal.proxy_name << " { get; } = \"" << isignal.cname << "\";\n";
 	}
 	output << INDENT1 "}\n";
 

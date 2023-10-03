@@ -143,9 +143,9 @@ namespace Godot.SourceGenerators
                     .Append("' property.\n")
                     .Append("        /// </summary>\n");
 
-                source.Append("        public new static readonly global::Godot.StringName ");
+                source.Append("        public new static global::Godot.StringName ");
                 source.Append(propertyName);
-                source.Append(" = \"");
+                source.Append("{ get; } = \"");
                 source.Append(propertyName);
                 source.Append("\";\n");
             }
@@ -160,9 +160,9 @@ namespace Godot.SourceGenerators
                     .Append("' field.\n")
                     .Append("        /// </summary>\n");
 
-                source.Append("        public new static readonly global::Godot.StringName ");
+                source.Append("        public new static global::Godot.StringName ");
                 source.Append(fieldName);
-                source.Append(" = \"");
+                source.Append("{ get; } = \"");
                 source.Append(fieldName);
                 source.Append("\";\n");
             }
