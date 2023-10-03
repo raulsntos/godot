@@ -595,10 +595,33 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns <see langword="true"/> if the basis is conformal, meaning it
+        /// preserves angles and distance ratios, and may only be composed of
+        /// rotation and uniform scale. Returns <see langword="false"/> if the basis
+        /// has non-uniform scale or shear/skew. This can be used to validate if the
+        /// basis is non-distorted, which is important for physics and other use cases.
+        /// </summary>
+        /// <returns>Whether this basis is conformal or not.</returns>
+        public readonly bool IsConformal()
+        {
+            Vector3 x = Column0;
+            Vector3 y = Column1;
+            Vector3 z = Column2;
+            real_t xLengthSquared = x.LengthSquared();
+            real_t yLengthSquared = y.LengthSquared();
+            real_y zLengthSquared = z.LengthSquared();
+            return Mathf.IsEqualApprox(xLengthSquared, y.LengthSquared)
+                && Mathf.IsEqualApprox(xLengthSquared, z.LengthSquared)
+                && Mathf.IsZeroApprox(x.Dot(y))
+                && Mathf.IsZeroApprox(x.Dot(z))
+                && Mathf.IsZeroApprox(y.Dot(z));
+        }
+
+        /// <summary>
         /// Returns <see langword="true"/> if this basis is finite, by calling
         /// <see cref="Mathf.IsFinite(real_t)"/> on each component.
         /// </summary>
-        /// <returns>Whether this vector is finite or not.</returns>
+        /// <returns>Whether this basis is finite or not.</returns>
         public readonly bool IsFinite()
         {
             return Row0.IsFinite() && Row1.IsFinite() && Row2.IsFinite();

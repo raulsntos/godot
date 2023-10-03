@@ -231,10 +231,36 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns <see langword="true"/> if the transform's basis is conformal,
+        /// meaning it preserves angles and distance ratios, and may only be composed
+        /// of rotation and uniform scale. Returns <see langword="false"/> if the
+        /// transform's basis has non-uniform scale or shear/skew. This can be used
+        /// to validate if the transform is non-distorted, which is important for
+        /// physics and other use cases.
+        /// </summary>
+        /// <returns>Whether this transform is conformal or not.</returns>
+        public readonly bool IsConformal()
+        {
+            // Non-flipped case.
+            if (Mathf.IsEqualApprox(X.X, Y.Y) && Mathf.IsEqualApprox(X.Y, -Y.X)))
+            {
+                return true;
+            }
+
+            // Flipped case.
+            if (Mathf.IsEqualApprox(X.X, -Y.Y) && Mathf.IsEqualApprox(X.Y, Y.X)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns <see langword="true"/> if this transform is finite, by calling
         /// <see cref="Mathf.IsFinite(real_t)"/> on each component.
         /// </summary>
-        /// <returns>Whether this vector is finite or not.</returns>
+        /// <returns>Whether this transform is finite or not.</returns>
         public readonly bool IsFinite()
         {
             return X.IsFinite() && Y.IsFinite() && Origin.IsFinite();
