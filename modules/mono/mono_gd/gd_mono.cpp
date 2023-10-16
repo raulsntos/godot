@@ -257,21 +257,25 @@ using godot_plugins_initialize_fn = bool (*)(void *, GDMonoCache::ManagedCallbac
 #endif
 
 #ifdef TOOLS_ENABLED
-godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime_initialized) {
+godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime_initialized, bool &r_missing_runtime_config) {
 	godot_plugins_initialize_fn godot_plugins_initialize = nullptr;
 
 	HostFxrCharString godot_plugins_path = str_to_hostfxr(
 			GodotSharpDirs::get_api_assemblies_dir().path_join("GodotPlugins.dll"));
 
-	HostFxrCharString config_path = str_to_hostfxr(
-			GodotSharpDirs::get_api_assemblies_dir().path_join("GodotPlugins.runtimeconfig.json"));
+	String config_path_str = GodotSharpDirs::get_api_assemblies_dir().path_join("GodotPlugins.runtimeconfig.json");
+	HostFxrCharString config_path = str_to_hostfxr(config_path_str);
+
+	if (!FileAccess::exists(config_path_str)) {
+		// If the runtimeconfig is missing, we can't determine which .NET runtime version to use.
+		r_missing_runtime_config = true;
+		ERR_FAIL_V_MSG(nullptr, ".NET: Cannot initialize because runtimeconfig is missing.");
+	}
 
 	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer =
 			initialize_hostfxr_for_config(get_data(config_path));
 
 	if (load_assembly_and_get_function_pointer == nullptr) {
-		// Show a message box to the user to make the problem explicit (and explain a potential crash).
-		OS::get_singleton()->alert(TTR("Unable to load .NET runtime, no compatible version was found.\nAttempting to create/edit a project will lead to a crash.\n\nPlease install the .NET SDK 6.0 or later from https://dotnet.microsoft.com/en-us/download and restart Godot."), TTR("Failed to load .NET runtime"));
 		ERR_FAIL_V_MSG(nullptr, ".NET: Failed to load compatible .NET runtime");
 	}
 
@@ -290,7 +294,7 @@ godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime
 	return godot_plugins_initialize;
 }
 #else
-godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime_initialized) {
+godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime_initialized, bool &r_missing_runtime_config) {
 	godot_plugins_initialize_fn godot_plugins_initialize = nullptr;
 
 	String assembly_name = path::get_csharp_project_name();
@@ -350,8 +354,9 @@ godot_plugins_initialize_fn try_load_native_aot_library(void *&r_aot_dll_handle)
 
 bool GDMono::should_initialize() {
 #ifdef TOOLS_ENABLED
-	// The editor always needs to initialize the .NET module for now.
-	return true;
+	String project_assembly_name = path::get_csharp_project_name();
+	String project_csproj_path = path::join("res://", project_assembly_name + ".csproj");
+	return FileAccess::exists(project_csproj_path);
 #else
 	return OS::get_singleton()->has_feature("dotnet");
 #endif
@@ -381,7 +386,7 @@ void GDMono::initialize() {
 
 	godot_plugins_initialize_fn godot_plugins_initialize = nullptr;
 
-#if !defined(IOS_ENABLED)
+#if !defined(TOOLS_ENABLED) && !defined(IOS_ENABLED)
 	// Check that the .NET assemblies directory exists before trying to use it.
 	if (!DirAccess::exists(GodotSharpDirs::get_api_assemblies_dir())) {
 		OS::get_singleton()->alert(vformat(RTR("Unable to find the .NET assemblies directory.\nMake sure the '%s' directory exists and contains the .NET assemblies."), GodotSharpDirs::get_api_assemblies_dir()), RTR(".NET assemblies not found"));
@@ -400,14 +405,18 @@ void GDMono::initialize() {
 		}
 #else
 
-		// Show a message box to the user to make the problem explicit (and explain a potential crash).
-		OS::get_singleton()->alert(TTR("Unable to load .NET runtime, specifically hostfxr.\nAttempting to create/edit a project will lead to a crash.\n\nPlease install the .NET SDK 6.0 or later from https://dotnet.microsoft.com/en-us/download and restart Godot."), TTR("Failed to load .NET runtime"));
 		ERR_FAIL_MSG(".NET: Failed to load hostfxr");
+		failed_to_initialize_hostfxr = true;
 #endif
 	}
 
 	if (!is_native_aot) {
-		godot_plugins_initialize = initialize_hostfxr_and_godot_plugins(runtime_initialized);
+		godot_plugins_initialize = initialize_hostfxr_and_godot_plugins(runtime_initialized, missing_runtime_config);
+#ifdef TOOLS_ENABLED
+		if (!godot_plugins_initialize && !runtime_initialized) {
+			failed_to_initialize_hostfxr = true;
+		}
+#endif
 		ERR_FAIL_NULL(godot_plugins_initialize);
 	}
 
