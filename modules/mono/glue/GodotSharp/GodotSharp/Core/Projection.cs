@@ -799,24 +799,18 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Projection _zero = new Projection(
-            new Vector4(0, 0, 0, 0),
-            new Vector4(0, 0, 0, 0),
-            new Vector4(0, 0, 0, 0),
-            new Vector4(0, 0, 0, 0)
-        );
-        private static readonly Projection _identity = new Projection(
-            new Vector4(1, 0, 0, 0),
-            new Vector4(0, 1, 0, 0),
-            new Vector4(0, 0, 1, 0),
-            new Vector4(0, 0, 0, 1)
-        );
 
         /// <summary>
         /// Zero projection, a projection with all components set to <c>0</c>.
         /// </summary>
         /// <value>Equivalent to <c>new Projection(Vector4.Zero, Vector4.Zero, Vector4.Zero, Vector4.Zero)</c>.</value>
-        public static Projection Zero { get { return _zero; } }
+        public static Projection Zero => new Projection
+        (
+            new Vector4(0, 0, 0, 0),
+            new Vector4(0, 0, 0, 0),
+            new Vector4(0, 0, 0, 0),
+            new Vector4(0, 0, 0, 0)
+        );
 
         /// <summary>
         /// The identity projection, with no distortion applied.
@@ -824,7 +818,13 @@ namespace Godot
         /// Do not use <c>new Projection()</c> with no arguments in C#, because it sets all values to zero.
         /// </summary>
         /// <value>Equivalent to <c>new Projection(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 0, 0, 1))</c>.</value>
-        public static Projection Identity { get { return _identity; } }
+        public static Projection Identity => new Projection
+        (
+            new Vector4(1, 0, 0, 0),
+            new Vector4(0, 1, 0, 0),
+            new Vector4(0, 0, 1, 0),
+            new Vector4(0, 0, 0, 1)
+        );
 
         /// <summary>
         /// Constructs a projection from 4 vectors (matrix columns).

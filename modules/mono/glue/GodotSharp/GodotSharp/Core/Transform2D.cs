@@ -358,9 +358,6 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Transform2D _identity = new Transform2D(1, 0, 0, 1, 0, 0);
-        private static readonly Transform2D _flipX = new Transform2D(-1, 0, 0, 1, 0, 0);
-        private static readonly Transform2D _flipY = new Transform2D(1, 0, 0, -1, 0, 0);
 
         /// <summary>
         /// The identity transform, with no translation, rotation, or scaling applied.
@@ -368,17 +365,17 @@ namespace Godot
         /// Do not use <c>new Transform2D()</c> with no arguments in C#, because it sets all values to zero.
         /// </summary>
         /// <value>Equivalent to <c>new Transform2D(Vector2.Right, Vector2.Down, Vector2.Zero)</c>.</value>
-        public static Transform2D Identity { get { return _identity; } }
+        public static Transform2D Identity => new Transform2D(1, 0, 0, 1, 0, 0);
         /// <summary>
         /// The transform that will flip something along the X axis.
         /// </summary>
         /// <value>Equivalent to <c>new Transform2D(Vector2.Left, Vector2.Down, Vector2.Zero)</c>.</value>
-        public static Transform2D FlipX { get { return _flipX; } }
+        public static Transform2D FlipX => new Transform2D(-1, 0, 0, 1, 0, 0);
         /// <summary>
         /// The transform that will flip something along the Y axis.
         /// </summary>
         /// <value>Equivalent to <c>new Transform2D(Vector2.Right, Vector2.Up, Vector2.Zero)</c>.</value>
-        public static Transform2D FlipY { get { return _flipY; } }
+        public static Transform2D FlipY => new Transform2D(1, 0, 0, -1, 0, 0);
 
         /// <summary>
         /// Constructs a transformation matrix from 3 vectors (matrix columns).

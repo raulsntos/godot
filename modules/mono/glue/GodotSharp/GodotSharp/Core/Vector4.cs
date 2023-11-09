@@ -477,25 +477,22 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Vector4 _zero = new Vector4(0, 0, 0, 0);
-        private static readonly Vector4 _one = new Vector4(1, 1, 1, 1);
-        private static readonly Vector4 _inf = new Vector4(Mathf.Inf, Mathf.Inf, Mathf.Inf, Mathf.Inf);
 
         /// <summary>
         /// Zero vector, a vector with all components set to <c>0</c>.
         /// </summary>
         /// <value>Equivalent to <c>new Vector4(0, 0, 0, 0)</c>.</value>
-        public static Vector4 Zero { get { return _zero; } }
+        public static Vector4 Zero => new Vector4(0, 0, 0, 0);
         /// <summary>
         /// One vector, a vector with all components set to <c>1</c>.
         /// </summary>
         /// <value>Equivalent to <c>new Vector4(1, 1, 1, 1)</c>.</value>
-        public static Vector4 One { get { return _one; } }
+        public static Vector4 One => new Vector4(1, 1, 1, 1);
         /// <summary>
         /// Infinity vector, a vector with all components set to <see cref="Mathf.Inf"/>.
         /// </summary>
         /// <value>Equivalent to <c>new Vector4(Mathf.Inf, Mathf.Inf, Mathf.Inf, Mathf.Inf)</c>.</value>
-        public static Vector4 Inf { get { return _inf; } }
+        public static Vector4 Inf => new Vector4(Mathf.Inf, Mathf.Inf, Mathf.Inf, Mathf.Inf);
 
         /// <summary>
         /// Constructs a new <see cref="Vector4"/> with the given components.

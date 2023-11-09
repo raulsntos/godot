@@ -482,7 +482,6 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Quaternion _identity = new Quaternion(0, 0, 0, 1);
 
         /// <summary>
         /// The identity quaternion, representing no rotation.
@@ -490,7 +489,7 @@ namespace Godot
         /// an identity quaternion, it will not change.
         /// </summary>
         /// <value>Equivalent to <c>new Quaternion(0, 0, 0, 1)</c>.</value>
-        public static Quaternion Identity { get { return _identity; } }
+        public static Quaternion Identity => new Quaternion(0, 0, 0, 1);
 
         /// <summary>
         /// Constructs a <see cref="Quaternion"/> defined by the given values.

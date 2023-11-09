@@ -297,10 +297,6 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Transform3D _identity = new Transform3D(Basis.Identity, Vector3.Zero);
-        private static readonly Transform3D _flipX = new Transform3D(new Basis(-1, 0, 0, 0, 1, 0, 0, 0, 1), Vector3.Zero);
-        private static readonly Transform3D _flipY = new Transform3D(new Basis(1, 0, 0, 0, -1, 0, 0, 0, 1), Vector3.Zero);
-        private static readonly Transform3D _flipZ = new Transform3D(new Basis(1, 0, 0, 0, 1, 0, 0, 0, -1), Vector3.Zero);
 
         /// <summary>
         /// The identity transform, with no translation, rotation, or scaling applied.
@@ -308,22 +304,22 @@ namespace Godot
         /// Do not use <c>new Transform()</c> with no arguments in C#, because it sets all values to zero.
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Right, Vector3.Up, Vector3.Back, Vector3.Zero)</c>.</value>
-        public static Transform3D Identity { get { return _identity; } }
+        public static Transform3D Identity => new Transform3D(Basis.Identity, Vector3.Zero);
         /// <summary>
         /// The transform that will flip something along the X axis.
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Left, Vector3.Up, Vector3.Back, Vector3.Zero)</c>.</value>
-        public static Transform3D FlipX { get { return _flipX; } }
+        public static Transform3D FlipX => new Transform3D(new Basis(-1, 0, 0, 0, 1, 0, 0, 0, 1), Vector3.Zero);
         /// <summary>
         /// The transform that will flip something along the Y axis.
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Right, Vector3.Down, Vector3.Back, Vector3.Zero)</c>.</value>
-        public static Transform3D FlipY { get { return _flipY; } }
+        public static Transform3D FlipY => new Transform3D(new Basis(1, 0, 0, 0, -1, 0, 0, 0, 1), Vector3.Zero);
         /// <summary>
         /// The transform that will flip something along the Z axis.
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Right, Vector3.Up, Vector3.Forward, Vector3.Zero)</c>.</value>
-        public static Transform3D FlipZ { get { return _flipZ; } }
+        public static Transform3D FlipZ => new Transform3D(new Basis(1, 0, 0, 0, 1, 0, 0, 0, -1), Vector3.Zero);
 
         /// <summary>
         /// Constructs a transformation matrix from 4 vectors (matrix columns).

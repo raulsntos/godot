@@ -249,27 +249,24 @@ namespace Godot
         }
 
         // Constants
-        private static readonly Plane _planeYZ = new Plane(1, 0, 0, 0);
-        private static readonly Plane _planeXZ = new Plane(0, 1, 0, 0);
-        private static readonly Plane _planeXY = new Plane(0, 0, 1, 0);
 
         /// <summary>
         /// A <see cref="Plane"/> that extends in the Y and Z axes (normal vector points +X).
         /// </summary>
         /// <value>Equivalent to <c>new Plane(1, 0, 0, 0)</c>.</value>
-        public static Plane PlaneYZ { get { return _planeYZ; } }
+        public static Plane PlaneYZ => new Plane(1, 0, 0, 0);
 
         /// <summary>
         /// A <see cref="Plane"/> that extends in the X and Z axes (normal vector points +Y).
         /// </summary>
         /// <value>Equivalent to <c>new Plane(0, 1, 0, 0)</c>.</value>
-        public static Plane PlaneXZ { get { return _planeXZ; } }
+        public static Plane PlaneXZ => new Plane(0, 1, 0, 0);
 
         /// <summary>
         /// A <see cref="Plane"/> that extends in the X and Y axes (normal vector points +Z).
         /// </summary>
         /// <value>Equivalent to <c>new Plane(0, 0, 1, 0)</c>.</value>
-        public static Plane PlaneXY { get { return _planeXY; } }
+        public static Plane PlaneXY => new Plane(0, 0, 1, 0);
 
         /// <summary>
         /// Constructs a <see cref="Plane"/> from four values.
