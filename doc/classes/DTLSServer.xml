@@ -45,7 +45,7 @@
 		{
 		    private DtlsServer _dtls = new DtlsServer();
 		    private UdpServer _server = new UdpServer();
-		    private Godot.Collections.Array&lt;PacketPeerDTLS&gt; _peers = new Godot.Collections.Array&lt;PacketPeerDTLS&gt;();
+		    private Godot.Collections.Array&lt;PacketPeerDTLS&gt; _peers = [];
 
 		    public override void _Ready()
 		    {

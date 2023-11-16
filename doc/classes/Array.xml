@@ -16,7 +16,7 @@
 		print(array[-2]) # Three.
 		[/gdscript]
 		[csharp]
-		var array = new Godot.Collections.Array{"One", 2, 3, "Four"};
+		Godot.Collections.Array array = ["One", 2, 3, "Four"];
 		GD.Print(array[0]); // One.
 		GD.Print(array[2]); // 3.
 		GD.Print(array[array.Count - 1]); // Four.
@@ -33,8 +33,8 @@
 		[/gdscript]
 		[csharp]
 		// Array concatenation is not possible with C# arrays, but is with Godot.Collections.Array.
-		var array1 = new Godot.Collections.Array{"One", 2};
-		var array2 = new Godot.Collections.Array{3, "Four"};
+		Godot.Collections.Array array1 = ["One", 2];
+		Godot.Collections.Array array2 = [3, "Four"];
 		GD.Print(array1 + array2); // Prints [One, 2, 3, Four]
 		[/csharp]
 		[/codeblocks]
@@ -274,7 +274,7 @@
 				array.fill(0) # Initialize the 10 elements to 0.
 				[/gdscript]
 				[csharp]
-				var array = new Godot.Collections.Array();
+				Godot.Collections.Array array = [];
 				array.Resize(10);
 				array.Fill(0); // Initialize the 10 elements to 0.
 				[/csharp]
@@ -345,7 +345,7 @@
 				print(["inside", 7].has("7")) # False
 				[/gdscript]
 				[csharp]
-				var arr = new Godot.Collections.Array { "inside", 7 };
+				Godot.Collections.Array arr = ["inside", 7];
 				// has is renamed to Contains
 				GD.Print(arr.Contains("inside")); // True
 				GD.Print(arr.Contains("outside")); // False
@@ -362,7 +362,7 @@
 				[/gdscript]
 				[csharp]
 				// As there is no "in" keyword in C#, you have to use Contains
-				var array = new Godot.Collections.Array { 2, 4, 6, 8 };
+				Godot.Collections.Array array = [2, 4, 6, 8];
 				if (array.Contains(2))
 				{
 				    GD.Print("Contains!");
@@ -469,7 +469,7 @@
 				print(array.pick_random())  # Prints either of the four numbers.
 				[/gdscript]
 				[csharp]
-				var array = new Godot.Collections.Array { 1, 2, 3, 4 };
+				Godot.Collections.Array array = [1, 2, 3, 4];
 				GD.Print(array.PickRandom()); // Prints either of the four numbers.
 				[/csharp]
 				[/codeblocks]
@@ -601,7 +601,7 @@
 				print(strings) # Prints [string1, string10, string11, string2]
 				[/gdscript]
 				[csharp]
-				var strings = new Godot.Collections.Array { "string1", "string2", "string10", "string11" };
+				Godot.Collections.Array strings = ["string1", "string2", "string10", "string11"];
 				strings.Sort();
 				GD.Print(strings); // Prints [string1, string10, string11, string2]
 				[/csharp]

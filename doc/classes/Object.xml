@@ -60,14 +60,14 @@
 
 				public override Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt; _GetPropertyList()
 				{
-				    return new Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt;()
-				    {
+				    return
+				    [
 				        new Godot.Collections.Dictionary()
 				        {
 				            { "name", "FakeProperty" },
 				            { "type", (int)Variant.Type.Int }
 				        }
-				    };
+				    ];
 				}
 				[/csharp]
 				[/codeblocks]
@@ -137,15 +137,17 @@
 				            propertyUsage = PropertyUsageFlags.Default;
 				        }
 
-				        var properties = new Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt;();
-				        properties.Add(new Godot.Collections.Dictionary()
-				        {
-				            { "name", "HammerType" },
-				            { "type", (int)Variant.Type.Int },
-				            { "usage", (int)propertyUsage }, // See above assignment.
-				            { "hint", (int)PropertyHint.Enum },
-				            { "hint_string", "Wooden,Iron,Golden,Enchanted" }
-				        });
+				        Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt; properties =
+				        [
+				            new Godot.Collections.Dictionary()
+				            {
+				                { "name", "HammerType" },
+				                { "type", (int)Variant.Type.Int },
+				                { "usage", (int)propertyUsage }, // See above assignment.
+				                { "hint", (int)PropertyHint.Enum },
+				                { "hint_string", "Wooden,Iron,Golden,Enchanted" }
+				            }
+				        ];
 
 				        return properties;
 				    }
@@ -227,7 +229,7 @@
 				    ]
 				[/gdscript]
 				[csharp]
-				private Godot.Collections.Dictionary _internalData = new Godot.Collections.Dictionary();
+				private Godot.Collections.Dictionary _internalData = [];
 
 				public override bool _Set(StringName property, Variant value)
 				{
@@ -243,14 +245,14 @@
 
 				public override Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt; _GetPropertyList()
 				{
-				    return new Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt;()
-				    {
+				    return
+				    [
 				        new Godot.Collections.Dictionary()
 				        {
 				            { "name", "FakeProperty" },
 				            { "type", (int)Variant.Type.Int }
 				        }
-				    };
+				    ];
 				}
 				[/csharp]
 				[/codeblocks]
@@ -337,8 +339,8 @@
 				])
 				[/gdscript]
 				[csharp]
-				AddUserSignal("Hurt", new Godot.Collections.Array()
-				{
+				AddUserSignal("Hurt",
+				[
 				    new Godot.Collections.Dictionary()
 				    {
 				        { "name", "damage" },
@@ -349,7 +351,7 @@
 				        { "name", "source" },
 				        { "type", (int)Variant.Type.Object }
 				    }
-				});
+				]);
 				[/csharp]
 				[/codeblocks]
 			</description>
@@ -415,7 +417,7 @@
 				[/gdscript]
 				[csharp]
 				var node = new Node3D();
-				node.Callv(Node3D.MethodName.Rotate, new Godot.Collections.Array { new Vector3(1f, 0f, 0f), 1.571f });
+				node.Callv(Node3D.MethodName.Rotate, [new Vector3(1f, 0f, 0f), 1.571f]);
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] In C#, [param method] must be in snake_case when referring to built-in Godot methods. Prefer using the names exposed in the [code]MethodName[/code] class to avoid allocating a new [StringName] on each call.

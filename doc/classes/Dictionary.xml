@@ -29,7 +29,7 @@
 		}
 		[/gdscript]
 		[csharp]
-		var myDict = new Godot.Collections.Dictionary(); // Creates an empty dictionary.
+		Godot.Collections.Dictionary myDict = []; // Creates an empty dictionary.
 		var pointsDict = new Godot.Collections.Dictionary
 		{
 		    {"White", 50},
