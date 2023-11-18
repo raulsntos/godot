@@ -243,6 +243,10 @@ namespace Godot.Collections
         void ICollection<KeyValuePair<Variant, Variant>>.Add(KeyValuePair<Variant, Variant> item)
             => Add(item.Key, item.Value);
 
+        /// <inheritdoc cref="Add(Variant, Variant)"/>
+        public void Add<[MustBeVariant] TKey, [MustBeVariant] TValue>(TKey key, TValue value)
+            => Add(Variant.From(key), Variant.From(value));
+
         /// <summary>
         /// Clears the dictionary, removing all entries from it.
         /// </summary>

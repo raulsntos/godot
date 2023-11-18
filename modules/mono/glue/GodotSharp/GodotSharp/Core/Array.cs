@@ -549,6 +549,10 @@ namespace Godot.Collections
             _ = NativeFuncs.godotsharp_array_add(ref self, variantValue);
         }
 
+        /// <inheritdoc cref="Add(Variant)"/>
+        public void Add<[MustBeVariant] T>(T item)
+            => Add(Variant.From(item));
+
         /// <summary>
         /// Adds the elements of the specified collection to the end of this <see cref="Array"/>.
         /// </summary>
