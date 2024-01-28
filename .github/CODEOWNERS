@@ -163,6 +163,8 @@
 /modules/mono/                                @godotengine/dotnet
 /modules/mono/doc_classes/                    @godotengine/dotnet @godotengine/documentation
 /modules/mono/editor/                         @godotengine/dotnet @godotengine/editor
+/modules/dotnet/                              @godotengine/dotnet
+/modules/dotnet/editor/                       @godotengine/dotnet @godotengine/editor
 
 ## Text
 /modules/freetype/                            @godotengine/buildsystem
