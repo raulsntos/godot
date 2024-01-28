@@ -83,7 +83,7 @@ const PackedStringArray ProjectSettings::get_required_features() {
 // Returns the features supported by this build of Godot. Includes all required features.
 const PackedStringArray ProjectSettings::_get_supported_features() {
 	PackedStringArray features = get_required_features();
-#ifdef MODULE_MONO_ENABLED
+#if defined(MODULE_MONO_ENABLED) || defined(MODULE_DOTNET_ENABLED)
 	features.append("C#");
 #endif
 	// Allow pinning to a specific patch number or build type by marking
