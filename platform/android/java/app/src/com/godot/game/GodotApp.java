@@ -34,11 +34,20 @@ import org.godotengine.godot.GodotActivity;
 
 import android.os.Bundle;
 
+import com.godot.game.BuildConfig;
+
 /**
  * Template activity for Godot Android builds.
  * Feel free to extend and modify this class for your custom logic.
  */
 public class GodotApp extends GodotActivity {
+	static {
+		// .NET libraries.
+		if (BuildConfig.FLAVOR.equals("mono")) {
+			System.loadLibrary("System.Security.Cryptography.Native.Android");
+		}
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		setTheme(R.style.GodotAppMainTheme);
