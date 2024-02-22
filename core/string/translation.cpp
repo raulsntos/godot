@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "translation.h"
+#include "translation.compat.inc"
 
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"

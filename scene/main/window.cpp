@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "window.h"
+#include "window.compat.inc"
 
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
