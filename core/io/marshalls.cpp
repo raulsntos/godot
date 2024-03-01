@@ -30,7 +30,10 @@
 
 #include "marshalls.h"
 
+#include "core/core_string_names.h"
+#include "core/io/resource_loader.h"
 #include "core/object/ref_counted.h"
+#include "core/object/script_language.h"
 #include "core/os/keyboard.h"
 #include "core/string/print_string.h"
 
@@ -670,6 +673,15 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 						len -= used;
 						if (r_len) {
 							(*r_len) += used;
+						}
+
+						if (str == "script" && value.get_type() == Variant::STRING) {
+							String path = value;
+							ERR_FAIL_COND_V_MSG(path.is_empty() || !path.is_resource_file(), ERR_INVALID_DATA, "Invalid script path: '" + path + "'.");
+							Ref<Script> script = ResourceLoader::load(path, "Script");
+							ERR_FAIL_COND_V_MSG(script.is_null(), ERR_INVALID_DATA, "Can't load script at path: '" + path + "'.");
+							obj->set_script(script);
+							continue;
 						}
 
 						obj->set(str, value);
@@ -1523,8 +1535,21 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 
 						_encode_string(E.name, buf, r_len);
 
+						Variant value;
+
+						if (E.name == CoreStringNames::get_singleton()->_script) {
+							Ref<Script> script = obj->get_script();
+							if (script.is_valid()) {
+								String path = script->get_path();
+								ERR_FAIL_COND_V_MSG(path.is_empty() || !path.is_resource_file(), ERR_UNAVAILABLE, "Failed to encode a path to a custom script.");
+								value = path;
+							}
+						} else {
+							value = obj->get(E.name);
+						}
+
 						int len;
-						Error err = encode_variant(obj->get(E.name), buf, len, p_full_objects, p_depth + 1);
+						Error err = encode_variant(value, buf, len, p_full_objects, p_depth + 1);
 						ERR_FAIL_COND_V(err, err);
 						ERR_FAIL_COND_V(len % 4, ERR_BUG);
 						r_len += len;
