@@ -1651,6 +1651,13 @@ void BindingsGenerator::_generate_global_constants(StringBuilder &p_output) {
 				}
 			}
 
+			if (iconstant.is_deprecated) {
+				p_output << maybe_indent << INDENT1
+						 << "[System.Obsolete(\""
+						 << bbcode_to_text(iconstant.deprecation_message, nullptr)
+						 << "\")]\n";
+			}
+
 			p_output << maybe_indent << INDENT1
 					 << iconstant.proxy_name
 					 << " = "
@@ -4672,6 +4679,16 @@ void BindingsGenerator::_populate_global_constants() {
 
 			ConstantInterface iconstant(constant_name, snake_to_pascal_case(constant_name, true), constant_value);
 			iconstant.const_doc = const_doc;
+
+			if (iconstant.const_doc) {
+				iconstant.is_deprecated = iconstant.const_doc->is_deprecated;
+				iconstant.deprecation_message = iconstant.const_doc->deprecated_message;
+
+				if (iconstant.is_deprecated && iconstant.deprecation_message.is_empty()) {
+					WARN_PRINT("An empty deprecation message is discouraged. Constant: '" + iconstant.proxy_name + "'.");
+					iconstant.deprecation_message = "This constant is deprecated.";
+				}
+			}
 
 			if (enum_name != StringName()) {
 				EnumInterface ienum(enum_name, pascal_to_pascal_case(enum_name.operator String()), CoreConstants::is_global_constant_bitfield(i));
