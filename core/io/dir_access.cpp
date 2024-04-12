@@ -131,6 +131,22 @@ Error DirAccess::erase_contents_recursive() {
 	return _erase_recursive(this);
 }
 
+Error DirAccess::remove_recursive(String p_path) {
+	if (p_path.is_relative_path()) {
+		p_path = get_current_dir().path_join(p_path);
+	}
+
+	// Remove directory contents.
+	Ref<DirAccess> da = open(p_path);
+	Error err = _erase_recursive(da.ptr());
+	if (err != OK) {
+		return err;
+	}
+
+	// Remove directory itself.
+	return remove(p_path);
+}
+
 Error DirAccess::make_dir_recursive(const String &p_dir) {
 	if (p_dir.length() < 1) {
 		return OK;
@@ -304,6 +320,11 @@ Error DirAccess::rename_absolute(const String &p_from, const String &p_to) {
 Error DirAccess::remove_absolute(const String &p_path) {
 	Ref<DirAccess> d = DirAccess::create_for_path(p_path);
 	return d->remove(p_path);
+}
+
+Error DirAccess::remove_recursive_absolute(const String &p_path) {
+	Ref<DirAccess> d = DirAccess::create_for_path(p_path);
+	return d->remove_recursive(p_path);
 }
 
 Ref<DirAccess> DirAccess::create(AccessType p_access) {
@@ -580,7 +601,9 @@ void DirAccess::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("rename", "from", "to"), &DirAccess::rename);
 	ClassDB::bind_static_method("DirAccess", D_METHOD("rename_absolute", "from", "to"), &DirAccess::rename_absolute);
 	ClassDB::bind_method(D_METHOD("remove", "path"), &DirAccess::remove);
+	ClassDB::bind_method(D_METHOD("remove_recursive", "path"), &DirAccess::remove_recursive);
 	ClassDB::bind_static_method("DirAccess", D_METHOD("remove_absolute", "path"), &DirAccess::remove_absolute);
+	ClassDB::bind_static_method("DirAccess", D_METHOD("remove_recursive_absolute", "path"), &DirAccess::remove_recursive_absolute);
 
 	ClassDB::bind_method(D_METHOD("set_include_navigational", "enable"), &DirAccess::set_include_navigational);
 	ClassDB::bind_method(D_METHOD("get_include_navigational"), &DirAccess::get_include_navigational);
