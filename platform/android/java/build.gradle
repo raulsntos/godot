@@ -28,6 +28,7 @@ ext {
         "editor": ["dev", "debug", "release"],
         "template": ["dev", "debug", "release"]
     ]
+    supportedEditions = ["standard", "mono"]
 
     // Used by gradle to specify which architecture to build for by default when running
     // `./gradlew build` (this command is usually used by Android Studio).
@@ -145,15 +146,23 @@ def generateBuildTasks(String flavor = "template") {
 
                 // Copy the generated binary template into the Godot bin directory.
                 // Depends on the app build task to ensure the binary is generated prior to copying.
-                String copyBinaryTaskName = "copy${capitalizedTarget}BinaryToBin"
-                if (tasks.findByName(copyBinaryTaskName) != null) {
-                    buildTasks += tasks.getByName(copyBinaryTaskName)
-                } else {
-                    buildTasks += tasks.create(name: copyBinaryTaskName, type: Copy) {
-                        dependsOn ":app:assemble${capitalizedTarget}"
-                        from("app/build/outputs/apk/${target}")
-                        into(binDir)
-                        include("android_${target}.apk")
+                for (String edition : supportedEditions) {
+                    String capitalizedEdition = edition.capitalize()
+                    boolean isStandard = edition == "standard"
+
+                    String copyBinaryTaskName = "copy${capitalizedEdition}${capitalizedTarget}BinaryToBin"
+                    if (tasks.findByName(copyBinaryTaskName) != null) {
+                        buildTasks += tasks.getByName(copyBinaryTaskName)
+                    } else {
+                        buildTasks += tasks.create(name: copyBinaryTaskName, type: Copy) {
+                            dependsOn ":app:assemble${capitalizedEdition}${capitalizedTarget}"
+                            from("app/build/outputs/apk/${edition}/${target}")
+                            into(binDir)
+                            include("android_${edition}${capitalizedTarget}.apk")
+                            if (isStandard) {
+                                rename("android_${edition}${capitalizedTarget}.apk", "android_${target}.apk")
+                            }
+                        }
                     }
                 }
             } else {
