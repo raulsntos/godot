@@ -541,6 +541,17 @@ Error GDMono::reload_project_assemblies() {
 
 	return OK;
 }
+
+void GDMono::reload_all_assemblies(bool p_soft_reload) {
+#ifdef GD_MONO_HOT_RELOAD
+	CRASH_COND(CSharpLanguage::get_singleton() == nullptr);
+	// This method may be called more than once with `call_deferred`, so we need to check
+	// again if reloading is needed to avoid reloading multiple times unnecessarily.
+	if (CSharpLanguage::get_singleton()->is_assembly_reloading_needed()) {
+		CSharpLanguage::get_singleton()->reload_assemblies(p_soft_reload);
+	}
+#endif
+}
 #endif
 
 GDMono::GDMono() {
@@ -570,18 +581,12 @@ bool GodotSharp::_is_runtime_initialized() {
 
 void GodotSharp::_reload_assemblies(bool p_soft_reload) {
 #ifdef GD_MONO_HOT_RELOAD
-	CRASH_COND(CSharpLanguage::get_singleton() == nullptr);
-	// This method may be called more than once with `call_deferred`, so we need to check
-	// again if reloading is needed to avoid reloading multiple times unnecessarily.
-	if (CSharpLanguage::get_singleton()->is_assembly_reloading_needed()) {
-		CSharpLanguage::get_singleton()->reload_assemblies(p_soft_reload);
-	}
+	GDMono::get_singleton()->reload_all_assemblies(p_soft_reload);
 #endif
 }
 
 void GodotSharp::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_runtime_initialized"), &GodotSharp::_is_runtime_initialized);
-	ClassDB::bind_method(D_METHOD("_reload_assemblies"), &GodotSharp::_reload_assemblies);
 }
 
 GodotSharp::GodotSharp() {

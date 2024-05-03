@@ -152,6 +152,7 @@ public:
 #ifdef GD_MONO_HOT_RELOAD
 	void reload_failure();
 	Error reload_project_assemblies();
+	void reload_all_assemblies(bool p_soft_reload);
 #endif
 
 	bool should_initialize();
