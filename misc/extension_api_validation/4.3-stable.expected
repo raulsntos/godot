@@ -14,3 +14,10 @@ Validate extension JSON: Error: Field 'classes/ShapeCast2D/properties/collision_
 Validate extension JSON: Error: Field 'classes/ShapeCast3D/properties/collision_result': getter changed value in new API, from "_get_collision_result" to &"get_collision_result".
 
 These getters have been renamed to expose them. GDExtension language bindings couldn't have exposed these properties before.
+
+
+GH-95375
+--------
+Validate extension JSON: Error: Field 'classes/OptionButton/properties/selected': setter changed value in new API, from "_select_int" to &"select".
+
+The setter has been removed in favor of an existing already exposed method. GDExtension language bindings couldn't have exposed this property before.

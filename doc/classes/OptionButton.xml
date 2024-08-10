@@ -138,14 +138,6 @@
 				Removes the item at index [param idx].
 			</description>
 		</method>
-		<method name="select">
-			<return type="void" />
-			<param index="0" name="idx" type="int" />
-			<description>
-				Selects an item by index and makes it the current item. This will work even if the item is disabled.
-				Passing [code]-1[/code] as the index deselects any currently selected item.
-			</description>
-		</method>
 		<method name="set_disable_shortcuts">
 			<return type="void" />
 			<param index="0" name="disabled" type="bool" />
@@ -222,8 +214,9 @@
 		<member name="item_count" type="int" setter="set_item_count" getter="get_item_count" default="0">
 			The number of items to select from.
 		</member>
-		<member name="selected" type="int" setter="_select_int" getter="get_selected" default="-1">
-			The index of the currently selected item, or [code]-1[/code] if no item is selected.
+		<member name="selected" type="int" setter="select" getter="get_selected" default="-1">
+			The index of the currently selected item, or [code]-1[/code] if no item is selected. This will work even if the item is disabled.
+			Setting [code]-1[/code] as the index deselects any currently selected item.
 		</member>
 		<member name="toggle_mode" type="bool" setter="set_toggle_mode" getter="is_toggle_mode" overrides="BaseButton" default="true" />
 	</members>
