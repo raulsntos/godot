@@ -40,7 +40,14 @@
 
 template <typename T>
 class TypedArray : public Array {
+private:
+	using Array::push_back;
+
 public:
+	template <typename m_type>
+	_FORCE_INLINE_ void push_back(const m_type p_value) {
+		Array::push_back(p_value);
+	}
 	_FORCE_INLINE_ void operator=(const Array &p_array) {
 		ERR_FAIL_COND_MSG(!is_same_typed(p_array), "Cannot assign an array with a different element type.");
 		_ref(p_array);
@@ -77,7 +84,13 @@ struct VariantInternalAccessor<const TypedArray<T> &> {
 #define MAKE_TYPED_ARRAY(m_type, m_variant_type)                                                                 \
 	template <>                                                                                                  \
 	class TypedArray<m_type> : public Array {                                                                    \
+	private:                                                                                                     \
+		using Array::push_back;                                                                                  \
+                                                                                                                 \
 	public:                                                                                                      \
+		_FORCE_INLINE_ void push_back(const m_type p_value) {                                                    \
+			Array::push_back(p_value);                                                                           \
+		}                                                                                                        \
 		_FORCE_INLINE_ void operator=(const Array &p_array) {                                                    \
 			ERR_FAIL_COND_MSG(!is_same_typed(p_array), "Cannot assign an array with a different element type."); \
 			_ref(p_array);                                                                                       \
