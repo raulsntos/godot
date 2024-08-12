@@ -331,6 +331,11 @@ namespace GodotTools.Export
                                     {
                                         AddIosBundleFile(path);
                                     }
+                                    else if (platform == OS.Platforms.MacOS && path.EndsWith(".dylib"))
+                                    {
+                                        // TODO: Not specifying the target path should put it in "Contents/Frameworks", I think.
+                                        AddSharedObject(path, tags: null);
+                                    }
                                     else
                                     {
                                         AddSharedObject(path, tags: null,

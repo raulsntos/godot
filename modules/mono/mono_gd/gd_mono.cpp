@@ -124,7 +124,11 @@ String find_hostfxr() {
 	String probe_path = GodotSharpDirs::get_api_assemblies_dir()
 								.path_join("hostfxr.dll");
 #elif defined(MACOS_ENABLED)
+	// TODO: Not sure this is the right way to get "Contents/Frameworks/libhostfxr.dylib"
 	String probe_path = GodotSharpDirs::get_api_assemblies_dir()
+								.path_join("..")
+								.path_join("..")
+								.path_join("Frameworks")
 								.path_join("libhostfxr.dylib");
 #elif defined(UNIX_ENABLED)
 	String probe_path = GodotSharpDirs::get_api_assemblies_dir()
