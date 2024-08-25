@@ -56,6 +56,11 @@ void EditorExportPlugin::add_file(const String &p_path, const Vector<uint8_t> &p
 	extra_files.push_back(ef);
 }
 
+void EditorExportPlugin::add_file_path(const String &p_path, const String &p_file_path, bool p_remap) {
+	Vector<uint8_t> file = FileAccess::get_file_as_bytes(p_file_path);
+	add_file(p_path, file, p_remap);
+}
+
 void EditorExportPlugin::add_shared_object(const String &p_path, const Vector<String> &p_tags, const String &p_target) {
 	shared_objects.push_back(SharedObject(p_path, p_tags, p_target));
 }
@@ -311,6 +316,7 @@ void EditorExportPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_shared_object", "path", "tags", "target"), &EditorExportPlugin::add_shared_object);
 	ClassDB::bind_method(D_METHOD("add_ios_project_static_lib", "path"), &EditorExportPlugin::add_ios_project_static_lib);
 	ClassDB::bind_method(D_METHOD("add_file", "path", "file", "remap"), &EditorExportPlugin::add_file);
+	ClassDB::bind_method(D_METHOD("add_file_path", "path", "file_path", "remap"), &EditorExportPlugin::add_file_path);
 	ClassDB::bind_method(D_METHOD("add_ios_framework", "path"), &EditorExportPlugin::add_ios_framework);
 	ClassDB::bind_method(D_METHOD("add_ios_embedded_framework", "path"), &EditorExportPlugin::add_ios_embedded_framework);
 	ClassDB::bind_method(D_METHOD("add_ios_plist_content", "plist_content"), &EditorExportPlugin::add_ios_plist_content);

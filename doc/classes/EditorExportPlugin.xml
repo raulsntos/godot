@@ -235,6 +235,17 @@
 				[param file] will not be imported, so consider using [method _customize_resource] to remap imported resources.
 			</description>
 		</method>
+		<method name="add_file_path">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="file_path" type="String" />
+			<param index="2" name="remap" type="bool" />
+			<description>
+				Adds a custom file to be exported. [param path] is the virtual path that can be used to load the file, [param file_path] is the path of the file that contains the binary data.
+				When called inside [method _export_file] and [param remap] is [code]true[/code], the current file will not be exported, but instead remapped to this custom file. [param remap] is ignored when called in other places.
+				[param file_path] will not be imported, so consider using [method _customize_resource] to remap imported resources.
+			</description>
+		</method>
 		<method name="add_ios_bundle_file">
 			<return type="void" />
 			<param index="0" name="path" type="String" />
