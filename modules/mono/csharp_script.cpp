@@ -1650,6 +1650,22 @@ int CSharpInstance::get_method_argument_count(const StringName &p_method, bool *
 	return 0;
 }
 
+void CSharpInstance::get_configuration_warnings(PackedStringArray &r_warnings) const {
+	if (!script.is_valid()) {
+		return;
+	}
+
+	Ref<CSharpScript> cs = script;
+	ERR_FAIL_COND(cs.is_null());
+
+	String owner_class_name = owner->get_class();
+	String native_class_name = cs->get_instance_base_type();
+
+	if (native_class_name != owner_class_name) {
+		r_warnings.push_back("The script attached to this " + owner_class_name + " node extends the less specialized node type " + native_class_name + ", so the script may not have access to all " + owner_class_name + " functionality.");
+	}
+}
+
 Variant CSharpInstance::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 	ERR_FAIL_COND_V(!script.is_valid(), Variant());
 

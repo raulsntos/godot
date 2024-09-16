@@ -3327,6 +3327,10 @@ PackedStringArray Node::get_configuration_warnings() const {
 	ERR_THREAD_GUARD_V(PackedStringArray());
 	PackedStringArray ret;
 
+	if (get_script_instance()) {
+		get_script_instance()->get_configuration_warnings(ret);
+	}
+
 	Vector<String> warnings;
 	if (GDVIRTUAL_CALL(_get_configuration_warnings, warnings)) {
 		ret.append_array(warnings);
