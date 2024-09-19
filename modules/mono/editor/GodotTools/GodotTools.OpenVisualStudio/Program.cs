@@ -51,14 +51,8 @@ namespace GodotTools.OpenVisualStudio
 
                 if (dte == null)
                 {
-                    // Launch of VS 2022 failed, fallback to 2019
-                    dte = TryVisualStudioLaunch("VisualStudio.DTE.16.0");
-
-                    if (dte == null)
-                    {
-                        Console.Error.WriteLine("Visual Studio not found");
-                        return 1;
-                    }
+                    Console.Error.WriteLine("Visual Studio not found");
+                    return 1;
                 }
 
                 dte.UserControl = true;
