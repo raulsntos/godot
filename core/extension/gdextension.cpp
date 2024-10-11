@@ -614,6 +614,15 @@ void GDExtension::_register_extension_class_signal(GDExtensionClassLibraryPtr p_
 	ClassDB::add_signal(class_name, s);
 }
 
+void GDExtension::_set_extension_class_icon(GDExtensionClassLibraryPtr p_library, GDExtensionConstStringNamePtr p_class_name, GDExtensionConstStringPtr p_icon_path) {
+	GDExtension *self = reinterpret_cast<GDExtension *>(p_library);
+
+	StringName class_name = *reinterpret_cast<const StringName *>(p_class_name);
+	String icon_path = *reinterpret_cast<const String *>(p_icon_path);
+
+	self->class_icon_paths[class_name] = icon_path;
+}
+
 void GDExtension::_unregister_extension_class(GDExtensionClassLibraryPtr p_library, GDExtensionConstStringNamePtr p_class_name) {
 	GDExtension *self = reinterpret_cast<GDExtension *>(p_library);
 
@@ -779,6 +788,7 @@ void GDExtension::initialize_gdextensions() {
 	register_interface_function("classdb_register_extension_class_property_group", (GDExtensionInterfaceFunctionPtr)&GDExtension::_register_extension_class_property_group);
 	register_interface_function("classdb_register_extension_class_property_subgroup", (GDExtensionInterfaceFunctionPtr)&GDExtension::_register_extension_class_property_subgroup);
 	register_interface_function("classdb_register_extension_class_signal", (GDExtensionInterfaceFunctionPtr)&GDExtension::_register_extension_class_signal);
+	register_interface_function("classdb_set_extension_class_icon", (GDExtensionInterfaceFunctionPtr)&GDExtension::_set_extension_class_icon);
 	register_interface_function("classdb_unregister_extension_class", (GDExtensionInterfaceFunctionPtr)&GDExtension::_unregister_extension_class);
 	register_interface_function("get_library_path", (GDExtensionInterfaceFunctionPtr)&GDExtension::_get_library_path);
 }
