@@ -79,30 +79,28 @@ namespace GodotTools
                 string csprojDir = Path.GetDirectoryName(GodotSharpDirs.ProjectCsProjPath)!;
                 string slnDir = Path.GetDirectoryName(GodotSharpDirs.ProjectSlnPath)!;
                 string name = GodotSharpDirs.ProjectAssemblyName;
-                string guid = CsProjOperations.GenerateGameProject(csprojDir, name);
 
-                if (guid.Length > 0)
+                try
                 {
-                    var solution = new DotNetSolution(name, slnDir);
+                    ProjectGenerator.GenAndSaveGameProject(csprojDir, name);
+                }
+                catch (Exception e)
+                {
+                    GD.PushError(e.ToString());
+                    errorMessage = "Failed to create C# project.".TTR();
+                }
 
-                    var projectInfo = new DotNetSolution.ProjectInfo(guid,
-                        Path.GetRelativePath(slnDir, GodotSharpDirs.ProjectCsProjPath),
-                        new List<string> { "Debug", "ExportDebug", "ExportRelease" });
-
-                    solution.AddNewProject(name, projectInfo);
-
+                if (string.IsNullOrEmpty(errorMessage))
+                {
                     try
                     {
-                        solution.Save();
+                        DotNetSolution.GenAndSaveSolution(slnDir, name, GodotSharpDirs.ProjectCsProjPath).Wait();
                     }
                     catch (IOException e)
                     {
+                        GD.PushError(e.ToString());
                         errorMessage = "Failed to save solution. Exception message: ".TTR() + e.Message;
                     }
-                }
-                else
-                {
-                    errorMessage = "Failed to create C# project.".TTR();
                 }
             }
 
@@ -412,7 +410,7 @@ namespace GodotTools
             try
             {
                 // Migrate solution from old configuration names to: Debug, ExportDebug and ExportRelease
-                DotNetSolution.MigrateFromOldConfigNames(GodotSharpDirs.ProjectSlnPath);
+                DotNetSolution.MigrateFromOldConfigNames(GodotSharpDirs.ProjectSlnPath).Wait();
 
                 var msbuildProject = ProjectUtils.Open(GodotSharpDirs.ProjectCsProjPath)
                                      ?? throw new InvalidOperationException("Cannot open C# project.");

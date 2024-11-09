@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.Build.Construction;
@@ -35,19 +34,17 @@ namespace GodotTools.ProjectEditor
             return root;
         }
 
-        public static string GenAndSaveGameProject(string dir, string name)
+        public static void GenAndSaveGameProject(string dir, string name)
         {
             if (name.Length == 0)
                 throw new ArgumentException("Project name is empty.", nameof(name));
 
-            string path = Path.Combine(dir, name + ".csproj");
+            string path = Path.Combine(dir, $"{name}.csproj");
 
             var root = GenGameProject(name);
 
             // Save (without BOM)
             root.Save(path, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
-
-            return Guid.NewGuid().ToString().ToUpperInvariant();
         }
     }
 }
