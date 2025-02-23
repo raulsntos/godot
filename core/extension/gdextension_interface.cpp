@@ -248,6 +248,14 @@ static void gdextension_get_godot_version(GDExtensionGodotVersion *r_godot_versi
 	r_godot_version->string = VERSION_FULL_NAME;
 }
 
+static void gdextension_get_godot_version2(GDExtensionGodotVersion2 *r_godot_version) {
+	r_godot_version->major = VERSION_MAJOR;
+	r_godot_version->minor = VERSION_MINOR;
+	r_godot_version->patch = VERSION_PATCH;
+	r_godot_version->status = VERSION_STATUS;
+	r_godot_version->string = VERSION_FULL_NAME;
+}
+
 // Memory Functions
 static void *gdextension_mem_alloc(size_t p_size) {
 	return memalloc(p_size);
@@ -1667,6 +1675,7 @@ static void gdextension_editor_help_load_xml_from_utf8_chars(const char *p_data)
 
 void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(get_godot_version);
+	REGISTER_INTERFACE_FUNC(get_godot_version2);
 	REGISTER_INTERFACE_FUNC(mem_alloc);
 	REGISTER_INTERFACE_FUNC(mem_realloc);
 	REGISTER_INTERFACE_FUNC(mem_free);
