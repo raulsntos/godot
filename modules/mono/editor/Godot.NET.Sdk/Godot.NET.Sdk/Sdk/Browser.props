@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <UseMonoRuntime>true</UseMonoRuntime>
+
+    <!-- Default to relinking in ExportDebug and ExportRelease configurations. -->
+    <WasmBuildNative Condition=" '$(WasmBuildNative)' == '' and '$(Configuration)' == 'ExportDebug' ">true</WasmBuildNative>
+    <WasmBuildNative Condition=" '$(WasmBuildNative)' == '' and '$(Configuration)' == 'ExportRelease' ">true</WasmBuildNative>
+  </PropertyGroup>
+</Project>

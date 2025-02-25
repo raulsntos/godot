@@ -30,6 +30,23 @@ namespace GodotPlugins.Game
         private static godot_bool InitializeFromGameProject(IntPtr godotDllHandle, IntPtr outManagedCallbacks,
             IntPtr unmanagedCallbacks, int unmanagedCallbacksSize)
         {
+            // This is just temporary for testing something before actually initializing Godot,
+            // since initialization currently fails.
+            var initMethod = typeof(Main).GetMethod(""TestMethod"", global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Static);
+            if (initMethod != null)
+            {
+                global::System.Console.WriteLine(""TestMethod found"");
+                object ret = initMethod.Invoke(null, new object[] { godotDllHandle, outManagedCallbacks, unmanagedCallbacks, unmanagedCallbacksSize });
+                if ((bool)ret)
+                {
+                    return godot_bool.False;
+                }
+            }
+            else
+            {
+                global::System.Console.WriteLine(""TestMethod not found"");
+            }
+
             try
             {
                 DllImportResolver dllImportResolver = new GodotDllImportResolver(godotDllHandle).OnResolveDllImport;

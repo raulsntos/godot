@@ -53,7 +53,23 @@
 #include <dlfcn.h>
 #endif
 
+#ifdef MONOVM_ENABLED
+#include <mono/jit/jit.h>
+#include <mono/jit/mono-private-unstable.h>
+#include <mono/metadata/appdomain.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/class.h>
+#include <mono/metadata/object.h>
+#endif
+
 GDMono *GDMono::singleton = nullptr;
+
+#ifdef WEB_ENABLED
+extern "C" {
+void mono_wasm_load_runtime(int debug_level);
+int mono_wasm_add_assembly(const char *name, const unsigned char *data, unsigned int size);
+}
+#endif
 
 namespace {
 hostfxr_initialize_for_dotnet_command_line_fn hostfxr_initialize_for_dotnet_command_line = nullptr;
@@ -438,7 +454,7 @@ godot_plugins_initialize_fn try_load_native_aot_library(void *&r_aot_dll_handle)
 }
 #endif
 
-#ifndef TOOLS_ENABLED
+#if (!defined(TOOLS_ENABLED) || defined(MONOVM_ENABLED)) && !defined(WEB_ENABLED)
 String make_tpa_list() {
 	String tpa_list;
 
@@ -457,7 +473,9 @@ String make_tpa_list() {
 
 	return tpa_list;
 }
+#endif
 
+#if !defined(TOOLS_ENABLED) && !defined(MONOVM_ENABLED)
 godot_plugins_initialize_fn initialize_coreclr_and_godot_plugins(bool &r_runtime_initialized) {
 	godot_plugins_initialize_fn godot_plugins_initialize = nullptr;
 
@@ -487,6 +505,86 @@ godot_plugins_initialize_fn initialize_coreclr_and_godot_plugins(bool &r_runtime
 	return godot_plugins_initialize;
 }
 #endif
+
+#ifdef MONOVM_ENABLED
+MonoMethod *_initialize_method;
+
+godot_plugins_initialize_fn initialize_monovm_and_godot_plugins(bool &r_runtime_initialized) {
+#ifdef TOOLS_ENABLED
+#error MonoVM not supported for editor builds.
+#endif
+
+#ifndef WEB_ENABLED
+	String tpa_list = make_tpa_list();
+	const char *prop_keys[] = { "TRUSTED_PLATFORM_ASSEMBLIES" };
+	const char *prop_values[] = { tpa_list.utf8().get_data() };
+	int nprops = sizeof(prop_keys) / sizeof(prop_keys[0]);
+
+	int rc = monovm_initialize(nprops, (const char **)&prop_keys, (const char **)&prop_values);
+	ERR_FAIL_COND_V_MSG(rc != 0, nullptr, ".NET: Failed to initialize MonoVM.");
+
+	MonoDomain *root_domain = mono_jit_init("mono");
+#else
+	// In web exports, we need to manually add the assemblies so the Mono runtime can find them.
+	// TODO: For now I'm hardcoding the list of DLLs but we need a proper way of getting them.
+	{
+		Vector<String> assemblies = {
+"System.Private.CoreLib.dll","BrowserTest.dll","GodotSharp.dll","Microsoft.CSharp.dll","Microsoft.VisualBasic.Core.dll","Microsoft.VisualBasic.dll","Microsoft.Win32.Primitives.dll","Microsoft.Win32.Registry.dll","mscorlib.dll","netstandard.dll","System.AppContext.dll","System.Buffers.dll","System.Collections.Concurrent.dll","System.Collections.dll","System.Collections.Immutable.dll","System.Collections.NonGeneric.dll","System.Collections.Specialized.dll","System.ComponentModel.Annotations.dll","System.ComponentModel.DataAnnotations.dll","System.ComponentModel.dll","System.ComponentModel.EventBasedAsync.dll","System.ComponentModel.Primitives.dll","System.ComponentModel.TypeConverter.dll","System.Configuration.dll","System.Console.dll","System.Core.dll","System.Data.Common.dll","System.Data.DataSetExtensions.dll","System.Data.dll","System.Diagnostics.Contracts.dll","System.Diagnostics.Debug.dll","System.Diagnostics.DiagnosticSource.dll","System.Diagnostics.FileVersionInfo.dll","System.Diagnostics.Process.dll","System.Diagnostics.StackTrace.dll","System.Diagnostics.TextWriterTraceListener.dll","System.Diagnostics.Tools.dll","System.Diagnostics.TraceSource.dll","System.Diagnostics.Tracing.dll","System.dll","System.Drawing.dll","System.Drawing.Primitives.dll","System.Dynamic.Runtime.dll","System.Formats.Asn1.dll","System.Formats.Tar.dll","System.Globalization.Calendars.dll","System.Globalization.dll","System.Globalization.Extensions.dll","System.IO.Compression.Brotli.dll","System.IO.Compression.dll","System.IO.Compression.FileSystem.dll","System.IO.Compression.ZipFile.dll","System.IO.dll","System.IO.FileSystem.AccessControl.dll","System.IO.FileSystem.dll","System.IO.FileSystem.DriveInfo.dll","System.IO.FileSystem.Primitives.dll","System.IO.FileSystem.Watcher.dll","System.IO.IsolatedStorage.dll","System.IO.MemoryMappedFiles.dll","System.IO.Pipelines.dll","System.IO.Pipes.AccessControl.dll","System.IO.Pipes.dll","System.IO.UnmanagedMemoryStream.dll","System.Linq.dll","System.Linq.Expressions.dll","System.Linq.Parallel.dll","System.Linq.Queryable.dll","System.Memory.dll","System.Net.dll","System.Net.Http.dll","System.Net.Http.Json.dll","System.Net.HttpListener.dll","System.Net.Mail.dll","System.Net.NameResolution.dll","System.Net.NetworkInformation.dll","System.Net.Ping.dll","System.Net.Primitives.dll","System.Net.Quic.dll","System.Net.Requests.dll","System.Net.Security.dll","System.Net.ServicePoint.dll","System.Net.Sockets.dll","System.Net.WebClient.dll","System.Net.WebHeaderCollection.dll","System.Net.WebProxy.dll","System.Net.WebSockets.Client.dll","System.Net.WebSockets.dll","System.Numerics.dll","System.Numerics.Vectors.dll","System.ObjectModel.dll","System.Private.DataContractSerialization.dll","System.Private.Uri.dll","System.Private.Xml.dll","System.Private.Xml.Linq.dll","System.Reflection.DispatchProxy.dll","System.Reflection.dll","System.Reflection.Emit.dll","System.Reflection.Emit.ILGeneration.dll","System.Reflection.Emit.Lightweight.dll","System.Reflection.Extensions.dll","System.Reflection.Metadata.dll","System.Reflection.Primitives.dll","System.Reflection.TypeExtensions.dll","System.Resources.Reader.dll","System.Resources.ResourceManager.dll","System.Resources.Writer.dll","System.Runtime.CompilerServices.Unsafe.dll","System.Runtime.CompilerServices.VisualC.dll","System.Runtime.dll","System.Runtime.Extensions.dll","System.Runtime.Handles.dll","System.Runtime.InteropServices.dll","System.Runtime.InteropServices.JavaScript.dll","System.Runtime.InteropServices.RuntimeInformation.dll","System.Runtime.Intrinsics.dll","System.Runtime.Loader.dll","System.Runtime.Numerics.dll","System.Runtime.Serialization.dll","System.Runtime.Serialization.Formatters.dll","System.Runtime.Serialization.Json.dll","System.Runtime.Serialization.Primitives.dll","System.Runtime.Serialization.Xml.dll","System.Security.AccessControl.dll","System.Security.Claims.dll","System.Security.Cryptography.Algorithms.dll","System.Security.Cryptography.Cng.dll","System.Security.Cryptography.Csp.dll","System.Security.Cryptography.dll","System.Security.Cryptography.Encoding.dll","System.Security.Cryptography.OpenSsl.dll","System.Security.Cryptography.Primitives.dll","System.Security.Cryptography.X509Certificates.dll","System.Security.dll","System.Security.Principal.dll","System.Security.Principal.Windows.dll","System.Security.SecureString.dll","System.ServiceModel.Web.dll","System.ServiceProcess.dll","System.Text.Encoding.CodePages.dll","System.Text.Encoding.dll","System.Text.Encoding.Extensions.dll","System.Text.Encodings.Web.dll","System.Text.Json.dll","System.Text.RegularExpressions.dll","System.Threading.Channels.dll","System.Threading.dll","System.Threading.Overlapped.dll","System.Threading.Tasks.Dataflow.dll","System.Threading.Tasks.dll","System.Threading.Tasks.Extensions.dll","System.Threading.Tasks.Parallel.dll","System.Threading.Thread.dll","System.Threading.ThreadPool.dll","System.Threading.Timer.dll","System.Transactions.dll","System.Transactions.Local.dll","System.ValueTuple.dll","System.Web.dll","System.Web.HttpUtility.dll","System.Windows.dll","System.Xml.dll","System.Xml.Linq.dll","System.Xml.ReaderWriter.dll","System.Xml.Serialization.dll","System.Xml.XDocument.dll","System.Xml.XmlDocument.dll","System.Xml.XmlSerializer.dll","System.Xml.XPath.dll","System.Xml.XPath.XDocument.dll","WindowsBase.dll"
+		};
+
+		Error err;
+		for (const String &assembly : assemblies) {
+			Vector<uint8_t> assembly_data = FileAccess::get_file_as_bytes("res://" + assembly, &err);
+			ERR_FAIL_COND_V_MSG(err != OK, nullptr, "Error getting '" + assembly + "': " + String(error_names[err]));
+			mono_wasm_add_assembly(assembly.utf8().get_data(), assembly_data.ptr(), assembly_data.size());
+		}
+	}
+
+	mono_wasm_load_runtime(1);
+
+	MonoDomain *root_domain = mono_get_root_domain();
+#endif
+	ERR_FAIL_NULL_V_MSG(root_domain, nullptr, ".NET: Failed to load root domain.");
+
+	String assembly_name = path::get_csharp_project_name();
+	MonoAssemblyName *aname = mono_assembly_name_new(assembly_name.utf8().get_data());
+	ERR_FAIL_NULL_V_MSG(aname, nullptr, ".NET: Failed to parse assembly name '" + assembly_name + "'.");
+
+	MonoImageOpenStatus status;
+	MonoAssembly *assembly = mono_assembly_load(aname, nullptr, &status);
+	ERR_FAIL_COND_V_MSG(assembly == nullptr || status != MONO_IMAGE_OK, nullptr, vformat(".NET: Failed to load assembly with status '0x%08x'.", status));
+
+	mono_assembly_name_free(aname);
+
+	MonoImage *img = mono_assembly_get_image(assembly);
+	MonoClass *kls = mono_class_from_name(img, "GodotPlugins.Game", "Main");
+	ERR_FAIL_NULL_V_MSG(kls, nullptr, ".NET: Couldn't find class 'GodotPlugins.Game.Main'.");
+
+	_initialize_method = mono_class_get_method_from_name(kls, "InitializeFromGameProject", 4);
+	ERR_FAIL_NULL_V_MSG(_initialize_method, nullptr, ".NET: Couldn't find method 'GodotPlugins.Game.Main.InitializeFromGameProject'.");
+
+	godot_plugins_initialize_fn godot_plugins_initialize = [](void *godot_dll_handler, GDMonoCache::ManagedCallbacks *out_managed_callbacks, const void **unmanaged_callbacks, int32_t unmanaged_callbacks_size) {
+		void *args[] = {
+			&godot_dll_handler,
+			&out_managed_callbacks,
+			&unmanaged_callbacks,
+			&unmanaged_callbacks_size
+		};
+
+		MonoObject *exc = nullptr;
+		MonoObject *ret = mono_runtime_invoke(_initialize_method, nullptr, args, &exc);
+		if (unlikely(exc != nullptr)) {
+			CRASH_NOW();
+		}
+
+		return *(bool *)mono_object_unbox(ret);
+	};
+
+	ERR_FAIL_NULL_V_MSG(godot_plugins_initialize, nullptr, ".NET: Failed to get GodotPlugins initialization function pointer");
+
+	return godot_plugins_initialize;
+}
+#endif // MONOVM_ENABLED
 
 } // namespace
 
@@ -523,7 +621,7 @@ void GDMono::initialize() {
 
 	godot_plugins_initialize_fn godot_plugins_initialize = nullptr;
 
-#if !defined(IOS_ENABLED)
+#if !defined(IOS_ENABLED) && !defined(WEB_ENABLED)
 	// Check that the .NET assemblies directory exists before trying to use it.
 	if (!DirAccess::exists(GodotSharpDirs::get_api_assemblies_dir())) {
 		OS::get_singleton()->alert(vformat(RTR("Unable to find the .NET assemblies directory.\nMake sure the '%s' directory exists and contains the .NET assemblies."), GodotSharpDirs::get_api_assemblies_dir()), RTR(".NET assemblies not found"));
@@ -531,6 +629,12 @@ void GDMono::initialize() {
 	}
 #endif
 
+#ifdef MONOVM_ENABLED
+	// Always use Mono to initialize the .NET runtime if it's statically linked.
+	godot_plugins_initialize = initialize_monovm_and_godot_plugins(runtime_initialized);
+	ERR_FAIL_NULL_MSG(godot_plugins_initialize, ".NET: Failed to initialize Mono runtime.");
+	runtime_initialized = true;
+#else
 	if (load_hostfxr(hostfxr_dll_handle)) {
 		godot_plugins_initialize = initialize_hostfxr_and_godot_plugins(runtime_initialized);
 		ERR_FAIL_NULL(godot_plugins_initialize);
@@ -548,11 +652,14 @@ void GDMono::initialize() {
 		if (godot_plugins_initialize == nullptr) {
 			ERR_FAIL_MSG(".NET: Failed to load hostfxr");
 		}
-#else
+#endif // !TOOLS_ENABLED
+	}
+#endif // !MONOVM_ENABLED
 
+	if (!runtime_initialized) {
+#ifdef TOOLS_ENABLED
 		// Show a message box to the user to make the problem explicit (and explain a potential crash).
 		OS::get_singleton()->alert(TTR("Unable to load .NET runtime, specifically hostfxr.\nAttempting to create/edit a project will lead to a crash.\n\nPlease install the .NET SDK 8.0 or later from https://get.dot.net and restart Godot."), TTR("Failed to load .NET runtime"));
-		ERR_FAIL_MSG(".NET: Failed to load hostfxr");
 #endif
 	}
 
@@ -563,7 +670,7 @@ void GDMono::initialize() {
 
 	void *godot_dll_handle = nullptr;
 
-#if defined(UNIX_ENABLED) && !defined(MACOS_ENABLED) && !defined(IOS_ENABLED)
+#if defined(UNIX_ENABLED) && !defined(MACOS_ENABLED) && !defined(IOS_ENABLED) && !defined(WEB_ENABLED)
 	// Managed code can access it on its own on other platforms
 	godot_dll_handle = dlopen(nullptr, RTLD_NOW);
 #endif
