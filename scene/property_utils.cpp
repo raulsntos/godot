@@ -172,7 +172,12 @@ Variant PropertyUtils::get_property_default_value(const Object *p_object, const 
 			*r_is_class_default = true;
 		}
 		bool valid = false;
-		Variant value = ClassDB::class_get_default_property_value(p_object->get_class_name(), p_property, &valid);
+		// TODO(@raulsntos): This works but feels dirty, we could generalize this and iterate the native class hierarchy instead.
+		StringName class_name = p_object->get_class_name();
+		if (class_name == "MissingNode") {
+			class_name = "Node";
+		}
+		Variant value = ClassDB::class_get_default_property_value(class_name, p_property, &valid);
 		if (valid) {
 			if (r_is_valid) {
 				*r_is_valid = true;
