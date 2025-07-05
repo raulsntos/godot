@@ -5269,13 +5269,28 @@ static void handle_cmdline_options(String glue_dir_path) {
 	}
 }
 
-static void cleanup_and_exit_godot() {
+static void cleanup_and_exit_godot(int exit_code) {
 	// Exit once done.
 	Main::cleanup(true);
-	::exit(0);
+	::exit(exit_code);
+}
+
+void BindingsGenerator::Logger::logv(const char *p_format, va_list p_list, bool p_err) {
+	if (p_err) {
+		has_errors = true;
+	}
+}
+
+void BindingsGenerator::Logger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const Vector<Ref<ScriptBacktrace>> &p_script_backtraces) {
+	if (p_type == ErrorType::ERR_ERROR) {
+		has_errors = true;
+	}
 }
 
 void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) {
+	Logger *logger = memnew(Logger);
+	OS::get_singleton()->add_logger(logger);
+
 	String glue_dir_path;
 
 	const List<String>::Element *elem = p_cmdline_args.front();
@@ -5290,7 +5305,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 			} else {
 				ERR_PRINT(generate_all_glue_option + ": No output directory specified (expected path to '{GODOT_ROOT}/modules/mono/glue').");
 				// Exit once done with invalid command line arguments.
-				cleanup_and_exit_godot();
+				cleanup_and_exit_godot(-1);
 			}
 
 			break;
@@ -5308,7 +5323,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 			ERR_PRINT(generate_all_glue_option + ": Cannot generate Mono glue while running a game project. Change current directory or enable --editor.");
 		}
 		// Exit once done.
-		cleanup_and_exit_godot();
+		cleanup_and_exit_godot(logger->has_errors ? -1 : 0);
 	}
 }
 
