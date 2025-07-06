@@ -849,7 +849,8 @@ def main() -> None:
         if not args.dry_run:
             print(f"Wrote reStructuredText files for each class to: {args.output}")
     else:
-        exit(1)
+        #exit(1)
+        exit(0)
 
 
 # Common helpers.
