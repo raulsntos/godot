@@ -37,6 +37,24 @@
 #include "core/string/string_buffer.h"
 
 char32_t VariantParser::Stream::get_char() {
+	if (!bom_checked) {
+		bom_checked = true;
+		char32_t *bom_buffer = (char32_t *)alloca(3 * sizeof(char32_t));
+		int len = _read_buffer(bom_buffer, 3);
+		if (len < 0 || len >= 3) {
+			bool has_bom = uint8_t(bom_buffer[0]) == 0xef && uint8_t(bom_buffer[1]) == 0xbb && uint8_t(bom_buffer[2]) == 0xbf;
+			if (has_bom) {
+				// BOM found, skip it.
+			} else {
+				// No BOM, put the characters back into the buffer.
+				for (int i = 0; i < len; i++) {
+					readahead_buffer[i] = bom_buffer[i];
+				}
+				readahead_filled = len;
+			}
+		}
+	}
+
 	// is within buffer?
 	if (readahead_pointer < readahead_filled) {
 		return readahead_buffer[readahead_pointer++];

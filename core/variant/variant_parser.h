@@ -43,6 +43,7 @@ public:
 		uint32_t readahead_pointer = 0;
 		uint32_t readahead_filled = 0;
 		bool eof = false;
+		bool bom_checked = false;
 
 	protected:
 		bool readahead_enabled = true;
