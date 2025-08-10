@@ -55,9 +55,16 @@ bool DotNetModule::is_initialized() const {
 
 bool DotNetModule::should_initialize() {
 #ifdef TOOLS_ENABLED
-	// TODO: The editor always needs to initialize the .NET module for now.
-	return true;
+	if (Engine::get_singleton()->is_project_manager_hint()) {
+		// Never initialize the module in the project manager.
+		return false;
+	}
+	// If we can find a C# project or solution in the workspace,
+	// assume the Godot project uses C# and needs to initialize the module.
+	return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_sln_path());
 #else
+	// The exported project was built with .NET support,
+	// so it needs to initialize the module.
 	return OS::get_singleton()->has_feature("dotnet");
 #endif
 }
