@@ -981,6 +981,14 @@ void ClassDB::get_method_list_with_compatibility(const StringName &p_class, List
 			}
 		}
 
+		for (const KeyValue<StringName, LocalVector<MethodInfo>> &E : type->virtual_method_map_compatibility) {
+			LocalVector<MethodInfo> compat = E.value;
+			for (MethodInfo method : compat) {
+				Pair<MethodInfo, uint32_t> pair(method, method.get_compatibility_hash());
+				p_methods->push_back(pair);
+			}
+		}
+
 		if (p_no_inheritance) {
 			break;
 		}
@@ -2043,6 +2051,33 @@ void ClassDB::add_virtual_compatibility_method(const StringName &p_class, const 
 	}
 
 	compat_hashes->push_back(p_method.get_compatibility_hash());
+
+#ifdef DEBUG_ENABLED
+	ClassInfo *type = classes.getptr(p_class);
+	if (!type->virtual_method_map_compatibility.has(p_method.name)) {
+		type->virtual_method_map_compatibility.insert(p_method.name, LocalVector<MethodInfo>());
+	}
+
+	MethodInfo mi = p_method;
+	if (p_virtual) {
+		mi.flags |= METHOD_FLAG_VIRTUAL;
+	}
+	if (p_object_core) {
+		mi.flags |= METHOD_FLAG_OBJECT_CORE;
+	}
+
+	if (!p_object_core) {
+		if (p_arg_names.size() != mi.arguments.size()) {
+			WARN_PRINT(vformat("Mismatch argument name count for virtual method: '%s::%s'.", String(p_class), p_method.name));
+		} else {
+			for (int64_t i = 0; i < p_arg_names.size(); ++i) {
+				mi.arguments.write[i].name = p_arg_names[i];
+			}
+		}
+	}
+
+	type->virtual_method_map_compatibility[p_method.name].push_back(mi);
+#endif
 }
 
 void ClassDB::get_virtual_methods(const StringName &p_class, List<MethodInfo> *p_methods, bool p_no_inheritance) {
@@ -2083,6 +2118,41 @@ Vector<uint32_t> ClassDB::get_virtual_method_compatibility_hashes(const StringNa
 	}
 
 	return Vector<uint32_t>();
+}
+
+MethodInfo *ClassDB::get_virtual_method_with_compatibility(const StringName &p_class, const StringName &p_name, uint64_t p_hash, bool *r_method_exists, bool *r_is_deprecated) {
+	Locker::Lock lock(Locker::STATE_READ);
+
+	ClassInfo *type = classes.getptr(p_class);
+
+	while (type) {
+		MethodInfo *method = type->virtual_methods_map.getptr(p_name);
+		if (method) {
+			if (r_method_exists) {
+				*r_method_exists = true;
+			}
+			if (method->get_compatibility_hash() == p_hash) {
+				return method;
+			}
+		}
+
+		LocalVector<MethodInfo> *compat = type->virtual_method_map_compatibility.getptr(p_name);
+		if (compat) {
+			if (r_method_exists) {
+				*r_method_exists = true;
+			}
+			for (uint32_t i = 0; i < compat->size(); i++) {
+				if ((*compat)[i].get_compatibility_hash() == p_hash) {
+					if (r_is_deprecated) {
+						*r_is_deprecated = true;
+					}
+					return &(*compat)[i];
+				}
+			}
+		}
+		type = type->inherits_ptr;
+	}
+	return nullptr;
 }
 
 void ClassDB::add_extension_class_virtual_method(const StringName &p_class, const GDExtensionClassVirtualMethodInfo *p_method_info) {

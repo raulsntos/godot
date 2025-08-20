@@ -2426,10 +2426,12 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 	if (!itype.is_singleton && (is_derived_type || itype.has_virtual_methods)) {
 		// Generate method names cache fields
 
+		HashSet<String> visited_method_names;
 		for (const MethodInterface &imethod : itype.methods) {
-			if (!imethod.is_virtual) {
+			if (!imethod.is_virtual || visited_method_names.has(imethod.proxy_name)) {
 				continue;
 			}
+			visited_method_names.insert(imethod.proxy_name);
 
 			output << MEMBER_BEGIN "// ReSharper disable once InconsistentNaming\n"
 				   << INDENT1 "[DebuggerBrowsable(DebuggerBrowsableState.Never)]\n"
@@ -4057,6 +4059,14 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 				if (unlikely(!method_exists)) {
 					ERR_FAIL_COND_V_MSG(!virtual_method_list.find(method_info), false,
 							"Missing MethodBind for non-virtual method: '" + itype.name + "." + imethod.name + "'.");
+				}
+			} else {
+				bool method_exists = false;
+				ClassDB::get_virtual_method_with_compatibility(type_cname, method_info.name, hash, &method_exists, &imethod.is_compat);
+
+				if (unlikely(!method_exists)) {
+					ERR_FAIL_V_MSG(false,
+							"Missing MethodInfo for virtual method: '" + itype.name + "." + imethod.name + "'.");
 				}
 			}
 
