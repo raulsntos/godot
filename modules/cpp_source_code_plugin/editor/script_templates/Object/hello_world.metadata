@@ -1,0 +1,12 @@
+name: Hello World C++ Class
+description: A C++ class template that prints 'Hello, World!'.
+
+parameter:
+    type: STRING
+    name: print_message
+    default_value: "Hello, World!"
+
+parameter:
+    type: BOOL
+    name: include_comments
+    default_value: true
