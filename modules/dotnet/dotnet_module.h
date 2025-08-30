@@ -60,10 +60,15 @@ public:
 #endif
 	static void register_project_settings();
 
+#ifdef TOOLS_ENABLED
+	static void request_enable_dotnet_features();
+#endif
+
 private:
 #ifdef TOOLS_ENABLED
 	void on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
 
+public:
 	bool try_restore_editor_packages(const String &p_editor_assemblies_path);
 #endif
 

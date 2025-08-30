@@ -34,6 +34,7 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_internal.h"
+#include "editor/welcome_dialog.h"
 
 #include "editor/editor_node.h"
 #endif
@@ -45,6 +46,10 @@ DotNetModule *module = nullptr;
 #ifdef TOOLS_ENABLED
 static void _editor_init() {
 	DotNetModule::register_editor_settings();
+
+	DotNet::WelcomeDialog *welcome_dialog = memnew(DotNet::WelcomeDialog);
+	EditorNode::get_singleton()->add_child(welcome_dialog);
+	EditorNode::get_singleton()->add_tool_menu_item("Open .NET Welcome Dialog", callable_mp((Window *)welcome_dialog, &Window::popup_centered).bind(Size2()));
 }
 #endif
 

@@ -36,6 +36,7 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/RestoreEditorPackages.proj.gen.h"
+#include "editor/welcome_dialog.h"
 
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
@@ -64,7 +65,9 @@ bool DotNetModule::should_initialize() {
 	}
 	// If we can find a C# project or solution in the workspace,
 	// assume the Godot project uses C# and needs to initialize the module.
-	return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_sln_path());
+	// TODO(@raulsntos): For now, the module is always initialized even when there is no C# project.
+	// return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_sln_path());
+	return true;
 #else
 	// The exported project was built with .NET support,
 	// so it needs to initialize the module.
@@ -80,6 +83,13 @@ void DotNetModule::initialize() {
 
 #ifdef TOOLS_ENABLED
 	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
+
+	if (!FileAccess::exists(editor_assemblies_dir.path_join("Godot.EditorIntegration.dll"))) {
+		// The editor integration was not available, so this must be the first time the user is
+		// initializing the .NET module.
+		callable_mp_static(&request_enable_dotnet_features).call_deferred();
+	}
+
 	bool integration_loaded = try_restore_editor_packages(editor_assemblies_dir) && runtime_manager->try_load_extension("Godot.EditorIntegration", editor_assemblies_dir);
 	if (!integration_loaded) {
 		// If the editor integration could not be loaded, .NET-related functionality can't be enabled
@@ -146,6 +156,15 @@ void DotNetModule::register_project_settings() {
 	GLOBAL_DEF("dotnet/project/solution_directory", "");
 #endif
 }
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::request_enable_dotnet_features() {
+	// This method was called too early. Wait until the editor has finished all initialization steps.
+	DEV_ASSERT(DotNetModule::get_singleton() != nullptr);
+	DEV_ASSERT(DotNet::WelcomeDialog::get_singleton() != nullptr);
+	DotNet::WelcomeDialog::get_singleton()->popup_centered();
+}
+#endif
 
 #ifdef TOOLS_ENABLED
 void DotNetModule::on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type) {

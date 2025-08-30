@@ -2659,6 +2659,23 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 			p_theme->set_color("playback_background_color", "GraphStateMachine", p_config.font_color * Color(1, 1, 1, 0.3));
 		}
 	}
+
+	// .NET Welcome Dialog
+	{
+		Ref<StyleBoxFlat> dotnet_welcome_step_style = p_config.content_panel_style->duplicate();
+		dotnet_welcome_step_style->set_bg_color(p_config.dark_color_2);
+		dotnet_welcome_step_style->set_corner_radius_all(p_config.corner_radius * EDSCALE);
+		p_theme->set_type_variation("DotNetWelcomeDialogStep", "FoldableContainer");
+		p_theme->set_stylebox(SceneStringName(panel), "DotNetWelcomeDialogStep", dotnet_welcome_step_style);
+
+		Color recommended_panel_color = p_config.accent_color;
+		recommended_panel_color.set_s(recommended_panel_color.get_s() * 1.5);
+		Ref<StyleBoxFlat> recommended_panel_style = p_config.button_style->duplicate();
+		recommended_panel_style->set_bg_color(recommended_panel_color);
+		recommended_panel_style->set_content_margin_all(2 * EDSCALE);
+		p_theme->set_type_variation("RecommendedPanelContainer", "PanelContainer");
+		p_theme->set_stylebox(SceneStringName(panel), "RecommendedPanelContainer", recommended_panel_style);
+	}
 }
 
 void _load_text_editor_theme() {
