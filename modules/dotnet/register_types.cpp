@@ -33,11 +33,13 @@
 #include "dotnet_module.h"
 
 #ifdef TOOLS_ENABLED
+#include "./editor/dotnet_source_code_plugin.h"
 #include "./editor/dotnet_status_indicator.h"
 #include "./editor/editor_internal.h"
 
 #include "core/object/callable_mp.h"
 #include "editor/editor_node.h"
+#include "editor/extension/extension_source_code_manager.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/settings/editor_command_palette.h"
 #endif
@@ -49,6 +51,10 @@ DotNetModule *module = nullptr;
 #ifdef TOOLS_ENABLED
 static void _editor_init() {
 	DotNetModule::register_editor_settings();
+
+	Ref<DotNetSourceCodePlugin> source_code_plugin;
+	source_code_plugin.instantiate();
+	ExtensionSourceCodeManager::get_singleton()->add_plugin(source_code_plugin);
 
 	DotNet::DotNetStatusIndicator *status_indicator = memnew(DotNet::DotNetStatusIndicator);
 	EditorNode::get_bottom_panel()->add_status_indicator(status_indicator);
