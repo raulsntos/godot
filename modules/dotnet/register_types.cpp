@@ -34,38 +34,54 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_internal.h"
+
+#include "editor/editor_node.h"
 #endif
 
-#include "core/config/project_settings.h"
+using namespace DotNet;
 
-DotNet::DotNetModule *module = nullptr;
-
-void initialize_dotnet_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-		return;
-	}
-
-	GLOBAL_DEF("dotnet/project/assembly_name", "");
+DotNetModule *module = nullptr;
 
 #ifdef TOOLS_ENABLED
-	GLOBAL_DEF("dotnet/project/solution_directory", "");
-
-	DotNet::EditorInternal::register_functions();
+static void _editor_init() {
+	DotNetModule::register_editor_settings();
+}
 #endif
 
-	module = memnew(DotNet::DotNetModule);
+void initialize_dotnet_module(ModuleInitializationLevel p_level) {
+	switch (p_level) {
+		case MODULE_INITIALIZATION_LEVEL_SERVERS: {
+#ifdef TOOLS_ENABLED
+			EditorNode::add_init_callback(_editor_init);
+#endif
+			DotNetModule::register_project_settings();
+		} break;
 
-	if (module->should_initialize()) {
-		module->initialize();
+		case MODULE_INITIALIZATION_LEVEL_SCENE: {
+#ifdef TOOLS_ENABLED
+			DotNet::EditorInternal::register_functions();
+#endif
+
+			module = memnew(DotNetModule);
+			if (module->should_initialize()) {
+				module->initialize();
+			}
+		} break;
+
+		default: {
+		}
 	}
 }
 
 void uninitialize_dotnet_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-		return;
-	}
+	switch (p_level) {
+		case MODULE_INITIALIZATION_LEVEL_SCENE: {
+			if (module != nullptr) {
+				memdelete(module);
+			}
+		} break;
 
-	if (module != nullptr) {
-		memdelete(module);
+		default: {
+		}
 	}
 }

@@ -46,10 +46,6 @@ private:
 
 #ifdef TOOLS_ENABLED
 	Ref<FileSystemWatcher> fs_watcher;
-
-	void on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
-
-	bool try_restore_editor_packages(const String &p_editor_assemblies_path);
 #endif
 
 public:
@@ -59,6 +55,19 @@ public:
 	bool should_initialize();
 	void initialize();
 
+#ifdef TOOLS_ENABLED
+	static void register_editor_settings();
+#endif
+	static void register_project_settings();
+
+private:
+#ifdef TOOLS_ENABLED
+	void on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
+
+	bool try_restore_editor_packages(const String &p_editor_assemblies_path);
+#endif
+
+public:
 	DotNetModule();
 	~DotNetModule();
 };

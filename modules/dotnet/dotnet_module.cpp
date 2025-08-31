@@ -32,11 +32,14 @@
 
 #include "utils/dirs_utils.h"
 
+#include "core/config/project_settings.h"
+
 #ifdef TOOLS_ENABLED
 #include "editor/RestoreEditorPackages.proj.gen.h"
 
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
+#include "editor/settings/editor_settings.h"
 #endif
 
 namespace DotNet {
@@ -108,6 +111,40 @@ void DotNetModule::initialize() {
 
 	initialized = true;
 	print_verbose(".NET: Module initialized.");
+}
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::register_editor_settings() {
+	String external_editor_hint_string = "Disabled:0";
+#ifdef WINDOWS_ENABLED
+	external_editor_hint_string += ",Visual Studio:1";
+#endif
+#ifdef MACOS_ENABLED
+	external_editor_hint_string += ",Visual Studio:2";
+#endif
+#ifdef UNIX_ENABLED
+	external_editor_hint_string += ",MonoDevelop:3";
+	external_editor_hint_string += ",Visual Studio Code and VSCodium:4";
+	external_editor_hint_string += ",JetBrains Rider:5";
+	external_editor_hint_string += ",JetBrains Fleet:7";
+	external_editor_hint_string += ",Custom:6";
+#endif
+	EDITOR_DEF_BASIC("dotnet/editor/external_editor", 0);
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::INT, "dotnet/editor/external_editor", PROPERTY_HINT_ENUM, external_editor_hint_string));
+
+	EDITOR_DEF_BASIC("dotnet/editor/custom_exec_path", "");
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "dotnet/editor/custom_exec_path", PROPERTY_HINT_GLOBAL_FILE));
+	EDITOR_DEF_BASIC("dotnet/editor/custom_exec_path_args", "{file}");
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "dotnet/editor/custom_exec_path_args"));
+}
+#endif
+
+void DotNetModule::register_project_settings() {
+	GLOBAL_DEF("dotnet/project/assembly_name", "");
+
+#ifdef TOOLS_ENABLED
+	GLOBAL_DEF("dotnet/project/solution_directory", "");
+#endif
 }
 
 #ifdef TOOLS_ENABLED
