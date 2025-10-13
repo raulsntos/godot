@@ -85,6 +85,12 @@ String DotNetSourceCodePlugin::get_source_path(const StringName &p_class_name) c
 	return dotnet_source_code_plugin->get_source_path(p_class_name);
 }
 
+StringName DotNetSourceCodePlugin::get_class_name_from_source_path(const String &p_source_path) const {
+	REQUIRES_DOTNET_EDITOR_INTEGRATION_V(StringName());
+	const String &path = ProjectSettings::get_singleton()->globalize_path(p_source_path);
+	return dotnet_source_code_plugin->get_class_name_from_source_path(path);
+}
+
 bool DotNetSourceCodePlugin::overrides_external_editor() const {
 	REQUIRES_DOTNET_EDITOR_INTEGRATION_V(false);
 	return dotnet_source_code_plugin->overrides_external_editor();
