@@ -51,6 +51,7 @@ protected:
 	GDVIRTUAL2RC_REQUIRED(bool, _can_handle_object, const GDExtension *, const Object *);
 
 	GDVIRTUAL1RC(String, _get_source_path, const StringName &);
+	GDVIRTUAL1RC(StringName, _get_class_name_from_source_path, const String &);
 
 	GDVIRTUAL0RC(bool, _overrides_external_editor);
 	GDVIRTUAL3RC(Error, _open_in_external_editor, const String &, int, int);
@@ -90,6 +91,7 @@ public:
 	virtual bool can_handle_object(const GDExtension *p_library, const Object *p_object) const;
 
 	virtual String get_source_path(const StringName &p_class_name) const;
+	virtual StringName get_class_name_from_source_path(const String &p_source_path) const;
 
 	virtual bool overrides_external_editor() const;
 	virtual Error open_in_external_editor(const String &p_source_path, int p_line, int p_col) const;
