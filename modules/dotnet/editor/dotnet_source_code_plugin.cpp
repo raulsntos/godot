@@ -110,6 +110,12 @@ Ref<Texture2D> DotNetSourceCodePlugin::get_language_icon() const {
 	return EditorNode::get_singleton()->get_window()->get_editor_theme_icon("CSharpClass");
 }
 
+PackedStringArray DotNetSourceCodePlugin::get_language_extensions() const {
+	PackedStringArray extensions;
+	extensions.push_back("cs");
+	return extensions;
+}
+
 void DotNetSourceCodePlugin::configure_select_path_dialog(int p_path_index, EditorFileDialog *p_dialog) const {
 	REQUIRES_DOTNET_EDITOR_INTEGRATION;
 	dotnet_source_code_plugin->configure_select_path_dialog(p_path_index, p_dialog);
