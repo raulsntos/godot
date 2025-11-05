@@ -32,10 +32,13 @@ def is_nativeaot_supported(platform: str) -> bool:
 
 
 def get_godot_dotnet_package_version() -> str:
-    import version
+    from methods import get_version_info
+    
+    version_info = get_version_info("")
 
-    version_str = f"{version.major}.{version.minor}.{version.patch}"
-    if version.status == "stable":
+    version_str = "{major}.{minor}.{patch}".format(**version_info)
+    version_status = version_info["status"]
+    if version_status == "stable":
         # For stable versions, use the latest revision version available.
         version_str += ".*"
     else:
@@ -45,17 +48,17 @@ def get_godot_dotnet_package_version() -> str:
         # "beta" and "3" to follow SemVer 2.0.
         import re
 
-        version_status = version.status
-        match = re.search(r"[\d]+$", version.status)
+        match = re.search(r"[\d]+$", version_status)
         if match:
             pos = match.start()
-            version_status = version.status[:pos]
+            version_status_prefix = version_status[:pos]
+            version_status_number = version_status[pos:]
 
             # "dev" pre-releases always use the "alpha" label in the .NET packages.
-            if version_status == "dev":
-                version_status = "alpha"
+            if version_status_prefix == "dev":
+                version_status_prefix = "alpha"
 
-            version_status += f".{version.status[pos:]}"
+            version_status = f"{version_status_prefix}.{version_status_number}"
         else:
             # If the version status is not numbered, it must be a development build.
             # Development builds always use the "dev" label in the .NET packages.

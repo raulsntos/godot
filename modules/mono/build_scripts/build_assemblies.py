@@ -269,12 +269,15 @@ def generate_sdk_package_versions():
     root_path = dirname(dirname(dirname(script_path)))
 
     sys.path.insert(0, root_path)
-    import version
+    from methods import get_version_info
+
+    version_info = get_version_info("")
     sys.path.remove(root_path)
 
-    godotsharp_version_str = f"{version.major}.{version.minor}.{version.patch}"
-    godot_dotnet_version_str = f"{version.major}.{version.minor}.{version.patch}"
-    if version.status == "stable":
+    version_status = version_info["status"]
+    godotsharp_version_str = "{major}.{minor}.{patch}".format(**version_info)
+    godot_dotnet_version_str = "{major}.{minor}.{patch}".format(**version_info)
+    if version_status == "stable":
         # For stable versions, use the latest revision version available
         # of the Godot .NET packages.
         godot_dotnet_version_str = ".*"
@@ -285,20 +288,20 @@ def generate_sdk_package_versions():
         # "beta" and "3" to follow SemVer 2.0.
         import re
 
-        godotsharp_version_status = version.status
-        godot_dotnet_version_status = version.status
-        match = re.search(r"[\d]+$", version.status)
+        godotsharp_version_status = version_status
+        godot_dotnet_version_status = version_status
+        match = re.search(r"[\d]+$", version_status)
         if match:
             pos = match.start()
-            godotsharp_version_status = version.status[:pos]
-            godot_dotnet_version_status = version.status[:pos]
+            godotsharp_version_status = version_status[:pos]
+            godot_dotnet_version_status = version_status[:pos]
 
             # "dev" pre-releases always use the "alpha" label in the Godot .NET packages.
             if godot_dotnet_version_status == "dev":
                 godot_dotnet_version_status = "alpha"
 
-            godotsharp_version_status += f".{version.status[pos:]}"
-            godot_dotnet_version_status += f".{version.status[pos:]}"
+            godotsharp_version_status += f".{version_status[pos:]}"
+            godot_dotnet_version_status += f".{version_status[pos:]}"
         else:
             # If the version status is not numbered, it must be a development build.
             # Development builds always use the "dev" label in the Godot .NET packages.
@@ -306,6 +309,8 @@ def generate_sdk_package_versions():
 
         godotsharp_version_str += f"-{godotsharp_version_status}"
         godot_dotnet_version_str += f"-{godot_dotnet_version_status}"
+
+    import version
 
     version_defines = (
         [
