@@ -2410,10 +2410,8 @@ void Object::assign_type_static(GDType **type_ptr, const char *p_name, const GDT
 		// Assigned while we were waiting.
 		return;
 	}
-	type = memnew(GDType(super_type, StringName(p_name)));
+	type = memnew(GDType(super_type, StringName(p_name, true)));
 	*type_ptr = type;
-
-	ClassDB::gdtype_autorelease_pool.push_back(type_ptr);
 }
 
 Object::~Object() {
