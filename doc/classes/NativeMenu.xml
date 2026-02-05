@@ -7,7 +7,8 @@
 		[NativeMenu] handles low-level access to the OS native global menu bar and popup menus.
 		[b]Note:[/b] This is low-level API, consider using [MenuBar] with [member MenuBar.prefer_global_menu] set to [code]true[/code], and [PopupMenu] with [member PopupMenu.prefer_native_menu] set to [code]true[/code].
 		To create a menu, use [method create_menu], add menu items using [code]add_*_item[/code] methods. To remove a menu, use [method free_menu].
-		[codeblock]
+		[codeblocks]
+		[gdscript]
 		var menu
 
 		func _menu_callback(item_id):
@@ -33,7 +34,49 @@
 		func _exit_tree():
 			# Remove menu when it's no longer needed:
 			NativeMenu.free_menu(menu)
-		[/codeblock]
+		[/gdscript]
+		[csharp]
+		private Rid _menu;
+
+		private void MenuCallback(Variant itemId)
+		{
+			if (itemId.AsString() == "ITEM_CUT")
+			{
+				Cut();
+			}
+			else if (itemId.AsString() == "ITEM_COPY")
+			{
+				Copy();
+			}
+			else if (itemId.AsString() == "ITEM_PASTE")
+			{
+				Paste();
+			}
+		}
+
+		public override void _EnterTree()
+		{
+			// Create new menu and add items:
+			_menu = NativeMenu.CreateMenu();
+			NativeMenu.AddItem(_menu, "Cut", new Callable(this, MethodName.MenuCallback), new Callable(), "ITEM_CUT");
+			NativeMenu.AddItem(_menu, "Copy", new Callable(this, MethodName.MenuCallback), new Callable(), "ITEM_COPY");
+			NativeMenu.AddSeparator(_menu);
+			NativeMenu.AddItem(_menu, "Paste", new Callable(this, MethodName.MenuCallback), new Callable(), "ITEM_PASTE");
+		}
+
+		private void OnButtonPressed()
+		{
+			// Show popup menu at mouse position:
+			NativeMenu.Popup(_menu, DisplayServer.MouseGetPosition());
+		}
+
+		public override void _ExitTree()
+		{
+			// Remove menu when it's no longer needed:
+			NativeMenu.FreeMenu(_menu);
+		}
+		[/csharp]
+		[/codeblocks]
 	</description>
 	<tutorials>
 	</tutorials>

@@ -23,12 +23,20 @@
 		[/csharp]
 		[/codeblocks]
 		To set the coordinate of multiple variation axes:
-		[codeblock]
-		var fv = FontVariation.new();
+		[codeblocks]
+		[gdscript]
+		var fv = FontVariation.new()
 		var ts = TextServerManager.get_primary_interface()
 		fv.base_font = load("res://BarlowCondensed-Regular.ttf")
 		fv.variation_opentype = { ts.name_to_tag("wght"): 900, ts.name_to_tag("custom_hght"): 900 }
-		[/codeblock]
+		[/gdscript]
+		[csharp]
+		var fv = new FontVariation();
+		var ts = TextServerManager.GetPrimaryInterface();
+		fv.SetBaseFont(ResourceLoader.Load&lt;FontFile&gt;("res://BarlowCondensed-Regular.ttf"));
+		fv.SetVariationOpentype(new Godot.Collections.Dictionary { { ts.NameToTag("wght"), 900 }, { ts.NameToTag("custom_hght"), 900 } });
+		[/csharp]
+		[/codeblocks]
 	</description>
 	<tutorials>
 	</tutorials>

@@ -34,6 +34,10 @@
 				var global_library = mixer.get_animation_library("")
 				global_library.add_animation("animation_name", animation_resource)
 				[/gdscript]
+				[csharp]
+				var globalLibrary = mixer.GetAnimationLibrary("");
+				globalLibrary.AddAnimation("animation_name", animationResource);
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -122,6 +126,21 @@
 					set_velocity(velocity)
 					move_and_slide()
 				[/gdscript]
+				[csharp]
+				private Quaternion _currentRotation;
+
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_currentRotation = GetQuaternion();
+						_stateMachine.Travel("Animate");
+					}
+					Vector3 velocity = _currentRotation * _animationTree.GetRootMotionPosition() / (float)delta;
+					Velocity = velocity;
+					MoveAndSlide();
+				}
+				[/csharp]
 				[/codeblocks]
 				By using this in combination with [method get_root_motion_rotation_accumulator], you can apply the root motion position more correctly to account for the rotation of the node.
 				[codeblocks]
@@ -134,6 +153,19 @@
 					set_velocity(velocity)
 					move_and_slide()
 				[/gdscript]
+				[csharp]
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					SetQuaternion(GetQuaternion() * _animationTree.GetRootMotionRotation());
+					Vector3 velocity = (_animationTree.GetRootMotionRotationAccumulator().Inverse() * GetQuaternion()) * _animationTree.GetRootMotionPosition() / (float)delta;
+					Velocity = velocity;
+					MoveAndSlide();
+				}
+				[/csharp]
 				[/codeblocks]
 				If [member root_motion_local] is [code]true[/code], returns the pre-multiplied translation value with the inverted rotation.
 				In this case, the code can be written as follows:
@@ -147,6 +179,19 @@
 					set_velocity(velocity)
 					move_and_slide()
 				[/gdscript]
+				[csharp]
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					SetQuaternion(GetQuaternion() * _animationTree.GetRootMotionRotation());
+					Vector3 velocity = GetQuaternion() * _animationTree.GetRootMotionPosition() / (float)delta;
+					Velocity = velocity;
+					MoveAndSlide();
+				}
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -168,6 +213,23 @@
 					prev_root_motion_position_accumulator = current_root_motion_position_accumulator
 					transform.origin += difference
 				[/gdscript]
+				[csharp]
+				private Vector3 _prevRootMotionPositionAccumulator;
+
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					Vector3 currentRootMotionPositionAccumulator = _animationTree.GetRootMotionPositionAccumulator();
+					Vector3 difference = currentRootMotionPositionAccumulator - _prevRootMotionPositionAccumulator;
+					_prevRootMotionPositionAccumulator = currentRootMotionPositionAccumulator;
+					Transform3D transform = Transform;
+					transform.Origin += difference;
+					Transform = transform;
+				}
+				[/csharp]
 				[/codeblocks]
 				However, if the animation loops, an unintended discrete change may occur, so this is only useful for some simple use cases.
 			</description>
@@ -186,6 +248,16 @@
 						state_machine.travel("Animate")
 					set_quaternion(get_quaternion() * animation_tree.get_root_motion_rotation())
 				[/gdscript]
+				[csharp]
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					SetQuaternion(GetQuaternion() * _animationTree.GetRootMotionRotation());
+				}
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -208,6 +280,23 @@
 					prev_root_motion_rotation_accumulator = current_root_motion_rotation_accumulator
 					transform.basis *=  Basis(difference)
 				[/gdscript]
+				[csharp]
+				private Quaternion _prevRootMotionRotationAccumulator;
+
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					Quaternion currentRootMotionRotationAccumulator = _animationTree.GetRootMotionRotationAccumulator();
+					Quaternion difference = _prevRootMotionRotationAccumulator.Inverse() * currentRootMotionRotationAccumulator;
+					_prevRootMotionRotationAccumulator = currentRootMotionRotationAccumulator;
+					Transform3D transform = Transform;
+					transform.Basis *= new Basis(difference);
+					Transform = transform;
+				}
+				[/csharp]
 				[/codeblocks]
 				However, if the animation loops, an unintended discrete change may occur, so this is only useful for some simple use cases.
 			</description>
@@ -232,6 +321,22 @@
 					scale_accum += animation_tree.get_root_motion_scale()
 					set_scale(current_scale * scale_accum)
 				[/gdscript]
+				[csharp]
+				private Vector3 _currentScale = new Vector3(1, 1, 1);
+				private Vector3 _scaleAccum = new Vector3(1, 1, 1);
+
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_currentScale = GetScale();
+						_scaleAccum = new Vector3(1, 1, 1);
+						_stateMachine.Travel("Animate");
+					}
+					_scaleAccum += _animationTree.GetRootMotionScale();
+					SetScale(_currentScale * _scaleAccum);
+				}
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -252,6 +357,23 @@
 					prev_root_motion_scale_accumulator = current_root_motion_scale_accumulator
 					transform.basis = transform.basis.scaled(difference)
 				[/gdscript]
+				[csharp]
+				private Vector3 _prevRootMotionScaleAccumulator;
+
+				public override void _Process(double delta)
+				{
+					if (Input.IsActionJustPressed("animate"))
+					{
+						_stateMachine.Travel("Animate");
+					}
+					Vector3 currentRootMotionScaleAccumulator = _animationTree.GetRootMotionScaleAccumulator();
+					Vector3 difference = currentRootMotionScaleAccumulator - _prevRootMotionScaleAccumulator;
+					_prevRootMotionScaleAccumulator = currentRootMotionScaleAccumulator;
+					Transform3D transform = Transform;
+					transform.Basis = transform.Basis.Scaled(difference);
+					Transform = transform;
+				}
+				[/csharp]
 				[/codeblocks]
 				However, if the animation loops, an unintended discrete change may occur, so this is only useful for some simple use cases.
 			</description>

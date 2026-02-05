@@ -53,9 +53,14 @@
 			<return type="PackedStringArray" />
 			<description>
 				Returns an array containing the bigrams (pairs of consecutive characters) of this string.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("Get up!".bigrams()) # Prints ["Ge", "et", "t ", " u", "up", "p!"]
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("Get up!".Bigrams()); // Prints ["Ge", "et", "t ", " u", "up", "p!"]
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="bin_to_int" qualifiers="const">
@@ -123,10 +128,16 @@
 			<param index="0" name="code" type="int" />
 			<description>
 				Returns a single Unicode character from the integer [param code]. You may use [url=https://unicodelookup.com/]unicodelookup.com[/url] or [url=https://www.unicode.org/charts/]unicode.org[/url] as points of reference.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print(String.chr(65))     # Prints "A"
 				print(String.chr(129302)) # Prints "🤖" (robot face emoji)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print(char.ConvertFromUtf32(65));     // Prints "A"
+				GD.Print(char.ConvertFromUtf32(129302)); // Prints "🤖" (robot face emoji)
+				[/csharp]
+				[/codeblocks]
 				See also [method unicode_at], [method @GDScript.char], and [method @GDScript.ord].
 			</description>
 		</method>
@@ -288,25 +299,36 @@
 			<return type="String" />
 			<description>
 				If the string is a valid file path, returns the base directory name.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var dir_path = "/path/to/file.txt".get_base_dir() # dir_path is "/path/to"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var dirPath = "/path/to/file.txt".GetBaseDir(); // dirPath is "/path/to"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_basename" qualifiers="const">
 			<return type="String" />
 			<description>
 				If the string is a valid file path, returns the full file path, without the extension.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var base = "/path/to/file.txt".get_basename() # base is "/path/to/file"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var baseName = "/path/to/file.txt".GetBaseName(); // baseName is "/path/to/file"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_extension" qualifiers="const">
 			<return type="String" />
 			<description>
 				If the string is a valid file name or path, returns the file extension without the leading period ([code].[/code]). Otherwise, returns an empty string.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var a = "/path/to/file.txt".get_extension() # a is "txt"
 				var b = "cool.txt".get_extension()          # b is "txt"
 				var c = "cool.font.tres".get_extension()    # c is "tres"
@@ -316,16 +338,33 @@
 				var f = "file.txt..".get_extension() # f is ""
 				var g = "txt".get_extension()        # g is ""
 				var h = "".get_extension()           # h is ""
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var a = "/path/to/file.txt".GetExtension(); // a is "txt"
+				var b = "cool.txt".GetExtension();          // b is "txt"
+				var c = "cool.font.tres".GetExtension();    // c is "tres"
+				var d = ".pack1".GetExtension();            // d is "pack1"
+
+				var e = "file.txt.".GetExtension();  // e is ""
+				var f = "file.txt..".GetExtension(); // f is ""
+				var g = "txt".GetExtension();        // g is ""
+				var h = "".GetExtension();           // h is ""
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_file" qualifiers="const">
 			<return type="String" />
 			<description>
 				If the string is a valid file path, returns the file name, including the extension.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var file = "/path/to/icon.png".get_file() # file is "icon.png"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var file = "/path/to/icon.png".GetFile(); // file is "icon.png"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_slice" qualifiers="const">
@@ -335,9 +374,14 @@
 			<description>
 				Splits the string using a [param delimiter] and returns the substring at index [param slice]. Returns the original string if [param delimiter] does not occur in the string. Returns an empty string if the [param slice] does not exist.
 				This is faster than [method split], if you only need one or two substrings.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("i/am/example/hi".get_slice("/", 2)) # Prints "example"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("i/am/example/hi".GetSlice("/", 2)); // Prints "example"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_slice_count" qualifiers="const">
@@ -346,10 +390,16 @@
 			<description>
 				Returns the total number of slices when the string is split with the given [param delimiter] (see [method split]).
 				Use [method get_slice] to extract a specific slice.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("i/am/example/string".get_slice_count("/")) # Prints '4'.
 				print("i am example string".get_slice_count("/")) # Prints '1'.
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("i/am/example/string".GetSliceCount("/")); // Prints "4".
+				GD.Print("i am example string".GetSliceCount("/")); // Prints "1".
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_slicec" qualifiers="const">
@@ -451,14 +501,24 @@
 			<param index="0" name="text" type="String" />
 			<description>
 				Returns [code]true[/code] if all characters of this string can be found in [param text] in their original order. This is not the same as [method contains].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var text = "Wow, incredible!"
 
 				print("inedible".is_subsequence_of(text)) # Prints true
 				print("Word!".is_subsequence_of(text))    # Prints true
 				print("Window".is_subsequence_of(text))   # Prints false
 				print("".is_subsequence_of(text))         # Prints true
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var text = "Wow, incredible!";
+
+				GD.Print("inedible".IsSubsequenceOf(text)); // Prints True
+				GD.Print("Word!".IsSubsequenceOf(text));    // Prints True
+				GD.Print("Window".IsSubsequenceOf(text));   // Prints False
+				GD.Print("".IsSubsequenceOf(text));         // Prints True
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="is_subsequence_ofn" qualifiers="const">
@@ -472,12 +532,20 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this string is a valid ASCII identifier. A valid ASCII identifier may contain only letters, digits, and underscores ([code]_[/code]), and the first character may not be a digit.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("node_2d".is_valid_ascii_identifier())    # Prints true
 				print("TYPE_FLOAT".is_valid_ascii_identifier()) # Prints true
 				print("1st_method".is_valid_ascii_identifier()) # Prints false
 				print("MyMethod#2".is_valid_ascii_identifier()) # Prints false
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("node_2d".IsValidAsciiIdentifier());    // Prints True
+				GD.Print("TYPE_FLOAT".IsValidAsciiIdentifier()); // Prints True
+				GD.Print("1st_method".IsValidAsciiIdentifier()); // Prints False
+				GD.Print("MyMethod#2".IsValidAsciiIdentifier()); // Prints False
+				[/csharp]
+				[/codeblocks]
 				See also [method is_valid_unicode_identifier].
 			</description>
 		</method>
@@ -491,12 +559,20 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this string represents a valid floating-point number. A valid float may contain only digits, one decimal point ([code].[/code]), and the exponent letter ([code]e[/code]). It may also be prefixed with a positive ([code]+[/code]) or negative ([code]-[/code]) sign. Any valid integer is also a valid float (see [method is_valid_int]). See also [method to_float].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("1.7".is_valid_float())   # Prints true
 				print("24".is_valid_float())    # Prints true
 				print("7e3".is_valid_float())   # Prints true
 				print("Hello".is_valid_float()) # Prints false
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("1.7".IsValidFloat());   // Prints True
+				GD.Print("24".IsValidFloat());    // Prints True
+				GD.Print("7e3".IsValidFloat());   // Prints True
+				GD.Print("Hello".IsValidFloat()); // Prints False
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="is_valid_hex_number" qualifiers="const">
@@ -505,13 +581,22 @@
 			<description>
 				Returns [code]true[/code] if this string is a valid hexadecimal number. A valid hexadecimal number only contains digits or letters [code]A[/code] to [code]F[/code] (either uppercase or lowercase), and may be prefixed with a positive ([code]+[/code]) or negative ([code]-[/code]) sign.
 				If [param with_prefix] is [code]true[/code], the hexadecimal number needs to prefixed by [code]"0x"[/code] to be considered valid.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("A08E".is_valid_hex_number())    # Prints true
 				print("-AbCdEf".is_valid_hex_number()) # Prints true
 				print("2.5".is_valid_hex_number())     # Prints false
 
 				print("0xDEADC0DE".is_valid_hex_number(true)) # Prints true
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("A08E".IsValidHexNumber());    // Prints True
+				GD.Print("-AbCdEf".IsValidHexNumber()); // Prints True
+				GD.Print("2.5".IsValidHexNumber());     // Prints False
+
+				GD.Print("0xDEADC0DE".IsValidHexNumber(withPrefix: true)); // Prints True
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="is_valid_html_color" qualifiers="const">
@@ -524,25 +609,42 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this string is a valid identifier. A valid identifier may contain only letters, digits and underscores ([code]_[/code]), and the first character may not be a digit.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("node_2d".is_valid_identifier())    # Prints true
 				print("TYPE_FLOAT".is_valid_identifier()) # Prints true
 				print("1st_method".is_valid_identifier()) # Prints false
 				print("MyMethod#2".is_valid_identifier()) # Prints false
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("node_2d".IsValidIdentifier());    // Prints True
+				GD.Print("TYPE_FLOAT".IsValidIdentifier()); // Prints True
+				GD.Print("1st_method".IsValidIdentifier()); // Prints False
+				GD.Print("MyMethod#2".IsValidIdentifier()); // Prints False
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="is_valid_int" qualifiers="const">
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this string represents a valid integer. A valid integer only contains digits, and may be prefixed with a positive ([code]+[/code]) or negative ([code]-[/code]) sign. See also [method to_int].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("7".is_valid_int())    # Prints true
 				print("1.65".is_valid_int()) # Prints false
 				print("Hi".is_valid_int())   # Prints false
 				print("+3".is_valid_int())   # Prints true
 				print("-12".is_valid_int())  # Prints true
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("7".IsValidInt());    // Prints True
+				GD.Print("1.65".IsValidInt()); // Prints False
+				GD.Print("Hi".IsValidInt());   // Prints False
+				GD.Print("+3".IsValidInt());   // Prints True
+				GD.Print("-12".IsValidInt());  // Prints True
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="is_valid_ip_address" qualifiers="const">
@@ -556,14 +658,24 @@
 			<description>
 				Returns [code]true[/code] if this string is a valid Unicode identifier.
 				A valid Unicode identifier must begin with a Unicode character of class [code]XID_Start[/code] or [code]"_"[/code], and may contain Unicode characters of class [code]XID_Continue[/code] in the other positions.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("node_2d".is_valid_unicode_identifier())      # Prints true
 				print("1st_method".is_valid_unicode_identifier())   # Prints false
 				print("MyMethod#2".is_valid_unicode_identifier())   # Prints false
 				print("állóképesség".is_valid_unicode_identifier()) # Prints true
 				print("выносливость".is_valid_unicode_identifier()) # Prints true
 				print("体力".is_valid_unicode_identifier())         # Prints true
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("node_2d".IsValidUnicodeIdentifier());      // Prints True
+				GD.Print("1st_method".IsValidUnicodeIdentifier());   // Prints False
+				GD.Print("MyMethod#2".IsValidUnicodeIdentifier());   // Prints False
+				GD.Print("állóképesség".IsValidUnicodeIdentifier()); // Prints True
+				GD.Print("выносливость".IsValidUnicodeIdentifier()); // Prints True
+				GD.Print("体力".IsValidUnicodeIdentifier());         // Prints True
+				[/csharp]
+				[/codeblocks]
 				See also [method is_valid_ascii_identifier].
 				[b]Note:[/b] This method checks identifiers the same way as GDScript. See [method TextServer.is_valid_identifier] for more advanced checks.
 			</description>
@@ -601,10 +713,16 @@
 			<param index="0" name="length" type="int" />
 			<description>
 				Returns the first [param length] characters from the beginning of the string. If [param length] is negative, strips the last [param length] characters from the string's end.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("Hello World!".left(3))  # Prints "Hel"
 				print("Hello World!".left(-4)) # Prints "Hello Wo"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("Hello World!".Left(3));  // Prints "Hel"
+				GD.Print("Hello World!".Left(-4)); // Prints "Hello Wo"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="length" qualifiers="const" keywords="size">
@@ -692,7 +810,8 @@
 				Converts a [float] to a string representation of a decimal number, with the number of decimal places specified in [param decimals].
 				If [param decimals] is [code]-1[/code] as by default, the string representation may only have up to 14 significant digits, with digits before the decimal point having priority over digits after.
 				Trailing zeros are not included in the string. The last digit is rounded, not truncated.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				String.num(3.141593)     # Returns "3.141593"
 				String.num(3.141593, 3)  # Returns "3.142"
 				String.num(3.14159300)   # Returns "3.141593"
@@ -704,7 +823,16 @@
 				# If `decimals` is not specified, the maximum number of significant digits is 14:
 				String.num(-0.0000012345432123454321)     # Returns "-0.00000123454321"
 				String.num(-10000.0000012345432123454321) # Returns "-10000.0000012345"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// C# uses the standard .NET formatting methods.
+				// Use ToString() with format specifiers for similar results.
+				(3.141593).ToString();      // Returns "3.141593"
+				(3.141593).ToString("F3");  // Returns "3.142"
+				(3.14159300).ToString();    // Returns "3.141593"
+				(42.129999).ToString("F5"); // Returns "42.13000"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="num_int64" qualifiers="static">
@@ -855,10 +983,16 @@
 			<param index="0" name="length" type="int" />
 			<description>
 				Returns the last [param length] characters from the end of the string. If [param length] is negative, strips the first [param length] characters from the string's beginning.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("Hello World!".right(3))  # Prints "ld!"
 				print("Hello World!".right(-4)) # Prints "o World!"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("Hello World!".Right(3));  // Prints "ld!"
+				GD.Print("Hello World!".Right(-4)); // Prints "o World!"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="rpad" qualifiers="const">
@@ -930,22 +1064,36 @@
 			<param index="0" name="text" type="String" />
 			<description>
 				Returns the similarity index ([url=https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient]Sørensen-Dice coefficient[/url]) of this string compared to another. A result of [code]1.0[/code] means totally similar, while [code]0.0[/code] means totally dissimilar.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				print("ABC123".similarity("ABC123")) # Prints 1.0
 				print("ABC123".similarity("XYZ456")) # Prints 0.0
 				print("ABC123".similarity("123ABC")) # Prints 0.8
 				print("ABC123".similarity("abc123")) # Prints 0.4
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				GD.Print("ABC123".Similarity("ABC123")); // Prints 1
+				GD.Print("ABC123".Similarity("XYZ456")); // Prints 0
+				GD.Print("ABC123".Similarity("123ABC")); // Prints 0.8
+				GD.Print("ABC123".Similarity("abc123")); // Prints 0.4
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="simplify_path" qualifiers="const">
 			<return type="String" />
 			<description>
 				If the string is a valid file path, converts the string into a canonical path. This is the shortest possible path, without [code]"./"[/code], and all the unnecessary [code]".."[/code] and [code]"/"[/code].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var simple_path = "./path/to///../file".simplify_path()
 				print(simple_path) # Prints "path/file"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var simplePath = "./path/to///../file".SimplifyPath();
+				GD.Print(simplePath); // Prints "path/file"
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="split" qualifiers="const">
@@ -985,11 +1133,18 @@
 			<description>
 				Splits the string into floats by using a [param delimiter] and returns a [PackedFloat64Array].
 				If [param allow_empty] is [code]false[/code], empty or invalid [float] conversions between adjacent delimiters are excluded.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var a = "1,2,4.5".split_floats(",")         # a is [1.0, 2.0, 4.5]
 				var c = "1| ||4.5".split_floats("|")        # c is [1.0, 0.0, 0.0, 4.5]
 				var b = "1| ||4.5".split_floats("|", false) # b is [1.0, 4.5]
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var a = "1,2,4.5".SplitFloats(",");            // a is [1.0, 2.0, 4.5]
+				var c = "1| ||4.5".SplitFloats("|");           // c is [1.0, 0.0, 0.0, 4.5]
+				var b = "1| ||4.5".SplitFloats("|", false);    // b is [1.0, 4.5]
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="strip_edges" qualifiers="const">
@@ -1031,25 +1186,42 @@
 			<return type="float" />
 			<description>
 				Converts the string representing a decimal number into a [float]. This method stops on the first non-number character, except the first decimal point ([code].[/code]) and the exponent letter ([code]e[/code]). See also [method is_valid_float].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var a = "12.35".to_float()  # a is 12.35
 				var b = "1.2.3".to_float()  # b is 1.2
 				var c = "12xy3".to_float()  # c is 12.0
 				var d = "1e3".to_float()    # d is 1000.0
 				var e = "Hello!".to_float() # e is 0.0
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var a = "12.35".ToFloat();  // a is 12.35
+				var b = "1.2.3".ToFloat();  // b is 1.2
+				var c = "12xy3".ToFloat();  // c is 12.0
+				var d = "1e3".ToFloat();    // d is 1000.0
+				var e = "Hello!".ToFloat(); // e is 0.0
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="to_int" qualifiers="const">
 			<return type="int" />
 			<description>
 				Converts the string representing an integer number into an [int]. This method removes any non-number character and stops at the first decimal point ([code].[/code]). See also [method is_valid_int].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var a = "123".to_int()    # a is 123
 				var b = "x1y2z3".to_int() # b is 123
 				var c = "-1.2.3".to_int() # c is -1
 				var d = "Hello!".to_int() # d is 0
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var a = "123".ToInt();    // a is 123
+				var b = "x1y2z3".ToInt(); // b is 123
+				var c = "-1.2.3".ToInt(); // c is -1
+				var d = "Hello!".ToInt(); // d is 0
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="to_kebab_case" qualifiers="const">

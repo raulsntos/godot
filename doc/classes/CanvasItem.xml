@@ -588,9 +588,14 @@
 			<description>
 				Transforms [param viewport_point] from the viewport's coordinates to this node's local coordinates.
 				For the opposite operation, use [method get_global_transform_with_canvas].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var viewport_point = get_global_transform_with_canvas() * local_point
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var viewportPoint = GetGlobalTransformWithCanvas() * localPoint;
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="make_input_local" qualifiers="const">

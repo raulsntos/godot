@@ -67,6 +67,91 @@
 		func _get_peer_ids() -&gt; PackedInt32Array:
 			return base_multiplayer.get_peers()
 		[/gdscript]
+		[csharp]
+		using Godot;
+
+		public partial class LogMultiplayer : MultiplayerApiExtension
+		{
+		    // We want to extend the default SceneMultiplayer.
+		    private SceneMultiplayer _baseMultiplayer = new SceneMultiplayer();
+
+		    public LogMultiplayer()
+		    {
+		        // Just passthrough base signals.
+		        _baseMultiplayer.ConnectedToServer += () =&gt; EmitSignal(SignalName.ConnectedToServer);
+		        _baseMultiplayer.ConnectionFailed += () =&gt; EmitSignal(SignalName.ConnectionFailed);
+		        _baseMultiplayer.ServerDisconnected += () =&gt; EmitSignal(SignalName.ServerDisconnected);
+		        _baseMultiplayer.PeerConnected += (id) =&gt; EmitSignal(SignalName.PeerConnected, id);
+		        _baseMultiplayer.PeerDisconnected += (id) =&gt; EmitSignal(SignalName.PeerDisconnected, id);
+		    }
+
+		    public override Error _Poll()
+		    {
+		        return _baseMultiplayer.Poll();
+		    }
+
+		    // Log RPC being made and forward it to the default multiplayer.
+		    public override Error _Rpc(int peer, GodotObject @object, StringName method, Godot.Collections.Array args)
+		    {
+		        GD.Print($"Got RPC for {peer}: {@object}::{method}({args})");
+		        return _baseMultiplayer.Rpc(peer, @object, method, args);
+		    }
+
+		    // Log configuration add. E.g. root path (null, NodePath), replication (Node, Spawner|Synchronizer), custom.
+		    public override Error _ObjectConfigurationAdd(GodotObject @object, Variant config)
+		    {
+		        if (config.As&lt;MultiplayerSynchronizer&gt;() is MultiplayerSynchronizer synchronizer)
+		        {
+		            GD.Print($"Adding synchronization configuration for {@object}. Synchronizer: {synchronizer}");
+		        }
+		        else if (config.As&lt;MultiplayerSpawner&gt;() is MultiplayerSpawner spawner)
+		        {
+		            GD.Print($"Adding node {@object} to the spawn list. Spawner: {spawner}");
+		        }
+		        return _baseMultiplayer.ObjectConfigurationAdd(@object, config);
+		    }
+
+		    // Log configuration remove. E.g. root path (null, NodePath), replication (Node, Spawner|Synchronizer), custom.
+		    public override Error _ObjectConfigurationRemove(GodotObject @object, Variant config)
+		    {
+		        if (config.As&lt;MultiplayerSynchronizer&gt;() is MultiplayerSynchronizer synchronizer)
+		        {
+		            GD.Print($"Removing synchronization configuration for {@object}. Synchronizer: {synchronizer}");
+		        }
+		        else if (config.As&lt;MultiplayerSpawner&gt;() is MultiplayerSpawner spawner)
+		        {
+		            GD.Print($"Removing node {@object} from the spawn list. Spawner: {spawner}");
+		        }
+		        return _baseMultiplayer.ObjectConfigurationRemove(@object, config);
+		    }
+
+		    // These can be optional, but in our case we want to extend SceneMultiplayer, so forward everything.
+		    public override void _SetMultiplayerPeer(MultiplayerPeer peer)
+		    {
+		        _baseMultiplayer.MultiplayerPeer = peer;
+		    }
+
+		    public override MultiplayerPeer _GetMultiplayerPeer()
+		    {
+		        return _baseMultiplayer.MultiplayerPeer;
+		    }
+
+		    public override int _GetUniqueId()
+		    {
+		        return _baseMultiplayer.GetUniqueId();
+		    }
+
+		    public override int _GetRemoteSenderId()
+		    {
+		        return _baseMultiplayer.GetRemoteSenderId();
+		    }
+
+		    public override int[] _GetPeerIds()
+		    {
+		        return _baseMultiplayer.GetPeers();
+		    }
+		}
+		[/csharp]
 		[/codeblocks]
 		Then in your main scene or in an autoload call [method SceneTree.set_multiplayer] to start using your custom [MultiplayerAPI]:
 		[codeblocks]
@@ -76,6 +161,19 @@
 			# Sets our custom multiplayer as the main one in SceneTree.
 			get_tree().set_multiplayer(LogMultiplayer.new())
 		[/gdscript]
+		[csharp]
+		// Autoload.cs
+		using Godot;
+
+		public partial class Autoload : Node
+		{
+		    public override void _EnterTree()
+		    {
+		        // Sets our custom multiplayer as the main one in SceneTree.
+		        GetTree().SetMultiplayer(new LogMultiplayer());
+		    }
+		}
+		[/csharp]
 		[/codeblocks]
 		Native extensions can alternatively use the [method MultiplayerAPI.set_default_interface] method during initialization to configure themselves as the default implementation.
 	</description>

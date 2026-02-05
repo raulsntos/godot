@@ -15,7 +15,8 @@
 			<description>
 				Creates an [ImageTextureLayered] from an array of [Image]s. See [method Image.create] for the expected data format. The first image decides the width, height, image format and mipmapping setting. The other images [i]must[/i] have the same width, height, image format and mipmapping setting.
 				Each [Image] represents one [code]layer[/code].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				# Fill in an array of Images with different colors.
 				var images = []
 				const LAYERS = 6
@@ -47,7 +48,49 @@
 				var cubemap_array = CubemapArray.new()
 				cubemap_array.create_from_images(images)
 				ResourceSaver.save(cubemap_array, "res://cubemap_array.res", ResourceSaver.FLAG_COMPRESS)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// Fill in an array of Images with different colors.
+				var images = new Godot.Collections.Array&lt;Image&gt;();
+				const int Layers = 6;
+				for (int i = 0; i &lt; Layers; i++)
+				{
+					var image = Image.CreateEmpty(128, 128, false, Image.Format.Rgb8);
+					if (i % 3 == 0)
+					{
+						image.Fill(Colors.Red);
+					}
+					else if (i % 3 == 1)
+					{
+						image.Fill(Colors.Green);
+					}
+					else
+					{
+						image.Fill(Colors.Blue);
+					}
+					images.Add(image);
+				}
+
+				// Create and save a 2D texture array. The array of images must have at least 1 Image.
+				var texture2DArray = new Texture2DArray();
+				texture2DArray.CreateFromImages(images);
+				ResourceSaver.Save(texture2DArray, "res://texture_2d_array.res", ResourceSaver.SaverFlags.Compress);
+
+				// Create and save a cubemap. The array of images must have exactly 6 Images.
+				// The cubemap's images are specified in this order: X+, X-, Y+, Y-, Z+, Z-
+				// (in Godot's coordinate system, so Y+ is "up" and Z- is "forward").
+				var cubemap = new Cubemap();
+				cubemap.CreateFromImages(images);
+				ResourceSaver.Save(cubemap, "res://cubemap.res", ResourceSaver.SaverFlags.Compress);
+
+				// Create and save a cubemap array. The array of images must have a multiple of 6 Images.
+				// Each cubemap's images are specified in this order: X+, X-, Y+, Y-, Z+, Z-
+				// (in Godot's coordinate system, so Y+ is "up" and Z- is "forward").
+				var cubemapArray = new CubemapArray();
+				cubemapArray.CreateFromImages(images);
+				ResourceSaver.Save(cubemapArray, "res://cubemap_array.res", ResourceSaver.SaverFlags.Compress);
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="update_layer">

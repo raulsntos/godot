@@ -5,17 +5,38 @@
 	</brief_description>
 	<description>
 		When packing nested containers using [PackedDataContainer], they are recursively packed into [PackedDataContainerRef] (only applies to [Array] and [Dictionary]). Their data can be retrieved the same way as from [PackedDataContainer].
-		[codeblock]
+		[codeblocks]
+		[gdscript]
 		var packed = PackedDataContainer.new()
 		packed.pack([1, 2, 3, ["nested1", "nested2"], 4, 5, 6])
 
 		for element in packed:
-			if element is PackedDataContainerRef:
-				for subelement in element:
-					print("::", subelement)
-			else:
-				print(element)
-		[/codeblock]
+		    if element is PackedDataContainerRef:
+		        for subelement in element:
+		            print("::", subelement)
+		    else:
+		        print(element)
+		[/gdscript]
+		[csharp]
+		var packed = new PackedDataContainer();
+		packed.Pack(new Godot.Collections.Array { 1, 2, 3, new Godot.Collections.Array { "nested1", "nested2" }, 4, 5, 6 });
+
+		foreach (var element in packed)
+		{
+		    if (element.As<GodotObject>() is PackedDataContainerRef containerRef)
+		    {
+		        foreach (var subelement in containerRef)
+		        {
+		            GD.Print($"::{subelement}");
+		        }
+		    }
+		    else
+		    {
+		        GD.Print(element);
+		    }
+		}
+		[/csharp]
+		[/codeblocks]
 		Prints:
 		[codeblock lang=text]
 		1

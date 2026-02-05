@@ -124,6 +124,12 @@
 				"height" : float
 				"carve" : bool
 				[/gdscript]
+				[csharp]
+				"vertices" : float[]
+				"elevation" : float
+				"height" : float
+				"carve" : bool
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>

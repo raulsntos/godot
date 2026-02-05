@@ -270,11 +270,24 @@
 				Use [method _set_state] to restore your saved state.
 				[b]Note:[/b] This method should not be used to save important settings that should persist with the project.
 				[b]Note:[/b] You must implement [method _get_plugin_name] for the state to be stored and restored correctly.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _get_state():
 					var state = { "zoom": zoom, "preferred_color": my_color }
 					return state
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override Godot.Collections.Dictionary _GetState()
+				{
+					var state = new Godot.Collections.Dictionary
+					{
+						{ "zoom", zoom },
+						{ "preferred_color", myColor }
+					};
+					return state;
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_get_unsaved_status" qualifiers="virtual const">
@@ -284,7 +297,8 @@
 				Override this method to provide a custom message that lists unsaved changes. The editor will call this method when exiting or when closing a scene, and display the returned string in a confirmation dialog. Return empty string if the plugin has no unsaved changes.
 				When closing a scene, [param for_scene] is the path to the scene being closed. You can use it to handle built-in resources in that scene.
 				If the user confirms saving, [method _save_external_data] will be called, before closing the editor.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _get_unsaved_status(for_scene):
 					if not unsaved:
 						return ""
@@ -296,13 +310,40 @@
 
 				func _save_external_data():
 					unsaved = false
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override string _GetUnsavedStatus(string forScene)
+				{
+					if (!unsaved)
+						return "";
+
+					if (string.IsNullOrEmpty(forScene))
+						return "Save changes in MyCustomPlugin before closing?";
+					else
+						return $"Scene {forScene.GetFile()} has changes from MyCustomPlugin. Save before closing?";
+				}
+
+				public override void _SaveExternalData()
+				{
+					unsaved = false;
+				}
+				[/csharp]
+				[/codeblocks]
 				If the plugin has no scene-specific changes, you can ignore the calls when closing scenes:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _get_unsaved_status(for_scene):
 					if not for_scene.is_empty():
 						return ""
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override string _GetUnsavedStatus(string forScene)
+				{
+					if (!string.IsNullOrEmpty(forScene))
+						return "";
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_get_window_layout" qualifiers="virtual">
@@ -311,11 +352,20 @@
 			<description>
 				Override this method to provide the GUI layout of the plugin or any other data you want to be stored. This is used to save the project's editor layout when [method queue_save_layout] is called or the editor layout was changed (for example changing the position of a dock). The data is stored in the [code]editor_layout.cfg[/code] file in the editor metadata directory.
 				Use [method _set_window_layout] to restore your saved layout.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _get_window_layout(configuration):
 					configuration.set_value("MyPlugin", "window_position", $Window.position)
 					configuration.set_value("MyPlugin", "icon_color", $Icon.modulate)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _GetWindowLayout(ConfigFile configuration)
+				{
+					configuration.SetValue("MyPlugin", "window_position", GetNode&lt;Window&gt;("Window").Position);
+					configuration.SetValue("MyPlugin", "icon_color", GetNode&lt;CanvasItem&gt;("Icon").Modulate);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_handles" qualifiers="virtual const">
@@ -332,7 +382,8 @@
 				Returns [code]true[/code] if this is a main screen editor plugin (it goes in the workspace selector together with [b]2D[/b], [b]3D[/b], [b]Script[/b], [b]Game[/b], and [b]AssetLib[/b]).
 				When the plugin's workspace is selected, other main screen plugins will be hidden, but your plugin will not appear automatically. It needs to be added as a child of [method EditorInterface.get_editor_main_screen] and made visible inside [method _make_visible].
 				Use [method _get_plugin_name] and [method _get_plugin_icon] to customize the plugin button's appearance.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var plugin_control
 
 				func _enter_tree():
@@ -351,7 +402,38 @@
 
 				func _get_plugin_icon():
 					return EditorInterface.get_editor_theme().get_icon("Node", "EditorIcons")
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				private Control _pluginControl;
+
+				public override void _EnterTree()
+				{
+					_pluginControl = GD.Load&lt;PackedScene&gt;("my_plugin_control.tscn").Instantiate&lt;Control&gt;();
+					EditorInterface.Singleton.GetEditorMainScreen().AddChild(_pluginControl);
+					_pluginControl.Hide();
+				}
+
+				public override bool _HasMainScreen()
+				{
+					return true;
+				}
+
+				public override void _MakeVisible(bool visible)
+				{
+					_pluginControl.Visible = visible;
+				}
+
+				public override string _GetPluginName()
+				{
+					return "My Super Cool Plugin 3000";
+				}
+
+				public override Texture2D _GetPluginIcon()
+				{
+					return EditorInterface.Singleton.GetEditorTheme().GetIcon("Node", "EditorIcons");
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_make_visible" qualifiers="virtual">
@@ -368,11 +450,21 @@
 			<param index="1" name="args" type="PackedStringArray" />
 			<description>
 				This function is called when an individual scene is about to be played in the editor. [param args] is a list of command line arguments that will be passed to the new Godot instance, which will be replaced by the list returned by this function.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _run_scene(scene, args):
 					args.append("--an-extra-argument")
 					return args
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override string[] _RunScene(string scene, string[] args)
+				{
+					var argsList = new System.Collections.Generic.List&lt;string&gt;(args);
+					argsList.Add("--an-extra-argument");
+					return argsList.ToArray();
+				}
+				[/csharp]
+				[/codeblocks]
 				[b]Note:[/b] Text that is printed in this method will not be visible in the editor's Output panel unless [member EditorSettings.run/output/always_clear_output_on_play] is [code]false[/code].
 			</description>
 		</method>
@@ -388,11 +480,20 @@
 			<description>
 				Restore the state saved by [method _get_state]. This method is called when the current scene tab is changed in the editor.
 				[b]Note:[/b] Your plugin must implement [method _get_plugin_name], otherwise it will not be recognized and this method will not be called.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _set_state(data):
 					zoom = data.get("zoom", 1.0)
 					preferred_color = data.get("my_color", Color.WHITE)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _SetState(Godot.Collections.Dictionary state)
+				{
+					zoom = (float)state.GetValueOrDefault("zoom", 1.0f);
+					preferredColor = (Color)state.GetValueOrDefault("my_color", Colors.White);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_set_window_layout" qualifiers="virtual">
@@ -400,11 +501,20 @@
 			<param index="0" name="configuration" type="ConfigFile" />
 			<description>
 				Restore the plugin GUI layout and data saved by [method _get_window_layout]. This method is called for every plugin on editor startup. Use the provided [param configuration] file to read your saved data.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _set_window_layout(configuration):
 					$Window.position = configuration.get_value("MyPlugin", "window_position", Vector2())
 					$Icon.modulate = configuration.get_value("MyPlugin", "icon_color", Color.WHITE)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _SetWindowLayout(ConfigFile configuration)
+				{
+					GetNode&lt;Window&gt;("Window").Position = (Vector2I)configuration.GetValue("MyPlugin", "window_position", Vector2.Zero);
+					GetNode&lt;CanvasItem&gt;("Icon").Modulate = (Color)configuration.GetValue("MyPlugin", "icon_color", Colors.White);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="add_autoload_singleton">
@@ -530,6 +640,20 @@
 				func _exit_tree():
 					remove_inspector_plugin(inspector_plugin)
 				[/gdscript]
+				[csharp]
+				private EditorInspectorPlugin _inspectorPlugin;
+
+				public override void _EnterTree()
+				{
+					_inspectorPlugin = GD.Load&lt;Script&gt;("res://addons/your_addon/path/to/your/script.cs").New().As&lt;EditorInspectorPlugin&gt;();
+					AddInspectorPlugin(_inspectorPlugin);
+				}
+
+				public override void _ExitTree()
+				{
+					RemoveInspectorPlugin(_inspectorPlugin);
+				}
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>

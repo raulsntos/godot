@@ -331,10 +331,18 @@
 				[/csharp]
 				[/codeblocks]
 				In GDScript, this is equivalent to the [code]in[/code] operator:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				if "Godot" in { "Godot": 4 }:
-					print("The key is here!") # Will be printed.
-				[/codeblock]
+				    print("The key is here!") # Will be printed.
+				[/gdscript]
+				[csharp]
+				if (new Godot.Collections.Dictionary { { "Godot", 4 } }.ContainsKey("Godot"))
+				{
+				    GD.Print("The key is here!"); // Will be printed.
+				}
+				[/csharp]
+				[/codeblocks]
 				[b]Note:[/b] This method returns [code]true[/code] as long as the [param key] exists, even if its corresponding value is [code]null[/code].
 			</description>
 		</method>
@@ -343,10 +351,16 @@
 			<param index="0" name="keys" type="Array" />
 			<description>
 				Returns [code]true[/code] if the dictionary contains all keys in the given [param keys] array.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var data = { "width": 10, "height": 20 }
 				data.has_all(["height", "width"]) # Returns true
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var data = new Godot.Collections.Dictionary { { "width", 10 }, { "height", 20 } };
+				data.HasAll(new Godot.Collections.Array { "height", "width" }); // Returns true
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="hash" qualifiers="const">
@@ -486,14 +500,24 @@
 			<description>
 				Returns a copy of this dictionary merged with the other [param dictionary]. By default, duplicate keys are not copied over, unless [param overwrite] is [code]true[/code]. See also [method merge].
 				This method is useful for quickly making dictionaries with default values:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var base = { "fruit": "apple", "vegetable": "potato" }
 				var extra = { "fruit": "orange", "dressing": "vinegar" }
 				# Prints { "fruit": "orange", "vegetable": "potato", "dressing": "vinegar" }
 				print(extra.merged(base))
 				# Prints { "fruit": "apple", "vegetable": "potato", "dressing": "vinegar" }
 				print(extra.merged(base, true))
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var @base = new Godot.Collections.Dictionary { { "fruit", "apple" }, { "vegetable", "potato" } };
+				var extra = new Godot.Collections.Dictionary { { "fruit", "orange" }, { "dressing", "vinegar" } };
+				// Prints { "fruit": "orange", "vegetable": "potato", "dressing": "vinegar" }
+				GD.Print(extra.Merged(@base));
+				// Prints { "fruit": "apple", "vegetable": "potato", "dressing": "vinegar" }
+				GD.Print(extra.Merged(@base, true));
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="recursive_equal" qualifiers="const">
@@ -528,6 +552,11 @@
 				numbers.sort()
 				print(numbers) # Prints { "a": 0, "b": 1, "c": 2 }
 				[/gdscript]
+				[csharp]
+				var numbers = new Godot.Collections.Dictionary { { "c", 2 }, { "a", 0 }, { "b", 1 } };
+				numbers.Sort();
+				GD.Print(numbers); // Prints { "a": 0, "b": 1, "c": 2 }
+				[/csharp]
 				[/codeblocks]
 				This method ensures that the dictionary's entries are ordered consistently when [method keys] or [method values] are called, or when the dictionary needs to be converted to a string through [method @GlobalScope.str] or [method JSON.stringify].
 			</description>

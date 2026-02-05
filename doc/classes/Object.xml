@@ -347,14 +347,28 @@
 			<return type="String" />
 			<description>
 				Override this method to customize the return value of [method to_string], and therefore the object's representation as a [String].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _to_string():
 					return "Welcome to Godot 4!"
 
 				func _init():
 					print(self)       # Prints "Welcome to Godot 4!"
 					var a = str(self) # a is "Welcome to Godot 4!"
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override string _ToString()
+				{
+					return "Welcome to Godot 4!";
+				}
+
+				public MyClass()
+				{
+					GD.Print(this);           // Prints "Welcome to Godot 4!"
+					string a = this.ToString(); // a is "Welcome to Godot 4!"
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_validate_property" qualifiers="virtual">
@@ -480,14 +494,24 @@
 				See also [method Callable.call_deferred].
 				[b]Note:[/b] In C#, [param method] must be in snake_case when referring to built-in Godot methods. Prefer using the names exposed in the [code]MethodName[/code] class to avoid allocating a new [StringName] on each call.
 				[b]Note:[/b] If you're looking to delay the function call by a frame, refer to the [signal SceneTree.process_frame] and [signal SceneTree.physics_frame] signals.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var node = Node3D.new()
 				# Make a Callable and bind the arguments to the node's rotate() call.
 				var callable = node.rotate.bind(Vector3(1.0, 0.0, 0.0), 1.571)
 				# Connect the callable to the process_frame signal, so it gets called in the next process frame.
 				# CONNECT_ONE_SHOT makes sure it only gets called once instead of every frame.
 				get_tree().process_frame.connect(callable, CONNECT_ONE_SHOT)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var node = new Node3D();
+				// Make a Callable and bind the arguments to the node's Rotate() call.
+				var callable = Callable.From(node.Rotate).Bind(new Vector3(1f, 0f, 0f), 1.571f);
+				// Connect the callable to the ProcessFrame signal, so it gets called in the next process frame.
+				// ConnectFlags.OneShot makes sure it only gets called once instead of every frame.
+				GetTree().Connect(SceneTree.SignalName.ProcessFrame, callable, (uint)ConnectFlags.OneShot);
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="callv">
@@ -1052,7 +1076,8 @@
 		</constant>
 		<constant name="CONNECT_APPEND_SOURCE_OBJECT" value="16" enum="ConnectFlags">
 			On signal emission, the source object is automatically appended after the original arguments of the signal, regardless of the connected [Callable]'s unbinds which affect only the original arguments of the signal (see [method Callable.unbind], [method Callable.get_unbound_arguments_count]).
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			extends Object
 
 			signal test_signal
@@ -1061,7 +1086,24 @@
 				print(self) # Prints e.g. &lt;Object#35332818393&gt;
 				test_signal.connect(prints.unbind(1), CONNECT_APPEND_SOURCE_OBJECT)
 				test_signal.emit("emit_arg_1", "emit_arg_2") # Prints emit_arg_1 &lt;Object#35332818393&gt;
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			using Godot;
+
+			public partial class MyObject : GodotObject
+			{
+				[Signal]
+				public delegate void TestSignalEventHandler(string arg1, string arg2);
+
+				public void Test()
+				{
+					GD.Print(this); // Prints e.g. &lt;Object#35332818393&gt;
+					Connect(SignalName.TestSignal, Callable.From&lt;string, GodotObject&gt;((arg1, source) =&gt; GD.PrintS(arg1, source)).Unbind(1), (uint)ConnectFlags.AppendSourceObject);
+					EmitSignal(SignalName.TestSignal, "emit_arg_1", "emit_arg_2"); // Prints emit_arg_1 &lt;Object#35332818393&gt;
+				}
+			}
+			[/csharp]
+			[/codeblocks]
 		</constant>
 	</constants>
 </class>

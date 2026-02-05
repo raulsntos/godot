@@ -186,7 +186,8 @@
 			- Its [member Basis.x] points right ([constant Vector3.RIGHT]);
 			- Its [member Basis.y] points up ([constant Vector3.UP]);
 			- Its [member Basis.z] points back ([constant Vector3.BACK]).
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			var transform = Transform3D.IDENTITY
 			var basis = transform.basis
 			print("| X | Y | Z | Origin")
@@ -198,7 +199,21 @@
 			# | 1 | 0 | 0 | 0
 			# | 0 | 1 | 0 | 0
 			# | 0 | 0 | 1 | 0
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			var transform = Transform3D.Identity;
+			var basis = transform.Basis;
+			GD.Print("| X | Y | Z | Origin");
+			GD.Print($"| {basis.X.X:F0} | {basis.Y.X:F0} | {basis.Z.X:F0} | {transform.Origin.X:F0}");
+			GD.Print($"| {basis.X.Y:F0} | {basis.Y.Y:F0} | {basis.Z.Y:F0} | {transform.Origin.Y:F0}");
+			GD.Print($"| {basis.X.Z:F0} | {basis.Y.Z:F0} | {basis.Z.Z:F0} | {transform.Origin.Z:F0}");
+			// Prints:
+			// | X | Y | Z | Origin
+			// | 1 | 0 | 0 | 0
+			// | 0 | 1 | 0 | 0
+			// | 0 | 0 | 1 | 0
+			[/csharp]
+			[/codeblocks]
 			If a [Vector3], an [AABB], a [Plane], a [PackedVector3Array], or another [Transform3D] is transformed (multiplied) by this constant, no transformation occurs.
 			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Transform3D] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>

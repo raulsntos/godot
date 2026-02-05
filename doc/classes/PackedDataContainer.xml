@@ -6,17 +6,39 @@
 	<description>
 		[PackedDataContainer] can be used to efficiently store data from untyped containers. The data is packed into raw bytes and can be saved to file. Only [Array] and [Dictionary] can be stored this way.
 		You can retrieve the data by iterating on the container, which will work as if iterating on the packed data itself. If the packed container is a [Dictionary], the data can be retrieved by key names ([String]/[StringName] only).
-		[codeblock]
+		[codeblocks]
+		[gdscript]
 		var data = { "key": "value", "another_key": 123, "lock": Vector2() }
 		var packed = PackedDataContainer.new()
 		packed.pack(data)
 		ResourceSaver.save(packed, "packed_data.res")
-		[/codeblock]
-		[codeblock]
+		[/gdscript]
+		[csharp]
+		var data = new Godot.Collections.Dictionary
+		{
+		    { "key", "value" },
+		    { "another_key", 123 },
+		    { "lock", new Vector2() }
+		};
+		var packed = new PackedDataContainer();
+		packed.Pack(data);
+		ResourceSaver.Save(packed, "packed_data.res");
+		[/csharp]
+		[/codeblocks]
+		[codeblocks]
+		[gdscript]
 		var container = load("packed_data.res")
 		for key in container:
-			prints(key, container[key])
-		[/codeblock]
+		    prints(key, container[key])
+		[/gdscript]
+		[csharp]
+		var container = GD.Load<PackedDataContainer>("packed_data.res");
+		foreach (var key in container)
+		{
+		    GD.PrintS(key, container[key]);
+		}
+		[/csharp]
+		[/codeblocks]
 		Prints:
 		[codeblock lang=text]
 		key value

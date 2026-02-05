@@ -284,7 +284,7 @@
 					public override async void _Ready()
 					{
 						await ToSignal(this, Control.SignalName.Draw);
-						BackgroundGPanel.Position = GetVisibleContentRect().Position;
+						BackgroundPanel.Position = GetVisibleContentRect().Position;
 						BackgroundPanel.Size = GetVisibleContentRect().Size;
 					}
 				}
@@ -314,7 +314,8 @@
 			<description>
 				Installs a custom effect. This can also be done in the Inspector through the [member custom_effects] property. [param effect] should be a valid [RichTextEffect].
 				[b]Example:[/b] With the following script extending from [RichTextEffect]:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				# effect.gd
 				class_name MyCustomEffect
 				extends RichTextEffect
@@ -322,9 +323,22 @@
 				var bbcode = "my_custom_effect"
 
 				# ...
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// Effect.cs
+				using Godot;
+
+				// Note: The effect's BBCode tag is determined by the class name (in snake_case).
+				// You can override the _GetName method to customize the tag name.
+				public partial class MyCustomEffect : RichTextEffect
+				{
+				    // ...
+				}
+				[/csharp]
+				[/codeblocks]
 				The above effect can be installed in [RichTextLabel] from a script:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				# rich_text_label.gd
 				extends RichTextLabel
 
@@ -333,7 +347,23 @@
 
 					# Alternatively, if not using `class_name` in the script that extends RichTextEffect:
 					install_effect(preload("res://effect.gd").new())
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// RichTextLabelScript.cs
+				using Godot;
+
+				public partial class RichTextLabelScript : RichTextLabel
+				{
+				    public override void _Ready()
+				    {
+				        InstallEffect(new MyCustomEffect());
+
+				        // Alternatively, if the effect class is in a separate script:
+				        InstallEffect(GD.Load<Script>("res://Effect.cs").New().As<RichTextEffect>());
+				    }
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="invalidate_paragraph">
@@ -833,6 +863,15 @@
 					# `meta` is of Variant type, so convert it to a String to avoid script errors at run-time.
 					OS.shell_open(str(meta))
 				[/gdscript]
+				[csharp]
+				// This assumes RichTextLabel's `MetaClicked` signal was connected to
+				// the method below using the signal connection dialog.
+				private void OnRichTextLabelMetaClicked(Variant meta)
+				{
+				    // `meta` is of Variant type, so convert it to a string to avoid errors at runtime.
+				    OS.ShellOpen(meta.ToString());
+				}
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</signal>

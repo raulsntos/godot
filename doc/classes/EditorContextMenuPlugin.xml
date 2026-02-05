@@ -24,10 +24,18 @@
 			<param index="2" name="icon" type="Texture2D" default="null" />
 			<description>
 				Add custom option to the context menu of the plugin's specified slot. When the option is activated, [param callback] will be called. Callback should take single [Array] argument; array contents depend on context menu slot.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _popup_menu(paths):
 					add_context_menu_item("File Custom options", handle, ICON)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _PopupMenu(string[] paths)
+				{
+					AddContextMenuItem("File Custom options", Callable.From(Handle), Icon);
+				}
+				[/csharp]
+				[/codeblocks]
 				If you want to assign shortcut to the menu item, use [method add_context_menu_item_from_shortcut] instead.
 			</description>
 		</method>
@@ -38,13 +46,26 @@
 			<param index="2" name="icon" type="Texture2D" default="null" />
 			<description>
 				Add custom option to the context menu of the plugin's specified slot. The option will have the [param shortcut] assigned and reuse its callback. The shortcut has to be registered beforehand with [method add_menu_shortcut].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _init():
 					add_menu_shortcut(SHORTCUT, handle)
 
 				func _popup_menu(paths):
 					add_context_menu_item_from_shortcut("File Custom options", SHORTCUT, ICON)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public MyContextMenuPlugin()
+				{
+					AddMenuShortcut(Shortcut, Callable.From(Handle));
+				}
+
+				public override void _PopupMenu(string[] paths)
+				{
+					AddContextMenuItemFromShortcut("File Custom options", Shortcut, Icon);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="add_context_submenu_item">
@@ -54,7 +75,8 @@
 			<param index="2" name="icon" type="Texture2D" default="null" />
 			<description>
 				Add a submenu to the context menu of the plugin's specified slot. The submenu is not automatically handled, you need to connect to its signals yourself. Also the submenu is freed on every popup, so provide a new [PopupMenu] every time.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _popup_menu(paths):
 					var popup_menu = PopupMenu.new()
 					popup_menu.add_item("Blue")
@@ -62,7 +84,19 @@
 					popup_menu.id_pressed.connect(_on_color_submenu_option)
 
 					add_context_submenu_item("Set Node Color", popup_menu)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _PopupMenu(string[] paths)
+				{
+					var popupMenu = new PopupMenu();
+					popupMenu.AddItem("Blue");
+					popupMenu.AddItem("White");
+					popupMenu.IdPressed += OnColorSubmenuOption;
+
+					AddContextSubmenuItem("Set Node Color", popupMenu);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="add_menu_shortcut">
@@ -71,10 +105,18 @@
 			<param index="1" name="callback" type="Callable" />
 			<description>
 				Registers a shortcut associated with the plugin's context menu. This method should be called once (e.g. in plugin's [method Object._init]). [param callback] will be called when user presses the specified [param shortcut] while the menu's context is in effect (e.g. FileSystem dock is focused). Callback should take single [Array] argument; array contents depend on context menu slot.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _init():
 					add_menu_shortcut(SHORTCUT, handle)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public MyContextMenuPlugin()
+				{
+					AddMenuShortcut(Shortcut, Callable.From(Handle));
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 	</methods>
@@ -90,20 +132,39 @@
 		</constant>
 		<constant name="CONTEXT_SLOT_FILESYSTEM_CREATE" value="3" enum="ContextMenuSlot">
 			The "Create..." submenu of FileSystem dock's context menu, or the "New" section of the main context menu when empty space is clicked. [method _popup_menu] and option callback will be called with the path of the currently selected folder. When clicking the empty space, the list of paths for popup method will be empty.
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			func _popup_menu(paths):
 			    if paths.is_empty():
 			        add_context_menu_item("New Image File...", create_image)
 			    else:
 			        add_context_menu_item("Image File...", create_image)
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			public override void _PopupMenu(string[] paths)
+			{
+			    if (paths.Length == 0)
+			        AddContextMenuItem("New Image File...", Callable.From(CreateImage));
+			    else
+			        AddContextMenuItem("Image File...", Callable.From(CreateImage));
+			}
+			[/csharp]
+			[/codeblocks]
 		</constant>
 		<constant name="CONTEXT_SLOT_SCRIPT_EDITOR_CODE" value="4" enum="ContextMenuSlot">
 			Context menu of Script editor's code editor. [method _popup_menu] will be called with the path to the [CodeEdit] node. You can fetch it using this code:
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			func _popup_menu(paths):
 				var code_edit = Engine.get_main_loop().root.get_node(paths[0]);
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			public override void _PopupMenu(string[] paths)
+			{
+				var codeEdit = Engine.GetMainLoop().Root.GetNode(paths[0]);
+			}
+			[/csharp]
+			[/codeblocks]
 			The option callback will receive reference to that node. You can use [CodeEdit] methods to perform symbol lookups etc.
 		</constant>
 		<constant name="CONTEXT_SLOT_SCENE_TABS" value="5" enum="ContextMenuSlot">
@@ -111,10 +172,18 @@
 		</constant>
 		<constant name="CONTEXT_SLOT_2D_EDITOR" value="6" enum="ContextMenuSlot">
 			Context menu of 2D editor's basic right-click menu. [method _popup_menu] will be called with paths to all [CanvasItem] nodes under the cursor. You can fetch them using this code:
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			func _popup_menu(paths):
 				var canvas_item = Engine.get_main_loop().root.get_node(paths[0]); # Replace 0 with the desired index.
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			public override void _PopupMenu(string[] paths)
+			{
+				var canvasItem = Engine.GetMainLoop().Root.GetNode(paths[0]); // Replace 0 with the desired index.
+			}
+			[/csharp]
+			[/codeblocks]
 			The paths array is empty if there weren't any nodes under cursor. The option callback will receive a typed array of [CanvasItem] nodes.
 		</constant>
 	</constants>

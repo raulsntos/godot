@@ -31,9 +31,14 @@
 			<description>
 				Constructs a new [PackedVector4Array]. Optionally, you can pass in a generic [Array] that will be converted.
 				[b]Note:[/b] When initializing a [PackedVector4Array] with elements, it must be initialized with an [Array] of [Vector4] values:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var array = PackedVector4Array([Vector4(12, 34, 56, 78), Vector4(90, 12, 34, 56)])
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var array = new Vector4[] { new Vector4(12, 34, 56, 78), new Vector4(90, 12, 34, 56) };
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</constructor>
 	</constructors>

@@ -5,7 +5,8 @@
 	</brief_description>
 	<description>
 		JavaScriptObject is used to interact with JavaScript objects retrieved or created via [method JavaScriptBridge.get_interface], [method JavaScriptBridge.create_object], or [method JavaScriptBridge.create_callback].
-		[codeblock]
+		[codeblocks]
+		[gdscript]
 		extends Node
 
 		var _my_js_callback = JavaScriptBridge.create_callback(myCallback) # This reference must be kept
@@ -31,7 +32,45 @@
 			# ...
 			# [0, 9, [JavaScriptObject:1180]]
 			print(args)
-		[/codeblock]
+		[/gdscript]
+		[csharp]
+		using Godot;
+
+		public partial class MyNode : Node
+		{
+			private JavaScriptObject _myJsCallback; // This reference must be kept
+			private JavaScriptObject _console;
+
+			public override void _Ready()
+			{
+				_myJsCallback = JavaScriptBridge.CreateCallback(new Callable(this, MethodName.MyCallback));
+				_console = JavaScriptBridge.GetInterface("console");
+
+				var buf = JavaScriptBridge.CreateObject("ArrayBuffer", 10); // new ArrayBuffer(10)
+				GD.Print(buf); // Prints [JavaScriptObject:OBJECT_ID]
+				var uint8Arr = JavaScriptBridge.CreateObject("Uint8Array", buf); // new Uint8Array(buf)
+				uint8Arr[1] = 255;
+				GD.PrintS(uint8Arr[1], uint8Arr.Get("byteLength")); // Prints "255 10"
+
+				// Prints "Uint8Array(10) [ 0, 255, 0, 0, 0, 0, 0, 0, 0, 0 ]" in the browser's console.
+				_console.Call("log", uint8Arr);
+
+				// Equivalent of JavaScriptBridge: Array.from(uint8Arr).forEach(myCallback)
+				JavaScriptBridge.GetInterface("Array").Call("from", uint8Arr).Call("forEach", _myJsCallback);
+			}
+
+			private void MyCallback(params Variant[] args)
+			{
+				// Will be called with the parameters passed to the "forEach" callback
+				// [0, 0, [JavaScriptObject:1173]]
+				// [255, 1, [JavaScriptObject:1173]]
+				// ...
+				// [0, 9, [JavaScriptObject:1180]]
+				GD.Print(args);
+			}
+		}
+		[/csharp]
+		[/codeblocks]
 		[b]Note:[/b] Only available in the Web platform.
 	</description>
 	<tutorials>

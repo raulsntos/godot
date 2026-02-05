@@ -121,9 +121,9 @@
 				[/gdscript]
 				[csharp]
 				var myTransform = new Transform2D(
-					Vector3(2.0f, 0.0f),
-					Vector3(0.0f, 4.0f),
-					Vector3(0.0f, 0.0f)
+					new Vector2(2.0f, 0.0f),
+					new Vector2(0.0f, 4.0f),
+					new Vector2(0.0f, 0.0f)
 				);
 				// Rotating the Transform2D in any way preserves its scale.
 				myTransform = myTransform.Rotated(Mathf.Tau / 2.0f);
@@ -262,7 +262,8 @@
 			The identity [Transform2D]. This is a transform with no translation, no rotation, and a scale of [constant Vector2.ONE]. This also means that:
 			- The [member x] points right ([constant Vector2.RIGHT]);
 			- The [member y] points down ([constant Vector2.DOWN]).
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			var transform = Transform2D.IDENTITY
 			print("| X | Y | Origin")
 			print("| %.f | %.f | %.f" % [transform.x.x, transform.y.x, transform.origin.x])
@@ -271,7 +272,18 @@
 			# | X | Y | Origin
 			# | 1 | 0 | 0
 			# | 0 | 1 | 0
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			var transform = Transform2D.Identity;
+			GD.Print("| X | Y | Origin");
+			GD.Print($"| {transform.X.X} | {transform.Y.X} | {transform.Origin.X}");
+			GD.Print($"| {transform.X.Y} | {transform.Y.Y} | {transform.Origin.Y}");
+			// Prints:
+			// | X | Y | Origin
+			// | 1 | 0 | 0
+			// | 0 | 1 | 0
+			[/csharp]
+			[/codeblocks]
 			If a [Vector2], a [Rect2], a [PackedVector2Array], or another [Transform2D] is transformed (multiplied) by this constant, no transformation occurs.
 			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Transform2D] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>

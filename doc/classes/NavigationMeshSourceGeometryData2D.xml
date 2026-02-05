@@ -113,6 +113,10 @@
 				"vertices" : PackedFloat32Array
 				"carve" : bool
 				[/gdscript]
+				[csharp]
+				"vertices" : float[]
+				"carve" : bool
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>

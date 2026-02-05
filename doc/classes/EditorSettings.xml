@@ -81,7 +81,8 @@
 				- [code]"category/name"[/code] (single slash): Displays as [code]name[/code] in the [code]category[/code] section.
 				- [code]"category/name/extra"[/code] (multiple slashes): Extra path components are ignored, so this behaves the same as [code]"category/name"[/code].
 				[b]Note:[/b] Shortcuts are only saved to the editor settings if they differ from their original/default state. This means empty shortcuts that were originally empty will not persist between editor sessions and must be re-added. If a shortcut with the same [param path] already exists, this method will update it with the new [param shortcut] instead of creating a duplicate.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				# Add a custom shortcut for a plugin action.
 				var my_shortcut = Shortcut.new()
 				var input_event = InputEventKey.new()
@@ -94,7 +95,22 @@
 
 				# This will appear under the "Test Action" category as "Test Action".
 				EditorInterface.get_editor_settings().add_shortcut("test_action", my_shortcut)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// Add a custom shortcut for a plugin action.
+				var myShortcut = new Shortcut();
+				var inputEvent = new InputEventKey();
+				inputEvent.Keycode = Key.F5;
+				inputEvent.CtrlPressed = true;
+				myShortcut.Events.Add(inputEvent);
+
+				// This will appear under the "My Plugin" category as "Reload Data".
+				EditorInterface.Singleton.GetEditorSettings().AddShortcut("my_plugin/reload_data", myShortcut);
+
+				// This will appear under the "Test Action" category as "Test Action".
+				EditorInterface.Singleton.GetEditorSettings().AddShortcut("test_action", myShortcut);
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="check_changed_settings_in_group" qualifiers="const">

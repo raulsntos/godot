@@ -44,6 +44,66 @@
 		func _exit_tree():
 			remove_debugger_plugin(debugger)
 		[/gdscript]
+		[csharp]
+		// ExampleEditorDebugger.cs
+		#if TOOLS
+		using Godot;
+
+		[Tool]
+		public partial class ExampleEditorDebugger : EditorDebuggerPlugin
+		{
+		    public override bool _HasCapture(string capture)
+		    {
+		        // Return true if you wish to handle messages with the prefix "my_plugin:".
+		        return capture == "my_plugin";
+		    }
+
+		    public override bool _Capture(string message, Godot.Collections.Array data, int sessionId)
+		    {
+		        if (message == "my_plugin:ping")
+		        {
+		            GetSession(sessionId).SendMessage("my_plugin:echo", data);
+		            return true;
+		        }
+		        return false;
+		    }
+
+		    public override void _SetupSession(int sessionId)
+		    {
+		        // Add a new tab in the debugger session UI containing a label.
+		        var label = new Label();
+		        label.Name = "Example plugin"; // Will be used as the tab title.
+		        label.Text = "Example plugin";
+		        var session = GetSession(sessionId);
+		        // Listens to the session started and stopped signals.
+		        session.Started += () =&gt; GD.Print("Session started");
+		        session.Stopped += () =&gt; GD.Print("Session stopped");
+		        session.AddSessionTab(label);
+		    }
+		}
+		#endif
+
+		// Main plugin file.
+		#if TOOLS
+		using Godot;
+
+		[Tool]
+		public partial class CustomDebuggerPlugin : EditorPlugin
+		{
+		    private ExampleEditorDebugger _debugger = new ExampleEditorDebugger();
+
+		    public override void _EnterTree()
+		    {
+		        AddDebuggerPlugin(_debugger);
+		    }
+
+		    public override void _ExitTree()
+		    {
+		        RemoveDebuggerPlugin(_debugger);
+		    }
+		}
+		#endif
+		[/csharp]
 		[/codeblocks]
 		To connect on the running game side, use the [EngineDebugger] singleton:
 		[codeblocks]
@@ -61,6 +121,29 @@
 				return true
 			return false
 		[/gdscript]
+		[csharp]
+		using Godot;
+
+		public partial class MyNode : Node
+		{
+		    public override void _Ready()
+		    {
+		        EngineDebugger.RegisterMessageCapture("my_plugin", Capture);
+		        EngineDebugger.SendMessage("my_plugin:ping", new Godot.Collections.Array { "test" });
+		    }
+
+		    private bool Capture(string message, Godot.Collections.Array data)
+		    {
+		        // Note that the "my_plugin:" prefix is not used here.
+		        if (message == "echo")
+		        {
+		            GD.Print($"Echo received: {data}");
+		            return true;
+		        }
+		        return false;
+		    }
+		}
+		[/csharp]
 		[/codeblocks]
 		[b]Note:[/b] While the game is running, [method @GlobalScope.print] and similar functions [i]called in the editor[/i] do not print anything, the Output Log prints only game messages.
 	</description>

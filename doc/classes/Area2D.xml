@@ -141,6 +141,13 @@
 				var local_shape_owner = shape_find_owner(local_shape_index)
 				var local_shape_node = shape_owner_get_owner(local_shape_owner)
 				[/gdscript]
+				[csharp]
+				uint otherShapeOwner = area.ShapeFindOwner(areaShapeIndex);
+				Node otherShapeNode = area.ShapeOwnerGetOwner(otherShapeOwner);
+
+				uint localShapeOwner = ShapeFindOwner(localShapeIndex);
+				Node localShapeNode = ShapeOwnerGetOwner(localShapeOwner);
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</signal>
@@ -183,6 +190,13 @@
 				var local_shape_owner = shape_find_owner(local_shape_index)
 				var local_shape_node = shape_owner_get_owner(local_shape_owner)
 				[/gdscript]
+				[csharp]
+				uint bodyShapeOwner = body.ShapeFindOwner(bodyShapeIndex);
+				Node bodyShapeNode = body.ShapeOwnerGetOwner(bodyShapeOwner);
+
+				uint localShapeOwner = ShapeFindOwner(localShapeIndex);
+				Node localShapeNode = ShapeOwnerGetOwner(localShapeOwner);
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</signal>

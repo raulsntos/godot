@@ -90,14 +90,26 @@
 				Asynchronous version of [method buffer_get_data]. RenderingDevice will call [param callback] in a certain amount of frames with the data the buffer had at the time of the request.
 				[b]Note:[/b] At the moment, the delay corresponds to the amount of frames specified by [member ProjectSettings.rendering/rendering_device/vsync/frame_queue_size].
 				[b]Note:[/b] Downloading large buffers can have a prohibitive cost for real-time even when using the asynchronous method due to hardware bandwidth limitations. When dealing with large resources, you can adjust settings such as [member ProjectSettings.rendering/rendering_device/staging_buffer/block_size_kb] to improve the transfer speed at the cost of extra memory.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _buffer_get_data_callback(array):
 					value = array.decode_u32(0)
 
 				...
 
 				rd.buffer_get_data_async(buffer, _buffer_get_data_callback)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				private void BufferGetDataCallback(byte[] array)
+				{
+					value = BitConverter.ToUInt32(array, 0);
+				}
+
+				// ...
+
+				rd.BufferGetDataAsync(buffer, Callable.From&lt;byte[]&gt;(BufferGetDataCallback));
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="buffer_get_device_address">
@@ -142,7 +154,8 @@
 				Starts a list of compute commands created with the [code]compute_*[/code] methods. The returned value should be passed to other [code]compute_list_*[/code] functions.
 				Multiple compute lists cannot be created at the same time; you must finish the previous compute list first using [method compute_list_end].
 				A simple compute operation might look like this (code is not a complete example):
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var rd = RenderingDevice.new()
 				var compute_list = rd.compute_list_begin()
 
@@ -156,7 +169,25 @@
 					# No barrier, let them run all together.
 
 				rd.compute_list_end()
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var rd = new RenderingDevice();
+				long computeList = rd.ComputeListBegin();
+
+				rd.ComputeListBindComputePipeline(computeList, computeShaderDilatePipeline);
+				rd.ComputeListBindUniformSet(computeList, computeBaseUniformSet, 0);
+				rd.ComputeListBindUniformSet(computeList, dilateUniformSet, 1);
+
+				for (int i = 0; i &lt; atlasSlices; i++)
+				{
+					rd.ComputeListSetPushConstant(computeList, pushConstant, (uint)pushConstant.Length);
+					rd.ComputeListDispatch(computeList, (uint)groupSize.X, (uint)groupSize.Y, (uint)groupSize.Z);
+					// No barrier, let them run all together.
+				}
+
+				rd.ComputeListEnd();
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="compute_list_bind_compute_pipeline">
@@ -269,7 +300,8 @@
 				Starts a list of raster drawing commands created with the [code]draw_*[/code] methods. The returned value should be passed to other [code]draw_list_*[/code] functions.
 				Multiple draw lists cannot be created at the same time; you must finish the previous draw list first using [method draw_list_end].
 				A simple drawing operation might look like this (code is not a complete example):
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var rd = RenderingDevice.new()
 				var clear_colors = PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)])
 				var draw_list = rd.draw_list_begin(framebuffers[i], RenderingDevice.CLEAR_COLOR_ALL, clear_colors, true, 1.0f, true, 0, Rect2(), RenderingDevice.OPAQUE_PASS)
@@ -286,13 +318,37 @@
 				rd.draw_list_draw(draw_list, false, 1, slice_triangle_count[i] * 3)
 
 				rd.draw_list_end()
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				var rd = new RenderingDevice();
+				var clearColors = new Color[] { new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), new Color(0, 0, 0, 0) };
+				long drawList = rd.DrawListBegin(framebuffers[i], RenderingDevice.DrawFlags.ClearColorAll, clearColors, true, 1.0f, true, 0, new Rect2(), RenderingDevice.BreadcrumbMarker.OpaquePass);
+
+				// Draw opaque.
+				rd.DrawListBindRenderPipeline(drawList, rasterPipeline);
+				rd.DrawListBindUniformSet(drawList, rasterBaseUniform, 0);
+				rd.DrawListSetPushConstant(drawList, rasterPushConstant, (uint)rasterPushConstant.Length);
+				rd.DrawListDraw(drawList, false, 1, (uint)(sliceTriangleCount[i] * 3));
+				// Draw wire.
+				rd.DrawListBindRenderPipeline(drawList, rasterPipelineWire);
+				rd.DrawListBindUniformSet(drawList, rasterBaseUniform, 0);
+				rd.DrawListSetPushConstant(drawList, rasterPushConstant, (uint)rasterPushConstant.Length);
+				rd.DrawListDraw(drawList, false, 1, (uint)(sliceTriangleCount[i] * 3));
+
+				rd.DrawListEnd();
+				[/csharp]
+				[/codeblocks]
 				The [param draw_flags] indicates if the texture attachments of the framebuffer should be cleared or ignored. Only one of the two flags can be used for each individual attachment. Ignoring an attachment means that any contents that existed before the draw list will be completely discarded, reducing the memory bandwidth used by the render pass but producing garbage results if the pixels aren't replaced. The default behavior allows the engine to figure out the right operation to use if the texture is discardable, which can result in increased performance. See [RDTextureFormat] or [method texture_set_discardable].
 				The [param breadcrumb] parameter can be an arbitrary 32-bit integer that is useful to diagnose GPU crashes. If Godot is built in dev or debug mode; when the GPU crashes Godot will dump all shaders that were being executed at the time of the crash and the breadcrumb is useful to diagnose what passes did those shaders belong to.
 				It does not affect rendering behavior and can be set to 0. It is recommended to use [enum BreadcrumbMarker] enumerations for consistency but it's not required. It is also possible to use bitwise operations to add extra data. e.g.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				rd.draw_list_begin(fb[i], RenderingDevice.CLEAR_COLOR_ALL, clear_colors, true, 1.0f, true, 0, Rect2(), RenderingDevice.OPAQUE_PASS | 5)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				rd.DrawListBegin(fb[i], RenderingDevice.DrawFlags.ClearColorAll, clearColors, true, 1.0f, true, 0, new Rect2(), (uint)RenderingDevice.BreadcrumbMarker.OpaquePass | 5);
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="draw_list_begin_for_screen">
@@ -786,6 +842,34 @@
 
 				rd.raytracing_list_end()
 				[/gdscript]
+				[csharp]
+				var rd = new RenderingDevice();
+				System.Diagnostics.Debug.Assert(rd.HasFeature(RenderingDevice.Features.SupportsRaytracingPipeline));
+
+				// Create a BLAS for a mesh.
+				Rid blas = rd.BlasCreate(vertexArray, indexArray, RenderingDevice.AccelerationStructureGeometryBits.Opaque);
+				// Create TLAS with BLASs.
+				Rid instancesBuffer = rd.TlasInstancesBufferCreate(1);
+				rd.TlasInstancesBufferFill(instancesBuffer, new Rid[] { blas }, new Transform3D[] { Transform3D.Identity });
+				Rid tlas = rd.TlasCreate(instancesBuffer);
+
+				// Build acceleration structures.
+				rd.AccelerationStructureBuild(blas);
+				rd.AccelerationStructureBuild(tlas);
+
+				long raylist = rd.RaytracingListBegin();
+
+				// Bind pipeline and uniforms.
+				rd.RaytracingListBindRaytracingPipeline(raylist, raytracingPipeline);
+				rd.RaytracingListBindUniformSet(raylist, uniformSet, 0);
+
+				// Trace rays.
+				int width = (int)GetViewport().Size.X;
+				int height = (int)GetViewport().Size.Y;
+				rd.RaytracingListTraceRays(raylist, (uint)width, (uint)height);
+
+				rd.RaytracingListEnd();
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -1113,14 +1197,26 @@
 				Asynchronous version of [method texture_get_data]. RenderingDevice will call [param callback] in a certain amount of frames with the data the texture had at the time of the request.
 				[b]Note:[/b] At the moment, the delay corresponds to the amount of frames specified by [member ProjectSettings.rendering/rendering_device/vsync/frame_queue_size].
 				[b]Note:[/b] Downloading large textures can have a prohibitive cost for real-time even when using the asynchronous method due to hardware bandwidth limitations. When dealing with large resources, you can adjust settings such as [member ProjectSettings.rendering/rendering_device/staging_buffer/texture_download_region_size_px] and [member ProjectSettings.rendering/rendering_device/staging_buffer/block_size_kb] to improve the transfer speed at the cost of extra memory.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _texture_get_data_callback(array):
 					value = array.decode_u32(0)
 
 				...
 
 				rd.texture_get_data_async(texture, 0, _texture_get_data_callback)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				private void TextureGetDataCallback(byte[] array)
+				{
+					value = BitConverter.ToUInt32(array, 0);
+				}
+
+				// ...
+
+				rd.TextureGetDataAsync(texture, 0, Callable.From&lt;byte[]&gt;(TextureGetDataCallback));
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="texture_get_format">
@@ -2282,6 +2378,15 @@
 				storage_buffer = rd.storage_buffer_create(bytes.size(), bytes, RenderingDevice.STORAGE_BUFFER_USAGE_SHADER_DEVICE_ADDRESS)
 				storage_buffer_address = rd.buffer_get_device_address(storage_buffer)
 			[/gdscript]
+			[csharp]
+			var rd = RenderingServer.GetRenderingDevice();
+
+			if (rd.HasFeature(RenderingDevice.Features.SupportsBufferDeviceAddress))
+			{
+				Rid storageBuffer = rd.StorageBufferCreate((uint)bytes.Length, bytes, RenderingDevice.StorageBufferUsage.ShaderDeviceAddress);
+				ulong storageBufferAddress = rd.BufferGetDeviceAddress(storageBuffer);
+			}
+			[/csharp]
 			[/codeblocks]
 		</constant>
 		<constant name="BUFFER_CREATION_AS_STORAGE_BIT" value="2" enum="BufferCreationBits" is_bitfield="true">
@@ -2296,6 +2401,14 @@
 			if rd.has_feature(RenderingDevice.SUPPORTS_RAYTRACING_PIPELINE):
 			    storage_buffer = rd.storage_buffer_create(bytes.size(), bytes, RenderingDevice.BUFFER_CREATION_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT)
 			[/gdscript]
+			[csharp]
+			var rd = RenderingServer.GetRenderingDevice();
+
+			if (rd.HasFeature(RenderingDevice.Features.SupportsRaytracingPipeline))
+			{
+			    Rid storageBuffer = rd.StorageBufferCreate((uint)bytes.Length, bytes, RenderingDevice.BufferCreationBits.AccelerationStructureBuildInputReadOnlyBit);
+			}
+			[/csharp]
 			[/codeblocks]
 		</constant>
 		<constant name="ACCELERATION_STRUCTURE_GEOMETRY_OPAQUE" value="1" enum="AccelerationStructureGeometryBits" is_bitfield="true">

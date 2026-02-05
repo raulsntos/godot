@@ -6,7 +6,8 @@
 	<description>
 		EditorDock is a [Container] node that can be docked in one of the editor's dock slots. Docks are added by plugins to provide space for controls related to an [EditorPlugin]. The editor comes with a few built-in docks, such as the Scene dock, FileSystem dock, etc.
 		You can add a dock by using [method EditorPlugin.add_dock]. The dock can be customized by changing its properties.
-		[codeblock]
+		[codeblocks]
+		[gdscript]
 		@tool
 		extends EditorPlugin
 
@@ -28,7 +29,36 @@
 			remove_dock(dock)
 			dock.queue_free()
 			dock = null
-		[/codeblock]
+		[/gdscript]
+		[csharp]
+		[Tool]
+		public partial class MyEditorPlugin : EditorPlugin
+		{
+			// Dock reference.
+			private EditorDock _dock;
+
+			// Plugin initialization.
+			public override void _EnterTree()
+			{
+				_dock = new EditorDock();
+				_dock.Title = "My Dock";
+				_dock.DockIcon = GD.Load<Texture2D>("./dock_icon.png");
+				_dock.DefaultSlot = EditorDock.DockSlot.RightUl;
+				var dockContent = GD.Load<PackedScene>("./dock_content.tscn").Instantiate();
+				_dock.AddChild(dockContent);
+				AddDock(_dock);
+			}
+
+			// Plugin clean-up.
+			public override void _ExitTree()
+			{
+				RemoveDock(_dock);
+				_dock.QueueFree();
+				_dock = null;
+			}
+		}
+		[/csharp]
+		[/codeblocks]
 	</description>
 	<tutorials>
 		<link title="Making plugins">$DOCS_URL/tutorials/plugins/editor/making_plugins.html</link>
@@ -55,10 +85,18 @@
 			<param index="0" name="layout" type="int" />
 			<description>
 				Implement this method to handle the layout switching for this dock. [param layout] is one of the [enum DockLayout] constants.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _update_layout(layout):
 					box_container.vertical = (layout == DOCK_LAYOUT_VERTICAL)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override void _UpdateLayout(int layout)
+				{
+					_boxContainer.Vertical = (layout == (int)DockLayout.Vertical);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="close">

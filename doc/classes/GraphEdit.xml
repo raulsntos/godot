@@ -29,14 +29,26 @@
 				Returns whether the [param mouse_position] is in the input hot zone.
 				By default, a hot zone is a [Rect2] positioned such that its center is at [param in_node].[method GraphNode.get_input_port_position]([param in_port]) (For output's case, call [method GraphNode.get_output_port_position] instead). The hot zone's width is twice the Theme Property [code]port_grab_distance_horizontal[/code], and its height is twice the [code]port_grab_distance_vertical[/code].
 				Below is a sample code to help get started:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _is_in_input_hotzone(in_node, in_port, mouse_position):
 					var port_size = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
 					var port_pos = in_node.get_position() + in_node.get_input_port_position(in_port) - port_size / 2
 					var rect = Rect2(port_pos, port_size)
 
 					return rect.has_point(mouse_position)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override bool _IsInInputHotzone(GodotObject inNode, int inPort, Vector2 mousePosition)
+				{
+					var portSize = new Vector2(GetThemeConstant("port_grab_distance_horizontal"), GetThemeConstant("port_grab_distance_vertical"));
+					var portPos = ((GraphNode)inNode).GetPosition() + ((GraphNode)inNode).GetInputPortPosition(inPort) - portSize / 2;
+					var rect = new Rect2(portPos, portSize);
+
+					return rect.HasPoint(mousePosition);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_is_in_output_hotzone" qualifiers="virtual">
@@ -47,14 +59,26 @@
 			<description>
 				Returns whether the [param mouse_position] is in the output hot zone. For more information on hot zones, see [method _is_in_input_hotzone].
 				Below is a sample code to help get started:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func _is_in_output_hotzone(in_node, in_port, mouse_position):
 					var port_size = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
 					var port_pos = in_node.get_position() + in_node.get_output_port_position(in_port) - port_size / 2
 					var rect = Rect2(port_pos, port_size)
 
 					return rect.has_point(mouse_position)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public override bool _IsInOutputHotzone(GodotObject inNode, int inPort, Vector2 mousePosition)
+				{
+					var portSize = new Vector2(GetThemeConstant("port_grab_distance_horizontal"), GetThemeConstant("port_grab_distance_vertical"));
+					var portPos = ((GraphNode)inNode).GetPosition() + ((GraphNode)inNode).GetOutputPortPosition(inPort) - portSize / 2;
+					var rect = new Rect2(portPos, portSize);
+
+					return rect.HasPoint(mousePosition);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="_is_node_hover_valid" qualifiers="virtual">
@@ -189,6 +213,9 @@
 				[gdscript]
 				var connection = get_closest_connection_at_point(mouse_event.get_position())
 				[/gdscript]
+				[csharp]
+				var connection = GetClosestConnectionAtPoint(mouseEvent.GetPosition());
+				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
@@ -224,7 +251,8 @@
 				}
 				[/codeblock]
 				[b]Example:[/b] Get all connections on a specific port:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				func get_connection_list_from_port(node, port):
 					var connections = get_connection_list_from_node(node)
 					var result = []
@@ -241,7 +269,34 @@
 							dict["type"] = "right"
 							result.push_back(dict)
 					return result
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				public Godot.Collections.Array<Godot.Collections.Dictionary> GetConnectionListFromPort(StringName node, int port)
+				{
+					var connections = GetConnectionListFromNode(node);
+					var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+					foreach (var connection in connections)
+					{
+						var dict = new Godot.Collections.Dictionary();
+						if ((StringName)connection["from_node"] == node && (int)connection["from_port"] == port)
+						{
+							dict["node"] = connection["to_node"];
+							dict["port"] = connection["to_port"];
+							dict["type"] = "left";
+							result.Add(dict);
+						}
+						else if ((StringName)connection["to_node"] == node && (int)connection["to_port"] == port)
+						{
+							dict["node"] = connection["from_node"];
+							dict["port"] = connection["from_port"];
+							dict["type"] = "right";
+							result.Add(dict);
+						}
+					}
+					return result;
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_connections_intersecting_with_rect" qualifiers="const">

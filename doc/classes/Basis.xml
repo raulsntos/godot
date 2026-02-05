@@ -346,7 +346,8 @@
 			<description>
 				Performs a spherical-linear interpolation with the [param to] basis, given a [param weight]. Both this basis and [param to] should represent a rotation.
 				[b]Example:[/b] Smoothly rotate a [Node3D] to the target basis over time, with a [Tween]:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var start_basis = Basis.IDENTITY
 				var target_basis = Basis.IDENTITY.rotated(Vector3.UP, TAU / 2)
 
@@ -355,7 +356,22 @@
 
 				func interpolate(weight):
 					basis = start_basis.slerp(target_basis, weight)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				private Basis _startBasis = Basis.Identity;
+				private Basis _targetBasis = Basis.Identity.Rotated(Vector3.Up, Mathf.Tau / 2.0f);
+
+				public override void _Ready()
+				{
+					CreateTween().TweenMethod(Callable.From((float weight) => Interpolate(weight)), 0.0f, 1.0f, 5.0f).SetTrans(Tween.TransitionType.Expo);
+				}
+
+				private void Interpolate(float weight)
+				{
+					Basis = _startBasis.Slerp(_targetBasis, weight);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="tdotx" qualifiers="const">
@@ -435,7 +451,8 @@
 			- The [member x] points right ([constant Vector3.RIGHT]);
 			- The [member y] points up ([constant Vector3.UP]);
 			- The [member z] points back ([constant Vector3.BACK]).
-			[codeblock]
+			[codeblocks]
+			[gdscript]
 			var basis = Basis.IDENTITY
 			print("| X | Y | Z")
 			print("| %.f | %.f | %.f" % [basis.x.x, basis.y.x, basis.z.x])
@@ -446,7 +463,20 @@
 			# | 1 | 0 | 0
 			# | 0 | 1 | 0
 			# | 0 | 0 | 1
-			[/codeblock]
+			[/gdscript]
+			[csharp]
+			var basis = Basis.Identity;
+			GD.Print("| X | Y | Z");
+			GD.Print($"| {basis.X.X:F0} | {basis.Y.X:F0} | {basis.Z.X:F0}");
+			GD.Print($"| {basis.X.Y:F0} | {basis.Y.Y:F0} | {basis.Z.Y:F0}");
+			GD.Print($"| {basis.X.Z:F0} | {basis.Y.Z:F0} | {basis.Z.Z:F0}");
+			// Prints:
+			// | X | Y | Z
+			// | 1 | 0 | 0
+			// | 0 | 1 | 0
+			// | 0 | 0 | 1
+			[/csharp]
+			[/codeblocks]
 			If a [Vector3] or another [Basis] is transformed (multiplied) by this constant, no transformation occurs.
 			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Basis] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>
