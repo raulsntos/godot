@@ -38,12 +38,15 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/RestoreEditorPackages.proj.gen.h"
+#include "editor/dotnet_status_indicator.h"
+#include "editor/welcome_dialog.h"
 #include "runtime/hostfxr/hostfxr_dotnet_runtime.h"
 
 #include "core/config/engine.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 #include "editor/settings/editor_settings.h"
+#include "servers/display/display_server.h"
 #endif
 
 namespace DotNet {
@@ -56,16 +59,15 @@ DotNetModule *DotNetModule::get_singleton() {
 	return singleton;
 }
 
-bool DotNetModule::is_initialized() const {
-	return initialized;
-}
-
 bool DotNetModule::should_initialize() {
 #ifdef TOOLS_ENABLED
 	if (Engine::get_singleton()->is_project_manager_hint()) {
 		// Never initialize the module in the project manager.
 		return false;
 	}
+
+	// TODO(@raulsntos): See `request_enable_dotnet_features` for how we should handle this in the future once we have editor unification implemented. For now, we'll just always initialize the module in the editor.
+
 	// If we can find a C# project or solution in the workspace,
 	// assume the Godot project uses C# and needs to initialize the module.
 	// return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_sln_path());
@@ -78,10 +80,35 @@ bool DotNetModule::should_initialize() {
 #endif
 }
 
+void DotNetModule::_update_initialization_state(InitState p_init_state) {
+	init_state = p_init_state;
+
+	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
+	if (status_indicator != nullptr) {
+		status_indicator->update();
+	}
+}
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::_set_initialization_failed(FailedState p_state, const String &p_error) {
+	failed_state = p_state;
+	_update_initialization_state(InitState::FAILED);
+
+	// TODO(@raulsntos): I feel like errors already show using the toast, without having to use this function with p_editor_notify:true, so maybe we can just use ERR_PRINT?
+	_err_print_error(__FUNCTION__, __FILE__, __LINE__, vformat(".NET: %s", p_error), /* p_editor_notify */ true);
+}
+#endif
+
 void DotNetModule::initialize() {
 	print_verbose(".NET: Initializing module.");
 
-	runtime_manager = memnew(DotNetRuntimeManager);
+	_update_initialization_state(InitState::INITIALIZING);
+
+	// When initializing for the first time, create the runtime manager.
+	// If initialization fails and is retried, the runtime manager should already exist.
+	if (runtime_manager == nullptr) {
+		runtime_manager = memnew(DotNetRuntimeManager);
+	}
 	CRASH_COND(runtime_manager == nullptr);
 
 	// There are 3 possible cases here:
@@ -96,24 +123,21 @@ void DotNetModule::initialize() {
 #ifdef TOOLS_ENABLED
 	String dotnet_sdk_path;
 	if (!HostFxrDotNetRuntime::try_find_dotnet_sdk(dotnet_sdk_path)) {
-		OS::get_singleton()->alert(TTR("Could not find a .NET SDK installation required for .NET support.\nPlease install the .NET SDK from https://get.dot.net and restart Godot."), TTR(".NET SDK not found"));
-		CRASH_NOW_MSG(".NET: .NET SDK installation not found.");
+		_set_initialization_failed(FailedState::DOTNET_SDK_NOT_FOUND, TTR("Could not find .NET SDK. Please install from https://get.dot.net"));
+		return;
 	}
 
 	print_verbose(vformat(".NET: .NET SDK installation found at '%s'.", dotnet_sdk_path));
 
 	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
 	if (!try_restore_editor_packages(editor_assemblies_dir)) {
-		OS::get_singleton()->alert(TTR("Failed to restore .NET editor integration. Check the console output for more details."), TTR("Failed to restore .NET editor integration"));
-		CRASH_NOW_MSG(".NET: Failed to restore editor integration.");
+		_set_initialization_failed(FailedState::EDITOR_INTEGRATION_RESTORE_FAILED, TTR("Failed to restore .NET editor integration. Check the console output for more details."));
+		return;
 	}
 	if (Engine::get_singleton()->is_editor_hint()) {
 		if (!runtime_manager->try_load_extension("Godot.EditorIntegration", editor_assemblies_dir)) {
-			// If the editor integration could not be loaded, .NET-related functionality can't be enabled
-			// (i.e.: .NET assemblies can't be loaded). Show an message to users to try to explain and crash
-			// because we can't recover from this error.
-			OS::get_singleton()->alert(TTR("Failed to load .NET editor integration. Check the console output for more details."), TTR("Failed to load .NET editor integration"));
-			CRASH_NOW_MSG(".NET: Failed to load editor integration.");
+			_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, TTR("Failed to load .NET editor integration. Check the console output for more details."));
+			return;
 		}
 	}
 #endif
@@ -135,10 +159,20 @@ void DotNetModule::initialize() {
 	if (should_load_project_assembly) {
 		if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
 			WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+			loaded_user_assembly_name = "";
+		} else {
+			loaded_user_assembly_name = assembly_name;
 		}
 	}
 
-	initialized = true;
+	// In editor builds, the initialization has to wait for the editor integration which will
+	// set the state to INITIALIZED once it's ready or FAILED if something goes wrong.
+	// In exported builds, we can set the state to INITIALIZED right away since we don't have the editor integration.
+	// TODO(@raulsntos): What if the editor integration fails to change the state or we forget? We would end up in a permanent INITIALIZING state, maybe we need some sort of timeout mechanism but if the editor integration actually initialized then we'd have to unload it or something which may not really be possible since it's not designed to be unloadable.
+#ifndef TOOLS_ENABLED
+	_update_initialization_state(InitState::INITIALIZED);
+#endif
+
 	print_verbose(".NET: Module initialized.");
 }
 
@@ -176,6 +210,66 @@ void DotNetModule::register_project_settings() {
 #endif
 }
 
+void DotNetModule::complete_initialization() {
+	_update_initialization_state(InitState::INITIALIZED);
+}
+
+void DotNetModule::fail_initialization(const String &p_error) {
+	_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, p_error);
+}
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::request_enable_dotnet_features() {
+	// If the .NET module is not available, this method was called too early.
+	// Wait until the editor has finished all initialization steps.
+	DotNetModule *module = DotNetModule::get_singleton();
+	DEV_ASSERT(module != nullptr);
+
+	// If the module is already initialized, .NET features are enabled.
+	// If it's in the process of initializing, we should wait for it to succeed or fail.
+	InitState init_state = module->get_init_state();
+	if (init_state == InitState::INITIALIZED || init_state == InitState::INITIALIZING) {
+		return;
+	}
+
+	// Otherwise, check if the editor packages are available.
+	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
+	if (DirAccess::exists(editor_assemblies_dir) && FileAccess::exists(editor_assemblies_dir.path_join("Godot.EditorIntegration.dll"))) {
+		// The editor packages are available, so we can just initialize the module.
+		module->initialize();
+		return;
+	}
+
+	// The editor packages are not available, so we need to restore them.
+	// We use the welcome dialog to introduce the .NET features to the user and ask for confirmation.
+	// If we're in headless mode we can't show the dialog.
+	if (!DisplayServer::get_singleton()->window_can_draw()) {
+		// We're in headless mode, so we can't show the dialog.
+		// The user may be running code in CI. Instead of hanging forever, we exit with an error code.
+		SceneTree::get_singleton()->quit(-1);
+		return;
+	}
+
+	// If the welcome dialog is not available, this method was called too early.
+	// Wait until the editor has finished all initialization steps.
+	DotNet::WelcomeDialog *welcome_dialog = DotNet::WelcomeDialog::get_singleton();
+	DEV_ASSERT(welcome_dialog != nullptr);
+	welcome_dialog->popup_centered();
+}
+#endif
+
+#ifdef TOOLS_ENABLED
+bool DotNetModule::project_has_csproj_files() {
+	Ref<DirAccess> root = DirAccess::open("res://");
+	for (const String &filename : root->get_files()) {
+		if (filename.has_extension("csproj")) {
+			return true;
+		}
+	}
+	return false;
+}
+#endif
+
 #ifdef TOOLS_ENABLED
 void DotNetModule::_start_fs_watcher() {
 	fs_watcher->start();
@@ -191,6 +285,9 @@ void DotNetModule::on_project_assembly_changed(FileSystemWatcher::FileSystemChan
 		case FileSystemWatcher::FILE_SYSTEM_CHANGE_CREATE:
 			if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
 				WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+				loaded_user_assembly_name = "";
+			} else {
+				loaded_user_assembly_name = assembly_name;
 			}
 			break;
 
@@ -238,6 +335,29 @@ bool DotNetModule::try_restore_editor_packages(const String &p_editor_assemblies
 	}
 
 	return true;
+}
+#endif
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::set_dotnet_sdk_info(const String &p_version, const String &p_path) {
+	dotnet_sdk_version = p_version;
+	dotnet_sdk_path = p_path;
+}
+
+String DotNetModule::get_dotnet_sdk_version() const {
+	return dotnet_sdk_version;
+}
+
+String DotNetModule::get_dotnet_sdk_path() const {
+	return dotnet_sdk_path;
+}
+
+void DotNetModule::set_editor_integration_version(const String &p_version) {
+	editor_integration_version = p_version;
+}
+
+String DotNetModule::get_editor_integration_version() const {
+	return editor_integration_version;
 }
 #endif
 

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_bottom_panel.h                                                 */
+/*  dotnet_status_indicator.h                                             */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,67 +30,45 @@
 
 #pragma once
 
-#include "editor/docks/dock_tab_container.h"
+#include "dotnet_status_panel.h"
+
+#include "scene/gui/box_container.h"
 
 class Button;
-class ConfigFile;
-class EditorDock;
-class EditorToaster;
-class HBoxContainer;
+class PanelContainer;
+class StyleBoxFlat;
 
-class EditorBottomPanel : public DockTabContainer {
-	GDCLASS(EditorBottomPanel, DockTabContainer);
+namespace DotNet {
 
-	HBoxContainer *bottom_hbox = nullptr;
-	Control *icon_spacer = nullptr;
-	EditorToaster *editor_toaster = nullptr;
-	Button *pin_button = nullptr;
-	Button *expand_button = nullptr;
+class DotNetStatusIndicator : public HBoxContainer {
+	GDCLASS(DotNetStatusIndicator, HBoxContainer);
 
-	int previous_tab = -1;
-	bool lock_panel_switching = false;
-	LocalVector<EditorDock *> bottom_docks;
-	HashMap<String, int> dock_offsets;
+private:
+	static DotNetStatusIndicator *singleton;
 
-	LocalVector<Button *> legacy_buttons;
-	void _on_button_visibility_changed(Button *p_button, EditorDock *p_dock);
+	Button *main_button = nullptr;
+	DotNetStatusPanel *status_panel = nullptr;
 
-	void _repaint();
-	void _on_tab_changed(int p_idx);
-	void _pin_button_toggled(bool p_pressed);
-	void _expand_button_toggled(bool p_pressed);
-	void _update_center_split_offset();
-	EditorDock *_get_dock_from_control(Control *p_control) const;
+	void _update_indicator();
+	void _update_panel_position();
+
+	void _show_status_panel();
+	void _hide_status_panel();
+
+	void _draw_button();
 
 protected:
 	void _notification(int p_what);
 
 public:
-	virtual void dock_closed(EditorDock *p_dock) override;
-	virtual void dock_focused(EditorDock *p_dock, bool p_was_visible) override;
-	virtual void update_visibility() override { show(); } // Never hide bottom panel.
-	virtual TabStyle get_tab_style() const override;
-	virtual bool can_switch_dock() const override;
-	virtual void load_selected_tab(int p_idx) override;
+	static DotNetStatusIndicator *get_singleton();
 
-	void save_layout_to_config(Ref<ConfigFile> p_config_file, const String &p_section) const;
-	void load_layout_from_config(Ref<ConfigFile> p_config_file, const String &p_section);
+	void update();
 
-	Button *add_item(String p_text, Control *p_item, const Ref<Shortcut> &p_shortcut = nullptr, bool p_at_front = false);
-	void remove_item(Control *p_item);
-	void make_item_visible(Control *p_item, bool p_visible = true, bool p_ignore_lock = false);
-	void hide_bottom_panel();
-	void toggle_last_opened_bottom_panel();
-	void set_expanded(bool p_expanded);
-	void _theme_changed();
-	bool is_locked() const { return lock_panel_switching; }
+	void toggle_status_panel();
 
-	void set_bottom_panel_offset(int p_offset);
-	int get_bottom_panel_offset();
-
-	void add_status_indicator(Control *p_indicator);
-	void remove_status_indicator(Control *p_indicator);
-
-	EditorBottomPanel();
-	~EditorBottomPanel();
+	DotNetStatusIndicator();
+	~DotNetStatusIndicator();
 };
+
+} // namespace DotNet

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  dotnet_module.h                                                       */
+/*  dotnet_status_panel.h                                                 */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,98 +30,34 @@
 
 #pragma once
 
-#include "runtime/dotnet_runtime_manager.h"
-#include "utils/file_system_watcher.h"
+#include "scene/gui/popup.h"
 
-#include "core/object/object.h"
+class Label;
+class Button;
+class VBoxContainer;
 
 namespace DotNet {
 
-class DotNetModule : public Object {
-public:
-	enum class InitState {
-		DISABLED,
-		INITIALIZING,
-		INITIALIZED,
-		FAILED,
-	};
-
-	enum class FailedState {
-		NONE,
-		DOTNET_SDK_NOT_FOUND,
-		EDITOR_INTEGRATION_RESTORE_FAILED,
-		EDITOR_INTEGRATION_FAILED_TO_INITIALIZE,
-	};
+class DotNetStatusPanel : public PopupPanel {
+	GDCLASS(DotNetStatusPanel, PopupPanel);
 
 private:
-	static DotNetModule *singleton;
-	InitState init_state = InitState::DISABLED;
-	FailedState failed_state = FailedState::NONE;
+	Label *status_label = nullptr;
+	VBoxContainer *details = nullptr;
+	Button *enable_button = nullptr;
 
-	static DotNetRuntimeManager *runtime_manager;
+	void _initialize_module();
+	void _update_content();
 
-#ifdef TOOLS_ENABLED
-	Ref<FileSystemWatcher> fs_watcher;
-
-	String dotnet_sdk_version;
-	String dotnet_sdk_path;
-	String editor_integration_version;
-	String loaded_user_assembly_name;
-#endif
+	void _select_project();
+	void _load_project(const String &p_path);
+	void _open_url(const String &p_url);
+	void _copy_to_clipboard(const String &p_text);
 
 public:
-	static DotNetModule *get_singleton();
+	void refresh();
 
-	InitState get_init_state() const { return init_state; }
-	FailedState get_failed_state() const { return failed_state; }
-	bool should_initialize();
-	void initialize();
-
-private:
-	void _update_initialization_state(InitState p_init_state);
-#ifdef TOOLS_ENABLED
-	void _set_initialization_failed(FailedState p_state, const String &p_error);
-#endif
-
-public:
-#ifdef TOOLS_ENABLED
-	static void register_editor_settings();
-#endif
-	static void register_project_settings();
-
-	/* Godot.EditorIntegration callbacks */
-	void complete_initialization();
-	void fail_initialization(const String &p_error);
-
-#ifdef TOOLS_ENABLED
-	static void request_enable_dotnet_features();
-
-	static bool project_has_csproj_files();
-#endif
-
-private:
-#ifdef TOOLS_ENABLED
-	void _start_fs_watcher();
-	void on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
-
-public:
-	static bool try_restore_editor_packages(const String &p_editor_assemblies_path);
-#endif
-
-#ifdef TOOLS_ENABLED
-	void set_dotnet_sdk_info(const String &p_version, const String &p_path);
-	String get_dotnet_sdk_version() const;
-	String get_dotnet_sdk_path() const;
-
-	void set_editor_integration_version(const String &p_version);
-	String get_editor_integration_version() const;
-
-	String get_loaded_user_assembly_name() const { return loaded_user_assembly_name; }
-#endif
-
-public:
-	DotNetModule();
-	~DotNetModule();
+	DotNetStatusPanel();
 };
 
 } // namespace DotNet
