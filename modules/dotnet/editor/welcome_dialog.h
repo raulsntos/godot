@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#error Welcome Dialog is disabled as it's a work in progress and should not be used for now.
+
 #pragma once
 
 #include "editor/inspector/editor_inspector.h"
