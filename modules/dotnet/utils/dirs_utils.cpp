@@ -71,7 +71,11 @@ private:
 
 #ifdef MACOS_ENABLED
 		// On macOS, use directory outside .app bundle, since .app bundle is read-only.
-		editor_assemblies_path = EditorPaths::get_singleton()->get_data_dir().path_join("Godot.NET").path_join(version);
+		// When running a project (not in the editor), EditorPaths won't be initialized, but that's OK
+		// because we won't be using the editor assemblies path either.
+		if (EditorPaths::get_singleton() != nullptr) {
+			editor_assemblies_path = EditorPaths::get_singleton()->get_data_dir().path_join("Godot.NET").path_join(version);
+		}
 #endif
 
 #else // TOOLS_ENABLED
