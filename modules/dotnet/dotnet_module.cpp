@@ -83,10 +83,12 @@ bool DotNetModule::should_initialize() {
 void DotNetModule::_update_initialization_state(InitState p_init_state) {
 	init_state = p_init_state;
 
+#ifdef TOOLS_ENABLED
 	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
 	if (status_indicator != nullptr) {
 		status_indicator->update();
 	}
+#endif
 }
 
 #ifdef TOOLS_ENABLED
@@ -159,9 +161,11 @@ void DotNetModule::initialize() {
 	if (should_load_project_assembly) {
 		if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
 			WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+#ifdef TOOLS_ENABLED
 			loaded_user_assembly_name = "";
 		} else {
 			loaded_user_assembly_name = assembly_name;
+#endif
 		}
 	}
 
@@ -210,6 +214,7 @@ void DotNetModule::register_project_settings() {
 #endif
 }
 
+#ifdef TOOLS_ENABLED
 void DotNetModule::complete_initialization() {
 	_update_initialization_state(InitState::INITIALIZED);
 }
@@ -217,6 +222,7 @@ void DotNetModule::complete_initialization() {
 void DotNetModule::fail_initialization(const String &p_error) {
 	_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, p_error);
 }
+#endif
 
 #ifdef TOOLS_ENABLED
 void DotNetModule::request_enable_dotnet_features() {
@@ -286,9 +292,11 @@ void DotNetModule::on_project_assembly_changed(FileSystemWatcher::FileSystemChan
 		case FileSystemWatcher::FILE_SYSTEM_CHANGE_CREATE:
 			if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
 				WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+#ifdef TOOLS_ENABLED
 				loaded_user_assembly_name = "";
 			} else {
 				loaded_user_assembly_name = assembly_name;
+#endif
 			}
 			break;
 

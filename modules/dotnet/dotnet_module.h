@@ -89,9 +89,11 @@ public:
 #endif
 	static void register_project_settings();
 
+#ifdef TOOLS_ENABLED
 	/* Godot.EditorIntegration callbacks */
 	void complete_initialization();
 	void fail_initialization(const String &p_error);
+#endif
 
 #ifdef TOOLS_ENABLED
 	static void request_enable_dotnet_features();
