@@ -51,6 +51,7 @@ protected:
 	GDVIRTUAL2RC_REQUIRED(bool, _can_handle_object, const GDExtension *, const Object *);
 
 	GDVIRTUAL1RC(String, _get_source_path, const StringName &);
+	GDVIRTUAL5RC(bool, _get_location_in_source, const StringName &, const StringName &, GDExtensionPtr<String>, GDExtensionPtr<int32_t>, GDExtensionPtr<int32_t>);
 	GDVIRTUAL1RC(StringName, _get_class_name_from_source_path, const String &);
 
 	GDVIRTUAL0RC(bool, _overrides_external_editor);
@@ -92,6 +93,7 @@ public:
 	virtual bool can_handle_object(const GDExtension *p_library, const Object *p_object) const;
 
 	virtual String get_source_path(const StringName &p_class_name) const;
+	virtual bool get_location_in_source(const StringName &p_class_name, const StringName &p_method_name, String *r_source_path, int *r_line, int *r_col) const;
 	virtual StringName get_class_name_from_source_path(const String &p_source_path) const;
 
 	virtual bool overrides_external_editor() const;
