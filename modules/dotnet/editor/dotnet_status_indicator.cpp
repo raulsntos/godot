@@ -111,7 +111,9 @@ void DotNetStatusIndicator::_draw_button() {
 		case DotNetModule::InitState::FAILED:
 			icon = get_theme_icon(SNAME("StatusError"), EditorStringName(EditorIcons));
 			break;
-		case DotNetModule::InitState::INITIALIZED:
+		case DotNetModule::InitState::INITIALIZED: {
+			bool assembly_loaded = false;
+			bool workspace_loaded = false;
 			switch (module->get_user_assembly_state()) {
 				case DotNetModule::UserAssemblyState::PROJECT_NOT_FOUND:
 					// If there are no .csproj files, this likely means the workspace doesn't use C#,
@@ -131,9 +133,37 @@ void DotNetStatusIndicator::_draw_button() {
 					break;
 				default:
 					// No overlay if the assembly is loaded successfully.
+					assembly_loaded = true;
+					break;
+			}
+			switch (module->get_user_workspace_state()) {
+				case DotNetModule::UserWorkspaceState::PROJECT_NOT_FOUND:
+					// If there are no .csproj files, this likely means the workspace doesn't use C#,
+					// which is an acceptable scenario. Otherwise, even if the .csproj files are not
+					// in the expected location, we want to warn the user that their project may be
+					// misconfigured.
+					if (module->project_has_csproj_files(true)) {
+						icon = get_theme_icon(SNAME("StatusWarning"), EditorStringName(EditorIcons));
+						break;
+					}
 					return;
+				case DotNetModule::UserWorkspaceState::LOADING:
+					icon = get_theme_icon(SNAME("Progress1"), EditorStringName(EditorIcons));
+					break;
+				case DotNetModule::UserWorkspaceState::FAILED_TO_LOAD:
+					icon = get_theme_icon(SNAME("StatusError"), EditorStringName(EditorIcons));
+					break;
+				default:
+					// No overlay if the workspace is loaded successfully.
+					workspace_loaded = true;
+					break;
+			}
+			if (assembly_loaded && workspace_loaded) {
+				// No overlay if the assembly and workspace are loaded successfully.
+				return;
 			}
 			break;
+		}
 		case DotNetModule::InitState::INITIALIZING:
 			// No overlay during initialization; the button is disabled.
 			// Unless the initialization is taking too long.

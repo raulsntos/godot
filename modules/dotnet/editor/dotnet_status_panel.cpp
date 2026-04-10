@@ -294,6 +294,53 @@ void DotNetStatusPanel::_update_content() {
 				details->add_child(hbox);
 			}
 
+			// Workspace line.
+			{
+				HBoxContainer *hbox = nullptr;
+
+				switch (module->get_user_workspace_state()) {
+					case DotNetModule::UserWorkspaceState::PROJECT_NOT_FOUND:
+					case DotNetModule::UserWorkspaceState::LOADED: {
+						// Already handled by the project line.
+						break;
+					} break;
+					case DotNetModule::UserWorkspaceState::LOADING: {
+						hbox = memnew(HBoxContainer);
+
+						Label *workspace_label = memnew(Label);
+						workspace_label->set_text(TTR("C# workspace loading..."));
+						hbox->add_child(workspace_label);
+					} break;
+					case DotNetModule::UserWorkspaceState::FAILED_TO_LOAD: {
+						hbox = memnew(HBoxContainer);
+
+						TextureRect *icon = memnew(TextureRect);
+						icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
+						icon->set_texture(get_theme_icon(SNAME("StatusError"), EditorStringName(EditorIcons)));
+						hbox->add_child(icon);
+
+						Label *workspace_label = memnew(Label);
+						workspace_label->set_text(TTR("Failed to load C# workspace."));
+						hbox->add_child(workspace_label);
+
+						hbox->add_spacer();
+
+						// TODO(@raulsntos): Currently this button only shows for 'FAILED_TO_LOAD' because we don't add a workspace line for 'LOADED' but we should find a way to include this button for both, because even if the workspace is loaded this can be useful to request a force full reload (since by default we try to do incremental reloads to be faster).
+						// If the workspace failed to load or loaded successfully, show a reload button
+						// to let the user retry or force reload the workspace.
+						LinkButton *reload_workspace_button = memnew(LinkButton);
+						reload_workspace_button->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
+						reload_workspace_button->set_text(TTR("Reload"));
+						reload_workspace_button->connect(SceneStringName(pressed), callable_mp(this, &DotNetStatusPanel::_open_url).bind("https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_basics.html"));
+						hbox->add_child(reload_workspace_button);
+					} break;
+				}
+
+				if (hbox != nullptr) {
+					details->add_child(hbox);
+				}
+			}
+
 			enable_button->hide();
 		} break;
 		case DotNetModule::InitState::FAILED: {
