@@ -153,6 +153,23 @@
 				Returns the name of the programming language used for the extension.
 			</description>
 		</method>
+		<method name="_get_location_in_source" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="class_name" type="StringName" />
+			<param index="1" name="method_name" type="StringName" />
+			<param index="2" name="r_source_path" type="void*" />
+			<param index="3" name="r_line" type="int32_t*" />
+			<param index="4" name="r_column" type="int32_t*" />
+			<description>
+				Implement to provide the location in source code for the given method of the given class. This is used by the editor to open the source file in an editor and jump to the line where the method is declared.
+				The [param class_name] is the name of the class that contains the method.
+				The [param method_name] is the name of the method to find.
+				The [param r_source_path] should be set to point to a String containing the absolute path to the source file where the method is declared.
+				The [param r_line] should be set to point to an int where the line number of the method declaration will be stored, starting from 1.
+				The [param r_column] should be set to point to an int where the column number of the method declaration will be stored, starting from 1.
+				If the method cannot be found, return [code]false[/code].
+			</description>
+		</method>
 		<method name="_get_path_count" qualifiers="virtual const">
 			<return type="int" />
 			<description>

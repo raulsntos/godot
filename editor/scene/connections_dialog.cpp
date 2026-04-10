@@ -1119,7 +1119,28 @@ void ConnectionsDock::_make_or_edit_connection() {
 			EditorNode::get_singleton()->emit_signal(SNAME("script_add_function_request"), cd.target, cd.method, script_function_args);
 		} else {
 			const StringName &extension_class_name = target->get_extension_class_name();
-			source_code_plugin->add_method_func(extension_class_name, cd.method, script_function_args);
+			Error err = source_code_plugin->add_method_func(extension_class_name, cd.method, script_function_args);
+
+			if (err == OK) {
+				String source_path;
+				int line = -1;
+				int column = -1;
+				if (source_code_plugin->get_location_in_source(extension_class_name, cd.method, &source_path, &line, &column)) {
+					if (source_code_plugin->overrides_external_editor()) {
+						source_code_plugin->open_in_external_editor(source_path, line, column);
+					} else {
+						EditorNode::get_singleton()->load_resource(source_path);
+					}
+				} else {
+					// Fall back to opening the class source if we can't get the exact method location.
+					source_path = source_code_plugin->get_source_path(extension_class_name);
+					if (source_code_plugin->overrides_external_editor()) {
+						source_code_plugin->open_in_external_editor(source_path, 0, 0);
+					} else {
+						EditorNode::get_singleton()->load_resource(source_path);
+					}
+				}
+			}
 		}
 	}
 
@@ -1327,12 +1348,36 @@ void ConnectionsDock::_go_to_method(TreeItem &p_item) {
 
 	Ref<Script> scr = cd.target->get_script();
 
-	if (scr.is_null()) {
+	if (scr.is_valid() && ScriptEditor::get_singleton()->script_goto_method(scr, cd.method)) {
+		EditorNode::get_editor_main_screen()->select(EditorMainScreen::EDITOR_SCRIPT);
 		return;
 	}
 
-	if (scr.is_valid() && ScriptEditor::get_singleton()->script_goto_method(scr, cd.method)) {
-		EditorNode::get_editor_main_screen()->select(EditorMainScreen::EDITOR_SCRIPT);
+	// We may still be able to add the method to the target node if it's a source-available GDExtension class.
+	// We can check by trying to get a plugin for the target node, otherwise the plugin retrieved will be null.
+	const Ref<EditorExtensionSourceCodePlugin> source_code_plugin = ExtensionSourceCodeManager::get_singleton()->get_plugin_for_object(cd.target);
+	if (source_code_plugin.is_null() || !source_code_plugin->can_edit_class_source()) {
+		return;
+	}
+
+	const StringName &extension_class_name = cd.target->get_extension_class_name();
+	String source_path;
+	int line = -1;
+	int column = -1;
+	if (source_code_plugin->get_location_in_source(extension_class_name, cd.method, &source_path, &line, &column)) {
+		if (source_code_plugin->overrides_external_editor()) {
+			source_code_plugin->open_in_external_editor(source_path, line, column);
+		} else {
+			EditorNode::get_singleton()->load_resource(source_path);
+		}
+	} else {
+		// Fall back to opening the class source if we can't get the exact method location.
+		source_path = source_code_plugin->get_source_path(extension_class_name);
+		if (source_code_plugin->overrides_external_editor()) {
+			source_code_plugin->open_in_external_editor(source_path, 0, 0);
+		} else {
+			EditorNode::get_singleton()->load_resource(source_path);
+		}
 	}
 }
 
