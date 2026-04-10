@@ -247,6 +247,15 @@ void DotNetModule::_set_user_assembly_load_failed(UserAssemblyState p_state) {
 	loaded_user_assembly_name = "";
 	_update_user_assembly_state(p_state);
 }
+
+void DotNetModule::_update_user_workspace_state(UserWorkspaceState p_state) {
+	user_workspace_state = p_state;
+
+	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
+	if (status_indicator != nullptr) {
+		status_indicator->update();
+	}
+}
 #endif
 
 #ifdef TOOLS_ENABLED
@@ -290,6 +299,10 @@ void DotNetModule::complete_initialization() {
 
 void DotNetModule::fail_initialization(const String &p_error) {
 	_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, p_error);
+}
+
+void DotNetModule::set_workspace_state(UserWorkspaceState p_state) {
+	_update_user_workspace_state(p_state);
 }
 #endif
 

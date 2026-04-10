@@ -64,6 +64,13 @@ void _module_complete_initialization() {
 	}
 }
 
+void _module_set_workspace_state(GDExtensionInt p_state) {
+	DotNetModule *module = DotNetModule::get_singleton();
+	if (module != nullptr) {
+		module->set_workspace_state((DotNetModule::UserWorkspaceState)p_state);
+	}
+}
+
 void _get_editor_assemblies_path(GDExtensionUninitializedStringNamePtr r_dest) {
 	memnew_placement(r_dest, String(Dirs::get_editor_assemblies_path()));
 }
@@ -187,6 +194,7 @@ void _set_editor_integration_version(GDExtensionStringPtr p_version) {
 void register_functions() {
 	REGISTER_INTERFACE_FUNC(module_fail_initialization);
 	REGISTER_INTERFACE_FUNC(module_complete_initialization);
+	REGISTER_INTERFACE_FUNC(module_set_workspace_state);
 	REGISTER_INTERFACE_FUNC(get_editor_assemblies_path);
 	REGISTER_INTERFACE_FUNC(get_project_assemblies_path);
 	REGISTER_INTERFACE_FUNC(get_project_output_path);

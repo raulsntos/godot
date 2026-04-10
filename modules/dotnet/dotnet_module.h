@@ -61,6 +61,14 @@ public:
 		FAILED_TO_LOAD, // DLL exists but failed to load.
 		LOADED, // DLL loaded successfully.
 	};
+
+	// Workspace sub-state, only meaningful when init_state == INITIALIZED.
+	enum class UserWorkspaceState {
+		PROJECT_NOT_FOUND, // No .csproj found in the expected location.
+		LOADING, // .csproj found and currently loading.
+		FAILED_TO_LOAD, // .csproj found but failed to load.
+		LOADED, // Workspace loaded successfully.
+	};
 #endif
 
 private:
@@ -81,6 +89,7 @@ private:
 	String editor_integration_version;
 	String loaded_user_assembly_name;
 	UserAssemblyState user_assembly_state = UserAssemblyState::PROJECT_NOT_FOUND;
+	UserWorkspaceState user_workspace_state = UserWorkspaceState::PROJECT_NOT_FOUND;
 #endif
 
 public:
@@ -103,6 +112,7 @@ private:
 	void _update_user_assembly_state(UserAssemblyState p_state);
 	void _set_user_assembly_load_success(const String &p_assembly_name);
 	void _set_user_assembly_load_failed(UserAssemblyState p_state);
+	void _update_user_workspace_state(UserWorkspaceState p_state);
 #endif
 
 public:
@@ -115,6 +125,7 @@ public:
 	/* Godot.EditorIntegration callbacks */
 	void complete_initialization();
 	void fail_initialization(const String &p_error);
+	void set_workspace_state(UserWorkspaceState p_state);
 #endif
 
 #ifdef TOOLS_ENABLED
@@ -146,6 +157,7 @@ public:
 
 	String get_loaded_user_assembly_name() const { return loaded_user_assembly_name; }
 	UserAssemblyState get_user_assembly_state() const { return user_assembly_state; }
+	UserWorkspaceState get_user_workspace_state() const { return user_workspace_state; }
 #endif
 
 public:
