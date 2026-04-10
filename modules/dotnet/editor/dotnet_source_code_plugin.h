@@ -65,6 +65,7 @@ protected:
 	virtual bool can_handle_object(const GDExtension *p_library, const Object *p_object) const override;
 
 	virtual String get_source_path(const StringName &p_class_name) const override;
+	virtual bool get_location_in_source(const StringName &p_class_name, const StringName &p_method_name, String *r_source_path, int *r_line, int *r_col) const override;
 	virtual StringName get_class_name_from_source_path(const String &p_source_path) const override;
 
 	virtual bool overrides_external_editor() const override;

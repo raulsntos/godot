@@ -85,6 +85,11 @@ String DotNetSourceCodePlugin::get_source_path(const StringName &p_class_name) c
 	return dotnet_source_code_plugin->get_source_path(p_class_name);
 }
 
+bool DotNetSourceCodePlugin::get_location_in_source(const StringName &p_class_name, const StringName &p_method_name, String *r_source_path, int *r_line, int *r_col) const {
+	REQUIRES_DOTNET_EDITOR_INTEGRATION_V(false);
+	return dotnet_source_code_plugin->get_location_in_source(p_class_name, p_method_name, r_source_path, r_line, r_col);
+}
+
 StringName DotNetSourceCodePlugin::get_class_name_from_source_path(const String &p_source_path) const {
 	REQUIRES_DOTNET_EDITOR_INTEGRATION_V(StringName());
 	const String &path = ProjectSettings::get_singleton()->globalize_path(p_source_path);
