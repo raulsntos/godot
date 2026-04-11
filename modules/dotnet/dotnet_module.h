@@ -65,7 +65,7 @@ private:
 	void _start_fs_watcher();
 	void _on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
 
-	bool try_restore_editor_packages(const String &p_editor_assemblies_path);
+	static bool try_restore_editor_packages(const String &p_editor_assemblies_path);
 #endif
 
 public:
