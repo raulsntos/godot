@@ -125,15 +125,8 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 		if (source_code_plugin.is_valid()) {
 			const StringName &extension_class_name = n->get_extension_class_name();
 			const String &source_path = source_code_plugin->get_source_path(extension_class_name);
-			if (source_code_plugin->overrides_external_editor()) {
-				Error err = source_code_plugin->open_in_external_editor(source_path, 0, 0);
-				ERR_FAIL_COND_MSG(err != OK, "Unable to open external editor for: " + source_path);
-			} else {
-				// Fallback to the built-in script editor.
-				Ref<Resource> res = ScriptEditor::get_singleton()->open_file(source_path);
-				ERR_FAIL_COND_MSG(res.is_null(), "Unable to open source file: " + source_path);
-				InspectorDock::get_singleton()->edit_resource(res);
-			}
+			Error err = source_code_plugin->open_in_editor(source_path, 0, 0);
+			ERR_FAIL_COND_MSG(err != OK, "Unable to open editor for: " + source_path);
 		} else {
 			ERR_FAIL_MSG("Class has no associated source code.");
 		}

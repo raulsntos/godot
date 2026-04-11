@@ -30,7 +30,10 @@
 
 #include "editor_extension_source_code_plugin.h"
 
+#include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
+#include "editor/script/script_editor_plugin.h"
+#include "editor/settings/editor_settings.h"
 
 bool EditorExtensionSourceCodePlugin::can_handle_object(const GDExtension *p_library, const Object *p_object) const {
 	bool can_handle = false;
@@ -66,6 +69,28 @@ Error EditorExtensionSourceCodePlugin::open_in_external_editor(const String &p_s
 	Error err = ERR_BUG;
 	GDVIRTUAL_CALL(_open_in_external_editor, p_source_path, p_line, p_col, err);
 	return err;
+}
+
+Error EditorExtensionSourceCodePlugin::open_in_editor(const String &p_source_path, int p_line, int p_col) const {
+	if (overrides_external_editor()) {
+		return open_in_external_editor(p_source_path, p_line, p_col);
+	}
+
+	bool use_external = EDITOR_GET("text_editor/external/use_external_editor");
+	if (use_external) {
+		if (!ScriptEditorPlugin::open_in_external_editor(p_source_path, p_line, p_col)) {
+			ERR_PRINT("Failed to open source file in external editor.");
+			return ERR_CANT_OPEN;
+		}
+		return OK;
+	}
+
+	Ref<Resource> res = ScriptEditor::get_singleton()->open_file(p_source_path);
+	ERR_FAIL_COND_V_MSG(res.is_null(), ERR_CANT_OPEN, "Unable to open source file: " + p_source_path);
+	// 'open_file' already calls 'edit', but we need to call it again to pass the line and column information.
+	ScriptEditor::get_singleton()->edit(res, p_line, p_col);
+	EditorNode::get_singleton()->get_editor_main_screen()->select(EditorMainScreen::EDITOR_SCRIPT);
+	return OK;
 }
 
 String EditorExtensionSourceCodePlugin::get_language_name() const {
