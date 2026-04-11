@@ -1126,19 +1126,11 @@ void ConnectionsDock::_make_or_edit_connection() {
 				int line = -1;
 				int column = -1;
 				if (source_code_plugin->get_location_in_source(extension_class_name, cd.method, &source_path, &line, &column)) {
-					if (source_code_plugin->overrides_external_editor()) {
-						source_code_plugin->open_in_external_editor(source_path, line, column);
-					} else {
-						EditorNode::get_singleton()->load_resource(source_path);
-					}
+					source_code_plugin->open_in_editor(source_path, line, column);
 				} else {
 					// Fall back to opening the class source if we can't get the exact method location.
 					source_path = source_code_plugin->get_source_path(extension_class_name);
-					if (source_code_plugin->overrides_external_editor()) {
-						source_code_plugin->open_in_external_editor(source_path, 0, 0);
-					} else {
-						EditorNode::get_singleton()->load_resource(source_path);
-					}
+					source_code_plugin->open_in_editor(source_path, 0, 0);
 				}
 			}
 		}
@@ -1365,19 +1357,11 @@ void ConnectionsDock::_go_to_method(TreeItem &p_item) {
 	int line = -1;
 	int column = -1;
 	if (source_code_plugin->get_location_in_source(extension_class_name, cd.method, &source_path, &line, &column)) {
-		if (source_code_plugin->overrides_external_editor()) {
-			source_code_plugin->open_in_external_editor(source_path, line, column);
-		} else {
-			EditorNode::get_singleton()->load_resource(source_path);
-		}
+		source_code_plugin->open_in_editor(source_path, line, column);
 	} else {
 		// Fall back to opening the class source if we can't get the exact method location.
 		source_path = source_code_plugin->get_source_path(extension_class_name);
-		if (source_code_plugin->overrides_external_editor()) {
-			source_code_plugin->open_in_external_editor(source_path, 0, 0);
-		} else {
-			EditorNode::get_singleton()->load_resource(source_path);
-		}
+		source_code_plugin->open_in_editor(source_path, 0, 0);
 	}
 }
 

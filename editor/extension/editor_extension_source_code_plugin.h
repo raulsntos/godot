@@ -99,6 +99,17 @@ public:
 	virtual bool overrides_external_editor() const;
 	virtual Error open_in_external_editor(const String &p_source_path, int p_line, int p_col) const;
 
+	/**
+	 * Open a source code file in the editor at the given path and location, respecting the
+	 * external editor configuration and falling back to the built-in editor.
+	 *
+	 * The editor used will be picked in the following order:
+	 * 1. The editor specified by this plugin if `overrides_external_editor()` returns true.
+	 * 2. The editor specified in the editor settings when an external editor is configured.
+	 * 3. The built-in script editor.
+	 */
+	Error open_in_editor(const String &p_source_path, int p_line = 0, int p_col = 0) const;
+
 	virtual String get_language_name() const;
 	virtual Ref<Texture2D> get_language_icon() const;
 	virtual PackedStringArray get_language_extensions() const;
