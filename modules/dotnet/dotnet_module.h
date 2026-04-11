@@ -46,6 +46,7 @@ private:
 
 #ifdef TOOLS_ENABLED
 	Ref<FileSystemWatcher> fs_watcher;
+	bool changing_project_assembly = false;
 #endif
 
 public:
@@ -62,8 +63,13 @@ public:
 
 private:
 #ifdef TOOLS_ENABLED
+private:
 	void _start_fs_watcher();
 	void _on_project_assembly_changed(FileSystemWatcher::FileSystemChange change_type);
+	void _on_project_settings_changed();
+
+public:
+	void change_project_assembly(const String &p_assembly_name);
 
 	static bool try_restore_editor_packages(const String &p_editor_assemblies_path);
 #endif

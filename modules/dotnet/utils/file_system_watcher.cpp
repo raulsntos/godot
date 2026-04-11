@@ -63,6 +63,22 @@ void FileSystemWatcher::poll_file_system() {
 	_start_timer();
 }
 
+void FileSystemWatcher::set_path(const String &p_new_path) {
+	ERR_FAIL_COND_MSG(p_new_path.is_empty(), "Path to watch can't be empty.");
+
+	if (timer.is_null()) {
+		// If the timer hasn't been started yet, changing the path is enough.
+		path = p_new_path;
+		return;
+	}
+
+	// Stop the timer before changing the path to avoid triggering file system events for the new path, and restart it.
+	timer->disconnect(SNAME("timeout"), callable_mp(this, &FileSystemWatcher::poll_file_system));
+	timer.unref();
+	path = p_new_path;
+	start();
+}
+
 void FileSystemWatcher::start() {
 	ERR_FAIL_COND_MSG(path.is_empty(), "Path to watch can't be empty.");
 	ERR_FAIL_COND_MSG(timer.is_valid(), "FileSystemWatcher is already running.");

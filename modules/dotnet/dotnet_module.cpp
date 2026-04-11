@@ -124,12 +124,15 @@ void DotNetModule::initialize() {
 	bool should_load_project_assembly = true;
 
 #ifdef TOOLS_ENABLED
+	// Listen for changes to the assembly name setting so we can update the loaded assembly accordingly.
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &DotNetModule::_on_project_settings_changed));
+
 	fs_watcher.instantiate();
-	fs_watcher->path = assemblies_dir.path_join(assembly_name + ".dll");
+	fs_watcher->set_path(assemblies_dir.path_join(assembly_name + ".dll"));
 	fs_watcher->callable = callable_mp(this, &DotNetModule::_on_project_assembly_changed);
 	callable_mp(this, &DotNetModule::_start_fs_watcher).call_deferred();
 
-	should_load_project_assembly = FileAccess::exists(fs_watcher->path);
+	should_load_project_assembly = FileAccess::exists(fs_watcher->get_path());
 #endif
 
 	if (should_load_project_assembly) {
@@ -206,6 +209,81 @@ void DotNetModule::_on_project_assembly_changed(FileSystemWatcher::FileSystemCha
 			}
 			break;
 	}
+}
+
+void DotNetModule::_on_project_settings_changed() {
+	if (init_state != InitState::INITIALIZED) {
+		return;
+	}
+
+	bool dotnet_settings_changed = false;
+	const PackedStringArray &changed_settings = ProjectSettings::get_singleton()->get_changed_settings();
+	for (const String &setting : changed_settings) {
+		if (setting.begins_with("dotnet/")) {
+			dotnet_settings_changed = true;
+			break;
+		}
+	}
+	if (!dotnet_settings_changed) {
+		// No .NET-related settings were changed, so we can ignore this.
+		return;
+	}
+
+	const String assembly_name = Dirs::get_project_assembly_name();
+	if (loaded_user_assembly_name == assembly_name) {
+		// The assembly name didn't change, so no need to do anything.
+		return;
+	}
+
+	change_project_assembly(assembly_name);
+}
+
+void DotNetModule::change_project_assembly(const String &p_assembly_name) {
+	DEV_ASSERT(runtime_manager != nullptr);
+
+	if (changing_project_assembly) {
+		// The project assembly is already changing.
+		return;
+	}
+
+	changing_project_assembly = true;
+
+	const String old_assembly_name = loaded_user_assembly_name;
+	const String old_assemblies_dir = Dirs::get_project_assemblies_path();
+
+	// Unload the currently loaded assembly (if any).
+	if (!old_assembly_name.is_empty()) {
+		if (!runtime_manager->try_unload_extension(old_assembly_name, old_assemblies_dir)) {
+			WARN_PRINT(".NET: Failed to unload assembly '" + old_assembly_name + "'.");
+		}
+	}
+
+	// Update the project setting and persist it.
+	ProjectSettings::get_singleton()->set("dotnet/project/assembly_name", p_assembly_name);
+	ProjectSettings::get_singleton()->save();
+	Dirs::invalidate_cached_directories();
+
+	const String new_assembly_name = Dirs::get_project_assembly_name();
+	const String new_assemblies_dir = Dirs::get_project_assemblies_path();
+	DEV_ASSERT(new_assembly_name == p_assembly_name);
+
+	// Update the file system watcher to watch the new assembly path.
+	const String new_dll_path = new_assemblies_dir.path_join(new_assembly_name + ".dll");
+	fs_watcher->set_path(new_dll_path);
+
+	// Load the new assembly if it's already built, otherwise set the appropriate state.
+	if (FileAccess::exists(new_dll_path)) {
+		if (!runtime_manager->try_load_extension(new_assembly_name, new_assemblies_dir)) {
+			WARN_PRINT(".NET: Failed to load assembly '" + new_assembly_name + "'.");
+			OS::get_singleton()->alert(TTR("Failed to load assembly '%s'. Check the console output for more details.", new_assembly_name));
+		}
+	} else if (FileAccess::exists(Dirs::get_project_csproj_path())) {
+		OS::get_singleton()->alert(TTR("Assembly '%s' not found. Please build the project to generate the assembly.", new_assembly_name));
+	} else {
+		OS::get_singleton()->alert(TTR("Project file '%s' not found. Please ensure there is a .csproj file in the project directory and build it to generate the assembly.", Dirs::get_project_csproj_path()));
+	}
+
+	changing_project_assembly = false;
 }
 
 bool DotNetModule::try_restore_editor_packages(const String &p_editor_assemblies_path) {
