@@ -38,12 +38,16 @@
 
 #ifdef TOOLS_ENABLED
 #include "./editor/RestoreEditorPackages.proj.gen.h"
+#include "./editor/dotnet_status_indicator.h"
+#include "./editor/welcome_dialog.h"
 #include "runtime/hostfxr/hostfxr_dotnet_runtime.h"
 
 #include "core/config/engine.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 #include "editor/settings/editor_settings.h"
+#include "scene/main/scene_tree.h"
+#include "servers/display/display_server.h"
 #endif
 
 namespace DotNet {
@@ -56,16 +60,15 @@ DotNetModule *DotNetModule::get_singleton() {
 	return singleton;
 }
 
-bool DotNetModule::is_initialized() const {
-	return initialized;
-}
-
 bool DotNetModule::should_initialize() {
 #ifdef TOOLS_ENABLED
 	if (Engine::get_singleton()->is_project_manager_hint()) {
 		// Never initialize the module in the project manager.
 		return false;
 	}
+
+	// TODO(@raulsntos): See `request_enable_dotnet_features` for how we should handle this in the future once we have editor unification implemented. For now, we'll just always initialize the module in the editor.
+
 	// If we can find a C# project or solution in the workspace,
 	// assume the Godot project uses C# and needs to initialize the module.
 	// return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_solution_path());
@@ -81,7 +84,13 @@ bool DotNetModule::should_initialize() {
 void DotNetModule::initialize() {
 	print_verbose(".NET: Initializing module.");
 
-	runtime_manager = memnew(DotNetRuntimeManager);
+	_update_initialization_state(InitState::INITIALIZING);
+
+	// When initializing for the first time, create the runtime manager.
+	// If initialization fails and is retried, the runtime manager should already exist.
+	if (runtime_manager == nullptr) {
+		runtime_manager = memnew(DotNetRuntimeManager);
+	}
 	CRASH_COND(runtime_manager == nullptr);
 
 	// There are 3 possible cases here:
@@ -96,8 +105,8 @@ void DotNetModule::initialize() {
 #ifdef TOOLS_ENABLED
 	String found_dotnet_sdk_path;
 	if (!HostFxrDotNetRuntime::try_find_dotnet_sdk(found_dotnet_sdk_path)) {
-		OS::get_singleton()->alert(TTR("Could not find a .NET SDK installation required for .NET support.\nPlease install the .NET SDK from https://get.dot.net and restart Godot."), TTR(".NET SDK not found"));
-		CRASH_NOW_MSG(".NET: .NET SDK installation not found.");
+		_set_initialization_failed(FailedState::DOTNET_SDK_NOT_FOUND, TTR("Could not find .NET SDK. Please install from https://get.dot.net"));
+		return;
 	}
 
 	print_verbose(vformat(".NET: .NET SDK installation found at '%s'.", found_dotnet_sdk_path));
@@ -105,15 +114,12 @@ void DotNetModule::initialize() {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
 		if (!try_restore_editor_packages(editor_assemblies_dir)) {
-			OS::get_singleton()->alert(TTR("Failed to restore .NET editor integration. Check the console output for more details."), TTR("Failed to restore .NET editor integration"));
-			CRASH_NOW_MSG(".NET: Failed to restore editor integration.");
+			_set_initialization_failed(FailedState::EDITOR_INTEGRATION_RESTORE_FAILED, TTR("Failed to restore .NET editor integration. Check the console output for more details."));
+			return;
 		}
 		if (!runtime_manager->try_load_extension("Godot.EditorIntegration", editor_assemblies_dir)) {
-			// If the editor integration could not be loaded, .NET-related functionality can't be enabled
-			// (i.e.: .NET assemblies can't be loaded). Show an message to users to try to explain and crash
-			// because we can't recover from this error.
-			OS::get_singleton()->alert(TTR("Failed to load .NET editor integration. Check the console output for more details."), TTR("Failed to load .NET editor integration"));
-			CRASH_NOW_MSG(".NET: Failed to load editor integration.");
+			_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, TTR("Failed to load .NET editor integration. Check the console output for more details."));
+			return;
 		}
 	}
 #endif
@@ -133,17 +139,115 @@ void DotNetModule::initialize() {
 	callable_mp(this, &DotNetModule::_start_fs_watcher).call_deferred();
 
 	should_load_project_assembly = FileAccess::exists(fs_watcher->get_path());
+	if (!should_load_project_assembly) {
+		// DLL doesn't exist yet. Determine whether a .csproj is available.
+		if (FileAccess::exists(Dirs::get_project_csproj_path())) {
+			// The .csproj exists, so it was just not built yet.
+			_set_user_assembly_load_failed(UserAssemblyState::DLL_NOT_FOUND);
+		} else {
+			// There is no .csproj, so this project may not use C#.
+			_set_user_assembly_load_failed(UserAssemblyState::PROJECT_NOT_FOUND);
+		}
+	}
 #endif
 
 	if (should_load_project_assembly) {
 		if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
+#ifndef TOOLS_ENABLED
+			// In the editor it's fine if the assembly fails to load, there are cases where this is expected
+			// (e.g. the project hasn't been upgraded yet). The status indicator should take care of showing
+			// users that the assembly is not loaded.
 			WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+#else
+			_set_user_assembly_load_failed(UserAssemblyState::FAILED_TO_LOAD);
+		} else {
+			_set_user_assembly_load_success(assembly_name);
+#endif
 		}
 	}
 
-	initialized = true;
+	// In editor builds, the initialization has to wait for the editor integration which will
+	// set the state to INITIALIZED once it's ready or FAILED if something goes wrong.
+	// In exported builds, we can set the state to INITIALIZED right away since we don't have the editor integration.
+#ifndef TOOLS_ENABLED
+	_update_initialization_state(InitState::INITIALIZED);
+#endif
+
 	print_verbose(".NET: Module initialized.");
 }
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::_start_init_timer() {
+	Ref<SceneTreeTimer> timer = SceneTree::get_singleton()->create_timer(5.0);
+	timer->connect(SNAME("timeout"), callable_mp(this, &DotNetModule::_on_init_timeout));
+}
+
+void DotNetModule::_on_init_timeout() {
+	if (init_state != InitState::INITIALIZING) {
+		return;
+	}
+
+	init_timed_out = true;
+
+	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
+	if (status_indicator != nullptr) {
+		status_indicator->update();
+	}
+}
+#endif
+
+void DotNetModule::_update_initialization_state(InitState p_init_state) {
+	init_state = p_init_state;
+
+#ifdef TOOLS_ENABLED
+	init_timed_out = false;
+
+	if (p_init_state == InitState::INITIALIZING) {
+		// Start a timer to check if initialization is taking too long.
+		callable_mp(this, &DotNetModule::_start_init_timer).call_deferred();
+	}
+
+	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
+	if (status_indicator != nullptr) {
+		status_indicator->update();
+	}
+#endif
+}
+
+#ifdef TOOLS_ENABLED
+void _print_err(const String &p_error) {
+	ERR_PRINT_ED(vformat(".NET: %s", p_error));
+}
+
+void DotNetModule::_set_initialization_failed(FailedState p_state, const String &p_error) {
+	failed_state = p_state;
+	_update_initialization_state(InitState::FAILED);
+
+	// Print the error message deferred so the editor toaster is ready to show it,
+	// otherwise it would only show in the console.
+	callable_mp_static(_print_err).call_deferred(p_error);
+}
+
+void DotNetModule::_update_user_assembly_state(UserAssemblyState p_state) {
+	user_assembly_state = p_state;
+
+	DotNetStatusIndicator *status_indicator = DotNetStatusIndicator::get_singleton();
+	if (status_indicator != nullptr) {
+		status_indicator->update();
+	}
+}
+
+void DotNetModule::_set_user_assembly_load_success(const String &p_assembly_name) {
+	loaded_user_assembly_name = p_assembly_name;
+	_update_user_assembly_state(UserAssemblyState::LOADED);
+}
+
+void DotNetModule::_set_user_assembly_load_failed(UserAssemblyState p_state) {
+	DEV_ASSERT(p_state != UserAssemblyState::LOADED);
+	loaded_user_assembly_name = "";
+	_update_user_assembly_state(p_state);
+}
+#endif
 
 #ifdef TOOLS_ENABLED
 void DotNetModule::register_editor_settings() {
@@ -180,6 +284,88 @@ void DotNetModule::register_project_settings() {
 }
 
 #ifdef TOOLS_ENABLED
+void DotNetModule::complete_initialization() {
+	_update_initialization_state(InitState::INITIALIZED);
+}
+
+void DotNetModule::fail_initialization(const String &p_error) {
+	_set_initialization_failed(FailedState::EDITOR_INTEGRATION_FAILED_TO_INITIALIZE, p_error);
+}
+#endif
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::request_enable_dotnet_features() {
+	// If the .NET module is not available, this method was called too early.
+	// Wait until the editor has finished all initialization steps.
+	DotNetModule *module = DotNetModule::get_singleton();
+	DEV_ASSERT(module != nullptr);
+
+	// If the module is already initialized, .NET features are enabled.
+	// If it's in the process of initializing, we should wait for it to succeed or fail.
+	InitState init_state = module->get_init_state();
+	if (init_state == InitState::INITIALIZED || init_state == InitState::INITIALIZING) {
+		return;
+	}
+
+	// Otherwise, check if the editor packages are available.
+	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
+	if (DirAccess::exists(editor_assemblies_dir) && FileAccess::exists(editor_assemblies_dir.path_join("Godot.EditorIntegration.dll"))) {
+		// The editor packages are available, so we can just initialize the module.
+		module->initialize();
+		return;
+	}
+
+	// The editor packages are not available, so we need to restore them.
+	// We use the welcome dialog to introduce the .NET features to the user and ask for confirmation.
+	// If we're in headless mode we can't show the dialog.
+	if (!DisplayServer::get_singleton()->window_can_draw()) {
+		// We're in headless mode, so we can't show the dialog.
+		// The user may be running code in CI. Instead of hanging forever, we exit with an error code.
+		SceneTree::get_singleton()->quit(-1);
+		return;
+	}
+
+	// If the welcome dialog is not available, this method was called too early.
+	// Wait until the editor has finished all initialization steps.
+	DotNet::WelcomeDialog *welcome_dialog = DotNet::WelcomeDialog::get_singleton();
+	DEV_ASSERT(welcome_dialog != nullptr);
+	welcome_dialog->popup_centered();
+}
+#endif
+
+#ifdef TOOLS_ENABLED
+bool _project_has_csproj_files_in_dir(const String &p_root_path, bool p_include_subdirs) {
+	Ref<DirAccess> dir_access = DirAccess::open(p_root_path);
+	if (dir_access.is_null()) {
+		return false;
+	}
+
+	for (const String &filename : dir_access->get_files()) {
+		if (filename.has_extension("csproj")) {
+			return true;
+		}
+	}
+
+	if (p_include_subdirs) {
+		for (const String &subdir : dir_access->get_directories()) {
+			if (subdir == "." || subdir == "..") {
+				continue;
+			}
+			if (_project_has_csproj_files_in_dir(p_root_path.path_join(subdir), true)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool DotNetModule::project_has_csproj_files(bool p_include_subdirs) {
+	return _project_has_csproj_files_in_dir("res://", p_include_subdirs);
+}
+#endif
+
+#ifdef TOOLS_ENABLED
 void DotNetModule::_start_fs_watcher() {
 	fs_watcher->start();
 }
@@ -194,6 +380,9 @@ void DotNetModule::_on_project_assembly_changed(FileSystemWatcher::FileSystemCha
 		case FileSystemWatcher::FILE_SYSTEM_CHANGE_CREATE:
 			if (!runtime_manager->try_load_extension(assembly_name, assemblies_dir)) {
 				WARN_PRINT(".NET: Failed to load assembly '" + assembly_name + "'.");
+				_set_user_assembly_load_failed(UserAssemblyState::FAILED_TO_LOAD);
+			} else {
+				_set_user_assembly_load_success(assembly_name);
 			}
 			break;
 
@@ -201,11 +390,20 @@ void DotNetModule::_on_project_assembly_changed(FileSystemWatcher::FileSystemCha
 			if (!runtime_manager->try_unload_extension(assembly_name, assemblies_dir)) {
 				WARN_PRINT(".NET: Failed to unload assembly '" + assembly_name + "'.");
 			}
+			// The DLL was deleted. If the .csproj still exists the user probably cleaned
+			// the build output; if it's gone too, there is no project available anymore.
+			_set_user_assembly_load_failed(
+					FileAccess::exists(Dirs::get_project_csproj_path())
+							? UserAssemblyState::DLL_NOT_FOUND
+							: UserAssemblyState::PROJECT_NOT_FOUND);
 			break;
 
 		case FileSystemWatcher::FILE_SYSTEM_CHANGE_MODIFY:
 			if (!runtime_manager->try_reload_extension(assembly_name, assemblies_dir)) {
 				WARN_PRINT(".NET: Failed to reload assembly '" + assembly_name + "'.");
+				_set_user_assembly_load_failed(UserAssemblyState::FAILED_TO_LOAD);
+			} else {
+				_set_user_assembly_load_success(assembly_name);
 			}
 			break;
 	}
@@ -275,12 +473,14 @@ void DotNetModule::change_project_assembly(const String &p_assembly_name) {
 	if (FileAccess::exists(new_dll_path)) {
 		if (!runtime_manager->try_load_extension(new_assembly_name, new_assemblies_dir)) {
 			WARN_PRINT(".NET: Failed to load assembly '" + new_assembly_name + "'.");
-			OS::get_singleton()->alert(TTR("Failed to load assembly '%s'. Check the console output for more details.", new_assembly_name));
+			_set_user_assembly_load_failed(UserAssemblyState::FAILED_TO_LOAD);
+		} else {
+			_set_user_assembly_load_success(new_assembly_name);
 		}
 	} else if (FileAccess::exists(Dirs::get_project_csproj_path())) {
-		OS::get_singleton()->alert(TTR("Assembly '%s' not found. Please build the project to generate the assembly.", new_assembly_name));
+		_set_user_assembly_load_failed(UserAssemblyState::DLL_NOT_FOUND);
 	} else {
-		OS::get_singleton()->alert(TTR("Project file '%s' not found. Please ensure there is a .csproj file in the project directory and build it to generate the assembly.", Dirs::get_project_csproj_path()));
+		_set_user_assembly_load_failed(UserAssemblyState::PROJECT_NOT_FOUND);
 	}
 
 	changing_project_assembly = false;
@@ -316,6 +516,29 @@ bool DotNetModule::try_restore_editor_packages(const String &p_editor_assemblies
 	}
 
 	return true;
+}
+#endif
+
+#ifdef TOOLS_ENABLED
+void DotNetModule::set_dotnet_sdk_info(const String &p_version, const String &p_path) {
+	dotnet_sdk_version = p_version;
+	dotnet_sdk_path = p_path;
+}
+
+String DotNetModule::get_dotnet_sdk_version() const {
+	return dotnet_sdk_version;
+}
+
+String DotNetModule::get_dotnet_sdk_path() const {
+	return dotnet_sdk_path;
+}
+
+void DotNetModule::set_editor_integration_version(const String &p_version) {
+	editor_integration_version = p_version;
+}
+
+String DotNetModule::get_editor_integration_version() const {
+	return editor_integration_version;
 }
 #endif
 
