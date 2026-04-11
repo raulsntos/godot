@@ -415,11 +415,7 @@ void ExtensionClassCreateDialog::_create_new() {
 	emit_signal(SNAME("class_created"), class_name);
 	hide();
 
-	if (selected_source_code_plugin->overrides_external_editor()) {
-		selected_source_code_plugin->open_in_external_editor(paths[0], 0, 0);
-	} else {
-		EditorNode::get_singleton()->load_resource(paths[0]);
-	}
+	selected_source_code_plugin->open_in_editor(paths[0], 0, 0);
 }
 
 static Vector<String> _get_hierarchy(const String &p_class_name) {
