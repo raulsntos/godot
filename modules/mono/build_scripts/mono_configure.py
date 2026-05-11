@@ -22,6 +22,9 @@ def configure(env, env_mono):
         env_mono.Append(CPPDEFINES=["GD_MONO_HOT_RELOAD"])
 
     if env["platform"] == "web":
+        if env["arch"] == "wasm64":
+            raise RuntimeError("Mono Web builds currently only support arch=wasm32.")
+
         rid = get_rid(env["platform"], env["arch"])
 
         this_script_dir = os.path.dirname(os.path.realpath(__file__))
