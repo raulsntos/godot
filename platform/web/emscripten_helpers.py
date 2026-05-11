@@ -45,6 +45,9 @@ def create_template_zip(env, js, wasm, side):
         zip_dir.File(binary_name + ".audio.worklet.js"),
         zip_dir.File(binary_name + ".audio.position.worklet.js"),
     ]
+    if env["module_mono_enabled"]:
+        in_files.append("#modules/mono/runtime/GetRuntimePack/bin/mono_runtime/dotnet.runtime.js")
+        out_files.append(zip_dir.File(binary_name + ".dotnet.runtime.js"))
     # Dynamic linking (extensions) specific.
     if env["dlink_enabled"]:
         in_files.append(side)  # Side wasm (contains the actual Godot code).

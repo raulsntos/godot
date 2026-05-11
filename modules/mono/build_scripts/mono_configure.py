@@ -110,7 +110,9 @@ def configure(env, env_mono):
             ],
         )
 
+        env.AddJSPre(["#modules/mono/build_scripts/dotnet_godot_bridge.pre.js"])
         env.AddJSLibraries([os.path.join(mono_runtime_path, "src", "es6", "dotnet.es6.lib.js")])
+        env.AddJSPost([os.path.join(mono_runtime_path, "src", "es6", "dotnet.es6.extpost.js")])
 
 
 """
