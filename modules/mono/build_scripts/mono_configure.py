@@ -36,17 +36,19 @@ def configure(env, env_mono):
             pass
 
         import subprocess
-        exit_code = subprocess.call(
-            [
-                "dotnet", "publish",
-                get_runtime_pack_project_path,
-                "-r", "browser-wasm",
-                "--self-contained",
-                "-c", "Release",
-                "/p:ImportDirectoryBuildProps=false",
-                "/p:GodotWasmEnableThreads=" + str(env["threads"]).lower(),
-            ]
-        )
+
+        exit_code = subprocess.call([
+            "dotnet",
+            "publish",
+            get_runtime_pack_project_path,
+            "-r",
+            "browser-wasm",
+            "--self-contained",
+            "-c",
+            "Release",
+            "/p:ImportDirectoryBuildProps=false",
+            "/p:GodotWasmEnableThreads=" + str(env["threads"]).lower(),
+        ])
         if exit_code != 0:
             raise RuntimeError("Couldn't retrieve Mono runtime pack for '" + rid + "'.")
 
@@ -91,7 +93,9 @@ def configure(env, env_mono):
         if env["dlink_enabled"]:
             env_thirdparty.Append(CPPDEFINES=["WASM_SUPPORTS_DLOPEN"])
         env_thirdparty.Prepend(CPPPATH=os.path.join(mono_runtime_path, "include", "wasm"))
-        get_runtime_pack_project_includes = os.path.join(get_runtime_pack_project_path, "obj", "Release", "net9.0", rid, "wasm", "for-publish")
+        get_runtime_pack_project_includes = os.path.join(
+            get_runtime_pack_project_path, "obj", "Release", "net9.0", rid, "wasm", "for-publish"
+        )
         env_thirdparty.Prepend(CPPPATH=os.path.join(get_runtime_pack_project_includes))
         env_thirdparty.add_source_files(
             env.modules_sources,
@@ -109,6 +113,8 @@ def configure(env, env_mono):
 """
 Get the .NET runtime identifier for the given Godot platform and architecture names.
 """
+
+
 def get_rid(platform: str, arch: str):
     # Web runtime identifier is always browser-wasm.
     if platform == "web":
@@ -135,6 +141,8 @@ def get_rid(platform: str, arch: str):
 Link mono components statically (use the stubs to load them dynamically at runtime).
 See: https://github.com/dotnet/runtime/blob/main/docs/design/mono/components.md
 """
+
+
 def add_mono_component(env, name: str, mono_runtime_path: str, is_stub: bool = False):
     stub_suffix = "-stub" if is_stub else ""
     component_filename = "libmono-component-" + name + stub_suffix + "-static.a"
@@ -144,8 +152,10 @@ def add_mono_component(env, name: str, mono_runtime_path: str, is_stub: bool = F
 """
 Link mono library archive (.a) statically.
 """
+
+
 def add_mono_library(env, filename: str, mono_runtime_path: str):
-    assert(filename.endswith(".a"))
+    assert filename.endswith(".a")
     env.Append(
         LINKFLAGS=[
             "-Wl,-whole-archive",
