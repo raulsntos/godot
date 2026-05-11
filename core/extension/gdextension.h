@@ -40,6 +40,7 @@ class GDExtension : public Resource {
 	GDCLASS(GDExtension, Resource)
 
 	friend class GDExtensionManager;
+	friend class GDExtensionAPIDump;
 
 	Ref<GDExtensionLoader> loader;
 

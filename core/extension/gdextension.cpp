@@ -32,10 +32,12 @@
 #include "gdextension.compat.inc"
 
 #include "core/config/project_settings.h"
+#include "core/extension/extension_api_dump.h"
 #include "core/extension/gdextension_library_loader.h"
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
 #include "core/object/method_bind.h"
+#include "core/os/os.h"
 
 extern void gdextension_setup_interface();
 extern GDExtensionInterfaceFunctionPtr gdextension_get_proc_address(const char *p_name);
@@ -852,6 +854,23 @@ void GDExtension::initialize_library(InitializationLevel p_level) {
 	ERR_FAIL_NULL(initialization.initialize);
 
 	initialization.initialize(initialization.userdata, GDExtensionInitializationLevel(p_level));
+
+#if TOOLS_ENABLED
+	// Hide the API dump generation behind an environment variable since it's still a work in progress.
+	const String &env_value = OS::get_singleton()->get_environment("GODOT_EXPERIMENTAL_EXTENSION_API_DUMP");
+	if (env_value == "1") {
+		// We only generate API dumps for .gdextension files
+		// and only at the last level to ensure all classes have been registered.
+		const String &path = get_path();
+		if (path.has_extension("gdextension") && p_level == INITIALIZATION_LEVEL_EDITOR) {
+			// Generate the API dump for this extension.
+			const String &base_dir = path.get_base_dir();
+			const String &output_path = base_dir.path_join("extension_api.json");
+			print_line(vformat("Generating extension_api.json in '%s'", base_dir));
+			GDExtensionAPIDump::generate_extension_json_file_for_extension(this, output_path, /*p_include_docs*/ false);
+		}
+	}
+#endif
 }
 void GDExtension::deinitialize_library(InitializationLevel p_level) {
 	ERR_FAIL_COND(!is_library_open());
