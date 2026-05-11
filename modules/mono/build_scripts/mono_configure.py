@@ -43,6 +43,8 @@ def configure(env, env_mono):
                 "-r", "browser-wasm",
                 "--self-contained",
                 "-c", "Release",
+                "/p:ImportDirectoryBuildProps=false",
+                "/p:GodotWasmEnableThreads=" + str(env["threads"]).lower(),
             ]
         )
         if exit_code != 0:
