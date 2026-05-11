@@ -45,28 +45,27 @@ if basisu_encoder:
 
 transcoder_sources = [thirdparty_dir + "transcoder/basisu_transcoder.cpp"]
 
-env_basisu.Prepend(CPPEXTPATH=[thirdparty_dir])
+env_basisu.Prepend(CPPPATH=[thirdparty_dir])
 
 if basisu_encoder:
-    env_basisu.Prepend(CPPEXTPATH=["#thirdparty/tinyexr"])
+    env_basisu.Prepend(CPPPATH=["#thirdparty/tinyexr"])
 
 if env["builtin_zstd"]:
-    env_basisu.Prepend(CPPEXTPATH=["#thirdparty/zstd"])
+    env_basisu.Prepend(CPPPATH=["#thirdparty/zstd"])
 
 env_thirdparty = env_basisu.Clone()
 env_thirdparty.disable_warnings()
+
+if not env.msvc:
+    # Required by upstream for GCC. Enabling also for LLVM-based compilers to be consistent.
+    env_thirdparty.Append(CCFLAGS=["-fno-strict-aliasing"])
 
 # Disable unneeded features to reduce binary size.
 # <https://github.com/BinomialLLC/basis_universal/wiki/How-to-Use-and-Configure-the-Transcoder>
 env_thirdparty.Append(
     CPPDEFINES=[
-        # Storage formats.
-        # Godot only implements `.basis` support through basis_universal.
-        # Support for `.ktx` files are implemented with a direct libktx implementation.
-        # Building the encoder requires `BASISD_SUPPORT_KTX2` to be enabled,
-        # so we can only disable Zstandard compression for `.ktx` files
-        # (this is not used in `.basis` files).
-        ("BASISD_SUPPORT_KTX2_ZSTD", 0),
+        # Enable ktx2 zstd supercompression.
+        ("BASISD_SUPPORT_KTX2_ZSTD", 1),
         # GPU compression formats.
         ("BASISD_SUPPORT_ATC", 0),  # Proprietary Adreno format not supported by Godot.
         ("BASISD_SUPPORT_FXT1", 0),  # Legacy format not supported by Godot.
