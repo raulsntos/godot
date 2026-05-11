@@ -22,6 +22,9 @@ def configure(env, env_mono):
         env_mono.Append(CPPDEFINES=["GD_MONO_HOT_RELOAD"])
 
     if env["platform"] == "web":
+        if env["arch"] == "wasm64":
+            raise RuntimeError("Mono Web builds currently only support arch=wasm32.")
+
         rid = get_rid(env["platform"], env["arch"])
 
         this_script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -36,15 +39,19 @@ def configure(env, env_mono):
             pass
 
         import subprocess
-        exit_code = subprocess.call(
-            [
-                "dotnet", "publish",
-                get_runtime_pack_project_path,
-                "-r", "browser-wasm",
-                "--self-contained",
-                "-c", "Release",
-            ]
-        )
+
+        exit_code = subprocess.call([
+            "dotnet",
+            "publish",
+            get_runtime_pack_project_path,
+            "-r",
+            "browser-wasm",
+            "--self-contained",
+            "-c",
+            "Release",
+            "/p:ImportDirectoryBuildProps=false",
+            "/p:GodotWasmEnableThreads=" + str(env["threads"]).lower(),
+        ])
         if exit_code != 0:
             raise RuntimeError("Couldn't retrieve Mono runtime pack for '" + rid + "'.")
 
@@ -89,7 +96,9 @@ def configure(env, env_mono):
         if env["dlink_enabled"]:
             env_thirdparty.Append(CPPDEFINES=["WASM_SUPPORTS_DLOPEN"])
         env_thirdparty.Prepend(CPPPATH=os.path.join(mono_runtime_path, "include", "wasm"))
-        get_runtime_pack_project_includes = os.path.join(get_runtime_pack_project_path, "obj", "Release", "net9.0", rid, "wasm", "for-publish")
+        get_runtime_pack_project_includes = os.path.join(
+            get_runtime_pack_project_path, "obj", "Release", "net9.0", rid, "wasm", "for-publish"
+        )
         env_thirdparty.Prepend(CPPPATH=os.path.join(get_runtime_pack_project_includes))
         env_thirdparty.add_source_files(
             env.modules_sources,
@@ -101,12 +110,16 @@ def configure(env, env_mono):
             ],
         )
 
+        env.AddJSPre(["#modules/mono/build_scripts/dotnet_godot_bridge.pre.js"])
         env.AddJSLibraries([os.path.join(mono_runtime_path, "src", "es6", "dotnet.es6.lib.js")])
+        env.AddJSPost([os.path.join(mono_runtime_path, "src", "es6", "dotnet.es6.extpost.js")])
 
 
 """
 Get the .NET runtime identifier for the given Godot platform and architecture names.
 """
+
+
 def get_rid(platform: str, arch: str):
     # Web runtime identifier is always browser-wasm.
     if platform == "web":
@@ -133,6 +146,8 @@ def get_rid(platform: str, arch: str):
 Link mono components statically (use the stubs to load them dynamically at runtime).
 See: https://github.com/dotnet/runtime/blob/main/docs/design/mono/components.md
 """
+
+
 def add_mono_component(env, name: str, mono_runtime_path: str, is_stub: bool = False):
     stub_suffix = "-stub" if is_stub else ""
     component_filename = "libmono-component-" + name + stub_suffix + "-static.a"
@@ -142,8 +157,10 @@ def add_mono_component(env, name: str, mono_runtime_path: str, is_stub: bool = F
 """
 Link mono library archive (.a) statically.
 """
+
+
 def add_mono_library(env, filename: str, mono_runtime_path: str):
-    assert(filename.endswith(".a"))
+    assert filename.endswith(".a")
     env.Append(
         LINKFLAGS=[
             "-Wl,-whole-archive",

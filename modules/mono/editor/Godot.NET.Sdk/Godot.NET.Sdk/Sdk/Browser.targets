@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <UseMonoRuntime Condition=" '$(UseMonoRuntime)' == '' and '$(PublishAot)' != 'true' ">true</UseMonoRuntime>
+    <StartupObject Condition=" '$(StartupObject)' == '' ">GodotPlugins.Game.EntryPoint</StartupObject>
 
     <!-- Default to relinking in ExportDebug and ExportRelease configurations. -->
     <WasmBuildNative Condition=" '$(WasmBuildNative)' == '' and '$(Configuration)' == 'ExportDebug' ">true</WasmBuildNative>

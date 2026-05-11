@@ -30,6 +30,7 @@
 
 #include "bit_map.h"
 
+#include "core/object/class_db.h"
 #include "core/variant/typed_array.h"
 
 void BitMap::create(const Size2i &p_size) {
@@ -727,5 +728,3 @@ void BitMap::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_data", "_get_data");
 }
-
-BitMap::BitMap() {}

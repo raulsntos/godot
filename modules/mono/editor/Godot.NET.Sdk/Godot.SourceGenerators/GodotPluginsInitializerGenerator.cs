@@ -24,6 +24,15 @@ using Godot.NativeInterop;
 
 namespace GodotPlugins.Game
 {
+#if GODOT_WEB
+    internal static class EntryPoint
+    {
+        private static void Main()
+        {
+        }
+    }
+#endif
+
     internal static partial class Main
     {
         [UnmanagedCallersOnly(EntryPoint = ""godotsharp_game_main_init"")]
