@@ -30,6 +30,10 @@
 
 #include "dotnet_status_panel.h"
 
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+#include "welcome_dialog.h"
+#endif
+
 #include "../dotnet_module.h"
 #include "dotnet_status_indicator.h"
 
@@ -59,7 +63,13 @@ void DotNetStatusPanel::_initialize_module() {
 		return;
 	}
 
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	WelcomeDialog *welcome_dialog = WelcomeDialog::get_singleton();
+	DEV_ASSERT(welcome_dialog != nullptr);
+	welcome_dialog->popup_centered();
+#else
 	module->initialize();
+#endif
 }
 
 void DotNetStatusPanel::_update_content() {

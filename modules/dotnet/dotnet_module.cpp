@@ -38,6 +38,9 @@
 
 #ifdef TOOLS_ENABLED
 #include "./editor/RestoreEditorPackages.proj.gen.h"
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+#include "./editor/welcome_dialog.h"
+#endif
 #include "runtime/hostfxr/hostfxr_dotnet_runtime.h"
 
 #include "core/config/engine.h"
@@ -65,11 +68,15 @@ bool DotNetModule::should_initialize() {
 		return false;
 	}
 
-	// TODO(@raulsntos): See `request_enable_dotnet_features` for how we should handle this in the future once we have editor unification implemented. For now, we'll just always initialize the module in the editor.
-
-	// If we can find a C# project or solution in the workspace,
-	// assume the Godot project uses C# and needs to initialize the module.
-	return FileAccess::exists(Dirs::get_project_csproj_path()) || FileAccess::exists(Dirs::get_project_solution_path());
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	// If the editor packages are available, we can just initialize the module.
+	// Otherwise, the welcome dialog will be displayed when the user attempts
+	// to use any .NET features.
+	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
+	return DirAccess::exists(editor_assemblies_dir) && FileAccess::exists(editor_assemblies_dir.path_join("Godot.EditorIntegration.dll"));
+#else
+	return true;
+#endif
 #else
 	// The exported project was built with .NET support,
 	// so it needs to initialize the module.
@@ -217,13 +224,6 @@ void DotNetModule::register_project_settings() {
 
 #ifdef TOOLS_ENABLED
 void DotNetModule::request_enable_dotnet_features() {
-	// If the .NET module is not available, this method was called too early.
-	// Wait until the editor has finished all initialization steps.
-	DotNetModule *module = DotNetModule::get_singleton();
-	DEV_ASSERT(module != nullptr);
-
-	const DotNetModuleState *state = module->get_state();
-
 	// If the module is already initialized, .NET features are enabled.
 	// If it's in the process of initializing, we should wait for it to succeed or fail.
 	DotNetModuleState::InitState init_state = state->get_initialization_state();
@@ -235,7 +235,7 @@ void DotNetModule::request_enable_dotnet_features() {
 	const String editor_assemblies_dir = Dirs::get_editor_assemblies_path();
 	if (DirAccess::exists(editor_assemblies_dir) && FileAccess::exists(editor_assemblies_dir.path_join("Godot.EditorIntegration.dll"))) {
 		// The editor packages are available, so we can just initialize the module.
-		module->initialize();
+		initialize();
 		return;
 	}
 
@@ -249,7 +249,15 @@ void DotNetModule::request_enable_dotnet_features() {
 		return;
 	}
 
-	module->initialize();
+// If the welcome dialog is not available, this method was called too early.
+// Wait until the editor has finished all initialization steps.
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	DotNet::WelcomeDialog *welcome_dialog = DotNet::WelcomeDialog::get_singleton();
+	DEV_ASSERT(welcome_dialog != nullptr);
+	welcome_dialog->popup_centered();
+#else
+	initialize();
+#endif
 }
 #endif
 

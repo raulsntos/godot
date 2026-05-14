@@ -36,10 +36,17 @@
 #include "./editor/dotnet_source_code_plugin.h"
 #include "./editor/dotnet_status_indicator.h"
 #include "./editor/editor_internal.h"
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+#include "./editor/welcome_dialog.h"
+#include "./utils/dirs_utils.h"
+#endif
 
 #include "core/object/callable_mp.h"
 #include "editor/editor_node.h"
 #include "editor/extension/extension_source_code_manager.h"
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+#include "editor/file_system/editor_file_system.h"
+#endif
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/settings/editor_command_palette.h"
 #endif
@@ -56,16 +63,39 @@ static void _editor_init() {
 	source_code_plugin.instantiate();
 	ExtensionSourceCodeManager::get_singleton()->add_plugin(source_code_plugin);
 
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	DotNet::WelcomeDialog *welcome_dialog = memnew(DotNet::WelcomeDialog);
+	EditorNode::get_singleton()->add_child(welcome_dialog);
+#endif
+
 	DotNet::DotNetStatusIndicator *status_indicator = memnew(DotNet::DotNetStatusIndicator);
 	EditorNode::get_bottom_panel()->add_status_indicator(status_indicator);
 
 	// Set the initial status.
 	status_indicator->update();
 
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	// If there is a .csproj file, make sure we request enabling the .NET features
+	// to show the welcome dialog if the editor packages are not available.
+	// If module is already initialized, this is a no-op.
+	if (FileAccess::exists(Dirs::get_project_csproj_path())) {
+		EditorFileSystem *efs = EditorFileSystem::get_singleton();
+		if (efs != nullptr) {
+			efs->connect(SNAME("filesystem_changed"),
+					callable_mp(module, &DotNetModule::request_enable_dotnet_features),
+					Object::CONNECT_ONE_SHOT);
+		}
+	}
+#endif
+
 	// Command palette shortcuts.
 	EditorCommandPalette *command_palette = EditorCommandPalette::get_singleton();
 	if (command_palette != nullptr) {
-		command_palette->add_command(TTRC("Enable .NET Features"), "dotnet/enable", callable_mp_static(&DotNetModule::request_enable_dotnet_features));
+#ifdef DOTNET_WELCOME_DIALOG_ENABLED
+		command_palette->add_command(TTRC("Enable .NET Features"), "dotnet/enable", callable_mp((Window *)welcome_dialog, &Window::popup_centered).bind(Size2()));
+#else
+		command_palette->add_command(TTRC("Enable .NET Features"), "dotnet/enable", callable_mp(module, &DotNetModule::request_enable_dotnet_features));
+#endif
 		command_palette->add_command(TTRC("Toggle .NET Status Panel"), "dotnet/toggle_status_panel", callable_mp(status_indicator, &DotNet::DotNetStatusIndicator::toggle_status_panel));
 	}
 }
