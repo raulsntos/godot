@@ -64,7 +64,7 @@ public:
 	static void register_project_settings();
 
 #ifdef TOOLS_ENABLED
-	static void request_enable_dotnet_features();
+	void request_enable_dotnet_features();
 #endif
 
 #ifdef TOOLS_ENABLED
