@@ -293,7 +293,8 @@ namespace GodotTools.Build
             string platform,
             string runtimeIdentifier,
             string publishOutputDir,
-            bool includeDebugSymbols = true
+            bool includeDebugSymbols = true,
+            bool? wasmEnableThreads = null
         )
         {
             var buildInfo = new BuildInfo(GodotSharpDirs.ProjectSlnPath, GodotSharpDirs.ProjectCsProjPath, configuration,
@@ -306,6 +307,9 @@ namespace GodotTools.Build
             }
 
             buildInfo.CustomProperties.Add($"GodotTargetPlatform={platform}");
+
+            if (wasmEnableThreads.HasValue)
+                buildInfo.CustomProperties.Add($"WasmEnableThreads={wasmEnableThreads.Value.ToString().ToLowerInvariant()}");
 
             if (Internal.GodotIsRealTDouble())
                 buildInfo.CustomProperties.Add("GodotFloat64=true");
@@ -329,9 +333,10 @@ namespace GodotTools.Build
             string platform,
             string runtimeIdentifier,
             string publishOutputDir,
-            bool includeDebugSymbols = true
+            bool includeDebugSymbols = true,
+            bool? wasmEnableThreads = null
         ) => PublishProjectBlocking(CreatePublishBuildInfo(configuration,
-            platform, runtimeIdentifier, publishOutputDir, includeDebugSymbols));
+            platform, runtimeIdentifier, publishOutputDir, includeDebugSymbols, wasmEnableThreads));
 
         public static bool GenerateXCFrameworkBlocking(
             List<string> outputPaths,

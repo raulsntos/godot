@@ -180,6 +180,7 @@ namespace GodotTools.Export
                 throw new NotSupportedException("Target platform not supported.");
 
             bool useAndroidLinuxBionic = (bool)GetOption("dotnet/android_use_linux_bionic");
+            bool? wasmEnableThreads = platform == OS.Platforms.Web ? features.Contains("threads") : null;
             PublishConfig publishConfig = new()
             {
                 BuildConfig = isDebug ? "ExportDebug" : "ExportRelease",
@@ -283,7 +284,7 @@ namespace GodotTools.Export
 
                     // Execute dotnet publish.
                     if (!BuildManager.PublishProjectBlocking(buildConfig, platform,
-                            runtimeIdentifier, publishOutputDir, includeDebugSymbols))
+                            runtimeIdentifier, publishOutputDir, includeDebugSymbols, wasmEnableThreads))
                     {
                         throw new InvalidOperationException("Failed to build project.");
                     }

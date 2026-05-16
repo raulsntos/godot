@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   Adapted from:
   https://github.com/lambdageek/monovm-embed-sample/blob/c35f945509b0d1e4f4412a7076c9e769708c3ff1/src/GetRuntimePack/GetRuntimePack.csproj
 -->
@@ -21,9 +21,9 @@
 
   <!-- Configuration for the Mono WASM runtime. Must match the features supported by the Godot build. -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
-    <WasmEnableThreads>false</WasmEnableThreads>
-    <WasmEnableExceptionHandling>true</WasmEnableExceptionHandling>
-    <WasmEnableSIMD>true</WasmEnableSIMD>
+    <WasmEnableThreads Condition="'$(WasmEnableThreads)' == ''">false</WasmEnableThreads>
+    <WasmEnableExceptionHandling Condition="'$(WasmEnableExceptionHandling)' == ''">true</WasmEnableExceptionHandling>
+    <WasmEnableSIMD Condition="'$(WasmEnableSIMD)' == ''">true</WasmEnableSIMD>
   </PropertyGroup>
 
   <!--
