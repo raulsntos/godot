@@ -23,6 +23,7 @@ def configure(env, env_mono):
 
     if env["platform"] == "web":
         rid = get_rid(env["platform"], env["arch"])
+        wasm_enable_threads = "true" if env["threads"] else "false"
 
         this_script_dir = os.path.dirname(os.path.realpath(__file__))
         module_dir = os.path.abspath(os.path.join(this_script_dir, os.pardir))
@@ -43,6 +44,7 @@ def configure(env, env_mono):
                 "-r", "browser-wasm",
                 "--self-contained",
                 "-c", "Release",
+                f"/p:WasmEnableThreads={wasm_enable_threads}",
             ]
         )
         if exit_code != 0:
