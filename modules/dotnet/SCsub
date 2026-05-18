@@ -73,6 +73,9 @@ def get_godot_dotnet_package_version() -> str:
 
 platform = env["platform"]
 
+# Enable .NET Welcome Dialog.
+env_dotnet.Append(CPPDEFINES=["DOTNET_WELCOME_DIALOG_ENABLED"])
+
 if is_hostfxr_supported(platform):
     env_dotnet.Append(CPPDEFINES=["DOTNET_HOSTFXR_ENABLED"])
 if is_monovm_supported(platform):

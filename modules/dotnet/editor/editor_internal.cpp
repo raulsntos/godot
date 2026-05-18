@@ -115,6 +115,13 @@ void _status_panel_set_content(GDExtensionObjectPtr p_content) {
 	}
 }
 
+void _editor_resume_startup_scene_opening() {
+	EditorNode *editor_node = EditorNode::get_singleton();
+	if (editor_node != nullptr) {
+		editor_node->resume_startup_scene_opening();
+	}
+}
+
 void _get_editor_assemblies_path(GDExtensionUninitializedStringNamePtr r_dest) {
 	memnew_placement(r_dest, String(Dirs::get_editor_assemblies_path()));
 }
@@ -226,6 +233,7 @@ void register_functions() {
 	REGISTER_INTERFACE_FUNC(status_indicator_notify_state_changed);
 	REGISTER_INTERFACE_FUNC(status_indicator_update_severity);
 	REGISTER_INTERFACE_FUNC(status_panel_set_content);
+	REGISTER_INTERFACE_FUNC(editor_resume_startup_scene_opening);
 	REGISTER_INTERFACE_FUNC(get_editor_assemblies_path);
 	REGISTER_INTERFACE_FUNC(get_project_assemblies_path);
 	REGISTER_INTERFACE_FUNC(get_project_output_path);

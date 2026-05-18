@@ -35,6 +35,8 @@
 
 #ifdef TOOLS_ENABLED
 #include "./editor/dotnet_status_indicator.h"
+
+#include "editor/editor_node.h"
 #endif
 
 namespace DotNet {
@@ -111,6 +113,14 @@ void DotNetModuleState::fail_module_initialization(ModuleFailedState p_failed_st
 	// Print the error message deferred so the editor toaster is ready to show it,
 	// otherwise it would only show in the console.
 	callable_mp_static(_print_err).call_deferred(p_error);
+
+#ifdef TOOLS_ENABLED
+	// If the module failed to initialize, make sure the startup scene opening doesn't stay paused forever.
+	EditorNode *editor_node = EditorNode::get_singleton();
+	if (editor_node != nullptr) {
+		editor_node->resume_startup_scene_opening();
+	}
+#endif
 }
 
 void DotNetModuleState::start_assembly_load() {

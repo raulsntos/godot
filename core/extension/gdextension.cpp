@@ -1126,7 +1126,7 @@ PackedStringArray GDExtension::get_classes_used() const {
 
 void GDExtensionEditorPlugins::add_extension_class(const StringName &p_class_name) {
 	if (editor_node_add_plugin) {
-		callable_mp_static(editor_node_add_plugin).call_deferred(p_class_name);
+		editor_node_add_plugin(p_class_name);
 	} else {
 		extension_classes.push_back(p_class_name);
 	}

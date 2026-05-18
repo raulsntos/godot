@@ -1510,38 +1510,61 @@ void EditorNode::_sources_changed(bool p_exist) {
 		// loading textures, as they are now properly imported.
 		RenderingServer::get_singleton()->global_shader_parameters_load_settings(true);
 
-		_load_editor_layout();
+		startup_scene_opening_pending = true;
+		_resume_startup_scene_opening_if_pending();
+	}
+}
 
-		if (!defer_load_scene.is_empty()) {
-			OS::get_singleton()->benchmark_begin_measure("Editor", "Load Scene");
+void EditorNode::_finish_startup_scene_opening() {
+	_load_editor_layout();
 
-			open_scene(defer_load_scene);
-			defer_load_scene = "";
+	if (!defer_load_scene.is_empty()) {
+		OS::get_singleton()->benchmark_begin_measure("Editor", "Load Scene");
 
-			OS::get_singleton()->benchmark_end_measure("Editor", "Load Scene");
-			OS::get_singleton()->benchmark_dump();
-		}
+		open_scene(defer_load_scene);
+		defer_load_scene = "";
 
-		// Start preview thread now that it's safe.
-		if (!singleton->cmdline_mode) {
-			EditorResourcePreview::get_singleton()->start();
-		}
+		OS::get_singleton()->benchmark_end_measure("Editor", "Load Scene");
+		OS::get_singleton()->benchmark_dump();
+	}
 
-		// Set initial focus for screen reader users.
-		if (get_tree()->is_accessibility_enabled()) {
-			if (SceneTreeDock::get_singleton()->is_visible_in_tree()) {
-				SceneTreeDock::get_singleton()->get_tree_editor()->get_scene_tree()->grab_focus();
-			} else {
-				TabContainer *tab_container = SceneTreeDock::get_singleton()->get_parent_container();
-				if (tab_container) {
-					// Another tab is active (e.g., Import) - focus the tab bar so user can switch.
-					tab_container->get_tab_bar()->grab_focus();
-				}
+	// Start preview thread now that it's safe.
+	if (!singleton->cmdline_mode) {
+		EditorResourcePreview::get_singleton()->start();
+	}
+
+	// Set initial focus for screen reader users.
+	if (get_tree()->is_accessibility_enabled()) {
+		if (SceneTreeDock::get_singleton()->is_visible_in_tree()) {
+			SceneTreeDock::get_singleton()->get_tree_editor()->get_scene_tree()->grab_focus();
+		} else {
+			TabContainer *tab_container = SceneTreeDock::get_singleton()->get_parent_container();
+			if (tab_container) {
+				// Another tab is active (e.g., Import) - focus the tab bar so user can switch.
+				tab_container->get_tab_bar()->grab_focus();
 			}
 		}
-
-		get_tree()->create_timer(1.0f)->connect("timeout", callable_mp(this, &EditorNode::_remove_lock_file));
 	}
+
+	get_tree()->create_timer(1.0f)->connect("timeout", callable_mp(this, &EditorNode::_remove_lock_file));
+}
+
+void EditorNode::pause_startup_scene_opening() {
+	startup_scene_opening_paused = true;
+}
+
+void EditorNode::resume_startup_scene_opening() {
+	startup_scene_opening_paused = false;
+	_resume_startup_scene_opening_if_pending();
+}
+
+void EditorNode::_resume_startup_scene_opening_if_pending() {
+	if (waiting_for_first_scan || startup_scene_opening_paused || !startup_scene_opening_pending) {
+		return;
+	}
+
+	startup_scene_opening_pending = false;
+	_finish_startup_scene_opening();
 }
 
 void EditorNode::_remove_lock_file() {
