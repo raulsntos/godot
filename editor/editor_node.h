@@ -450,6 +450,8 @@ private:
 
 	bool requested_first_scan = false;
 	bool waiting_for_first_scan = true;
+	bool startup_scene_opening_paused = false;
+	bool startup_scene_opening_pending = false;
 	bool load_editor_layout_done = false;
 
 	HashSet<Ref<Translation>> tracked_translations;
@@ -565,6 +567,7 @@ private:
 	void _resources_reimporting(const Vector<String> &p_resources);
 	void _resources_reimported(const Vector<String> &p_resources);
 	void _sources_changed(bool p_exist);
+	void _finish_startup_scene_opening();
 	void _remove_lock_file();
 
 	void _node_renamed();
@@ -726,6 +729,8 @@ private:
 
 	void _bottom_panel_resized();
 
+	void _resume_startup_scene_opening_if_pending();
+
 protected:
 	friend class FileSystemDock;
 
@@ -743,6 +748,9 @@ public:
 
 	// This is a very naive estimation, but we need something now. Will be reworked later.
 	bool is_editor_ready() const { return is_inside_tree() && !waiting_for_first_scan; }
+	void pause_startup_scene_opening();
+	void resume_startup_scene_opening();
+	bool is_startup_scene_restore_paused() const { return startup_scene_opening_paused; }
 
 	static EditorNode *get_singleton() { return singleton; }
 

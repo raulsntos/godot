@@ -37,6 +37,7 @@
 
 #include "core/object/callable_mp.h"
 #include "core/os/os.h"
+#include "editor/editor_node.h"
 #include "editor/settings/editor_settings.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/grid_container.h"
@@ -417,6 +418,17 @@ void WelcomeDialog::_notification(int p_notification) {
 				_check_dotnet_sdk();
 				_check_editor_integration();
 				_update_external_editor_settings();
+			} else {
+				if (p_notification == NOTIFICATION_VISIBILITY_CHANGED) {
+					// If the dialog is closed without requesting initialization,
+					// make sure the startup scene opening doesn't stay paused forever.
+					if (!initialization_requested) {
+						EditorNode *editor_node = EditorNode::get_singleton();
+						if (editor_node != nullptr) {
+							editor_node->resume_startup_scene_opening();
+						}
+					}
+				}
 			}
 		} break;
 
