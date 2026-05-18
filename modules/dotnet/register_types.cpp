@@ -75,6 +75,14 @@ static void _editor_init() {
 	status_indicator->update();
 
 #ifdef DOTNET_WELCOME_DIALOG_ENABLED
+	// Pause the startup scene opening to prevent errors caused by the module not being initialized yet.
+	// This gives the user a chance to enable the .NET features through the welcome dialog before any scenes
+	// are opened. The startup scene opening will be resumed after the welcome dialog is closed.
+	EditorNode *editor_node = EditorNode::get_singleton();
+	if (editor_node != nullptr) {
+		editor_node->pause_startup_scene_opening();
+	}
+
 	// If there is a .csproj file, make sure we request enabling the .NET features
 	// to show the welcome dialog if the editor packages are not available.
 	// If module is already initialized, this is a no-op.
