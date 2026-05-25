@@ -35,6 +35,10 @@
 #include "editor/script/script_editor_plugin.h"
 #include "editor/settings/editor_settings.h"
 
+Control *EditorExtensionSourceCodePlugin::get_availability_control() {
+	ERR_FAIL_V_MSG(nullptr, "Plugin '" + get_language_name() + "' is not available, but it didn't provide an availability control.");
+}
+
 bool EditorExtensionSourceCodePlugin::can_handle_object(const GDExtension *p_library, const Object *p_object) const {
 	bool can_handle = false;
 	GDVIRTUAL_CALL(_can_handle_object, p_library, p_object, can_handle);
