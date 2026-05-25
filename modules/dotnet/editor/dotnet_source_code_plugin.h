@@ -61,7 +61,13 @@ public:
 	void set_dotnet_source_code_plugin(EditorExtensionSourceCodePlugin *p_source_code_plugin);
 	void unset_dotnet_source_code_plugin(EditorExtensionSourceCodePlugin *p_source_code_plugin);
 
+private:
+	void _request_enable_dotnet_features(Button *p_button);
+
 protected:
+	virtual bool is_available() const override;
+	virtual Control *get_availability_control() override;
+
 	virtual bool can_handle_object(const GDExtension *p_library, const Object *p_object) const override;
 
 	virtual String get_source_path(const StringName &p_class_name) const override;
