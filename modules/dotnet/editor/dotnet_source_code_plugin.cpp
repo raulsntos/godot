@@ -30,11 +30,13 @@
 
 #include "dotnet_source_code_plugin.h"
 
+#include "../dotnet_module.h"
 #include "../extension/gdextension_dotnet_loader.h"
 #include "../runtime/dotnet_runtime.h"
 
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension.h"
+#include "core/object/callable_mp.h"
 #include "editor/editor_node.h"
 #include "scene/main/window.h"
 
@@ -67,6 +69,62 @@ void DotNetSourceCodePlugin::unset_dotnet_source_code_plugin(EditorExtensionSour
 	ERR_FAIL_COND_MSG(dotnet_source_code_plugin == nullptr, ".NET source code plugin is not set.");
 	ERR_FAIL_COND_MSG(dotnet_source_code_plugin != p_source_code_plugin, ".NET source code plugin is not the same instance.");
 	dotnet_source_code_plugin = nullptr;
+}
+
+bool DotNetSourceCodePlugin::is_available() const {
+	return dotnet_source_code_plugin != nullptr;
+}
+
+void DotNetSourceCodePlugin::_request_enable_dotnet_features(Button *p_button) {
+	DotNetModule *module = DotNetModule::get_singleton();
+	DEV_ASSERT(module != nullptr);
+
+	// Find the parent window to hide it if necessary.
+	Window *window = nullptr;
+	Node *node = p_button->get_parent();
+	while (node != nullptr) {
+		window = Object::cast_to<Window>(node);
+		if (window != nullptr) {
+			break;
+		}
+		node = node->get_parent();
+	}
+
+	if (window == nullptr) {
+		// This should be unreachable, since the button should always be inside a window.
+		// We'll try to enable the .NET features anyway.
+		module->request_enable_dotnet_features();
+		return;
+	}
+
+	// We must hide the dialog beforehand, because requesting to enable .NET features
+	// may trigger opening the welcome dialog, which would create exclusivity issues.
+	window->hide();
+
+	module->request_enable_dotnet_features();
+}
+
+Control *DotNetSourceCodePlugin::get_availability_control() {
+	DotNetModule *module = DotNetModule::get_singleton();
+	if (module == nullptr) {
+		// This should be unreachable.
+		return nullptr;
+	}
+
+	VBoxContainer *vbox = memnew(VBoxContainer);
+
+	Label *label = memnew(Label);
+	label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+	label->set_text(TTR("To create C# classes, the .NET editor integration must be enabled."));
+	vbox->add_child(label);
+
+	Button *button = memnew(Button);
+	button->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
+	button->set_text(TTR("Enable .NET features"));
+	button->connect(SceneStringName(pressed), callable_mp(this, &DotNetSourceCodePlugin::_request_enable_dotnet_features).bind(button));
+	vbox->add_child(button);
+
+	return vbox;
 }
 
 bool DotNetSourceCodePlugin::can_handle_object(const GDExtension *p_library, const Object *p_object) const {
