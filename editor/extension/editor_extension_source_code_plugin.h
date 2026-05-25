@@ -90,6 +90,9 @@ protected:
 	GDVIRTUAL3RC(Error, _add_method_func, const StringName &, const String &, const PackedStringArray &);
 
 public:
+	virtual bool is_available() const { return true; }
+	virtual Control *get_availability_control();
+
 	virtual bool can_handle_object(const GDExtension *p_library, const Object *p_object) const;
 
 	virtual String get_source_path(const StringName &p_class_name) const;

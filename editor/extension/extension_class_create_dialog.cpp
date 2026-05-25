@@ -101,13 +101,18 @@ void ExtensionClassCreateDialog::_language_changed(int p_language_index) {
 	int plugin_idx = language_menu->get_item_metadata(p_language_index);
 	selected_source_code_plugin = ExtensionSourceCodeManager::get_singleton()->get_plugin_at_index(plugin_idx);
 
+	EditorSettings::get_singleton()->set_project_metadata("class_setup", "last_selected_language", selected_source_code_plugin->get_language_name());
+
+	_update_plugin_availability();
+	if (!selected_source_code_plugin->is_available()) {
+		return;
+	}
+
 	validation_context->clear_scope(VALIDATION_SCOPE_PATH);
 	_update_path_edits();
 	_adjust_paths();
 
 	_update_template_menu();
-
-	EditorSettings::get_singleton()->set_project_metadata("class_setup", "last_selected_language", selected_source_code_plugin->get_language_name());
 }
 
 void ExtensionClassCreateDialog::_class_name_changed(const String &p_class_name) {
@@ -580,6 +585,40 @@ void ExtensionClassCreateDialog::_update_language_menu() {
 	_language_changed(language_menu->get_selected());
 }
 
+void ExtensionClassCreateDialog::_update_plugin_availability() {
+	if (availability_control != nullptr) {
+		availability_control->queue_free();
+		availability_control = nullptr;
+	}
+
+	bool available = selected_source_code_plugin->is_available();
+
+	// Hide everything except the first two children of the grid container, which make the language selector.
+	for (int i = 2; i < gc->get_child_count(); i++) {
+		Control *child = Object::cast_to<Control>(gc->get_child(i));
+		if (child != nullptr) {
+			child->set_visible(available);
+		}
+	}
+
+	validation_panel->set_visible(available);
+	availability_vb->set_visible(!available);
+
+	if (!available) {
+		availability_control = selected_source_code_plugin->get_availability_control();
+		if (availability_control == nullptr) {
+			Label *fallback_label = memnew(Label);
+			fallback_label->set_text(TTR("The plugin that provides support for this language is not available, it may need to be configured first."));
+			fallback_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+			availability_control = fallback_label;
+		}
+
+		availability_vb->add_child(availability_control);
+
+		get_ok_button()->set_disabled(true);
+	}
+}
+
 void ExtensionClassCreateDialog::_update_template_menu() {
 	bool is_language_using_templates = selected_source_code_plugin->is_using_templates();
 	template_menu->set_disabled(false);
@@ -878,6 +917,12 @@ void ExtensionClassCreateDialog::config(const String &p_base_name, const String 
 	base_path = p_base_path;
 
 	_update_language_menu();
+
+	_update_plugin_availability();
+	if (!selected_source_code_plugin->is_available()) {
+		return;
+	}
+
 	_class_name_changed(class_name_edit->get_text());
 	_inherited_class_name_changed(inherited_class_name_edit->get_text());
 }
@@ -910,8 +955,17 @@ ExtensionClassCreateDialog::ExtensionClassCreateDialog() {
 	Control *spacing = memnew(Control);
 	spacing->set_custom_minimum_size(Size2(0, 10 * EDSCALE));
 
+	availability_vb = memnew(VBoxContainer);
+	availability_vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	availability_vb->hide();
+
+	Control *availability_spacing = memnew(Control);
+	availability_spacing->set_custom_minimum_size(Size2(0, 10 * EDSCALE));
+	availability_vb->add_child(availability_spacing);
+
 	VBoxContainer *vb = memnew(VBoxContainer);
 	vb->add_child(gc);
+	vb->add_child(availability_vb);
 	vb->add_child(spacing);
 	vb->add_child(validation_panel);
 	add_child(vb);

@@ -91,6 +91,8 @@ class ExtensionClassCreateDialog : public ConfirmationDialog {
 	bool initialized = false;
 
 	GridContainer *gc = nullptr;
+	VBoxContainer *availability_vb = nullptr;
+	Control *availability_control = nullptr;
 	OptionButton *language_menu = nullptr;
 	LineEdit *class_name_edit = nullptr;
 	LineEdit *inherited_class_name_edit = nullptr;
@@ -155,6 +157,7 @@ class ExtensionClassCreateDialog : public ConfirmationDialog {
 	PackedStringArray _get_templates_from_location(const TemplateLocation &p_template_location, const String &p_base_class_name) const;
 
 	void _update_language_menu();
+	void _update_plugin_availability();
 	void _update_template_menu();
 	void _update_template_label(const String &p_template_name, const String &p_template_description);
 	void _update_path_edits();
