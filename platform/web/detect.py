@@ -98,7 +98,25 @@ def library_emitter(target, source, env):
     return target, source
 
 
+import re
+
+WINPATHSEP_RE = re.compile(r"\\([^\"'\\]|$)")
+
+
+def tempfile_arg_esc_func(arg):
+    from SCons.Subst import quote_spaces
+
+    arg = quote_spaces(arg)
+    return WINPATHSEP_RE.sub(r"/\1", arg)
+
+
 def configure(env: "SConsEnvironment"):
+    if os.name == "nt":
+        env["LINKCOM_ORIG"] = env["LINKCOM"]
+        env["LINKCOM"] = "${TEMPFILE('$LINKCOM_ORIG', '$LINKCOMSTR')}"
+        env["TEMPFILESUFFIX"] = ".rsp"
+        env["TEMPFILEARGESCFUNC"] = tempfile_arg_esc_func
+
     env.Append(LIBEMITTER=[library_emitter])
 
     # Validate arch.
