@@ -2938,7 +2938,7 @@ bool EditorExportPlatformAndroid::has_valid_export_configuration(const Ref<Edito
 	if (!gradle_build_enabled) {
 		// For template exports we only support .NET 9 because the template
 		// includes .jar dependencies that may only be compatible with .NET 9.
-		if (!_validate_dotnet_tfm("net9.0", err)) {
+		if (!_validate_dotnet_tfm("net10.0", err)) {
 			r_error = err;
 			return false;
 		}
