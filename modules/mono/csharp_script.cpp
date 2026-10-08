@@ -2225,7 +2225,7 @@ void GD_CLR_STDCALL CSharpScript::_add_property_info_list_callback(CSharpScript 
 
 		p_script->member_info[name] = pinfo;
 
-		if (prop.exported) {
+		/*if (prop.exported)*/ {
 #ifdef TOOLS_ENABLED
 			p_script->exported_members_cache.push_back(pinfo);
 #endif
