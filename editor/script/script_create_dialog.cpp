@@ -373,10 +373,14 @@ void ScriptCreateDialog::_create_new() {
 
 	String parent_class = parent_name->get_text();
 	if (!parent_name->get_text().is_quoted() && !ClassDB::class_exists(parent_class) && !ScriptServer::is_global_class(parent_class)) {
+#ifdef DISABLE_DEPRECATED
+		ERR_FAIL_MSG(vformat("Cannot inherit from unknown type '%s'.", parent_class));
+#else
 		// If base is a custom type, replace with script path instead.
 		const EditorData::CustomType *type = EditorNode::get_editor_data().get_custom_type_by_name(parent_class);
 		ERR_FAIL_NULL(type);
 		parent_class = "\"" + type->script->get_path() + "\"";
+#endif
 	}
 
 	String class_name = file_path->get_text().get_file().get_basename();

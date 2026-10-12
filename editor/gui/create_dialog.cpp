@@ -99,7 +99,10 @@ void CreateDialog::_fill_type_list() {
 	ClassDB::get_class_list(complete_type_list);
 	ScriptServer::get_global_class_list(complete_type_list);
 
+#ifndef DISABLE_DEPRECATED
+	// Variable is only used in the deprecated code below.
 	EditorData &ed = EditorNode::get_editor_data();
+#endif
 	HashMap<String, DocData::ClassDoc> &class_docs_list = EditorHelp::get_doc_data()->class_list;
 
 	for (const StringName &type : complete_type_list) {
@@ -118,6 +121,7 @@ void CreateDialog::_fill_type_list() {
 
 			type_info_list.push_back(type_info);
 
+#ifndef DISABLE_DEPRECATED
 			if (!ed.get_custom_types().has(type)) {
 				continue;
 			}
@@ -131,6 +135,7 @@ void CreateDialog::_fill_type_list() {
 				custom_type_info.type_name = ct[i].name;
 				type_info_list.push_back(custom_type_info);
 			}
+#endif
 		}
 	}
 
@@ -381,12 +386,15 @@ void CreateDialog::_add_type(const StringName &p_type, TypeCategory p_type_categ
 			inherits = ScriptServer::get_global_class_base(p_type);
 			bool is_native_class = ClassDB::class_exists(inherits);
 			inherited_type = is_native_class ? TypeCategory::CPP_TYPE : TypeCategory::OTHER_TYPE;
-		} else {
+		}
+#ifndef DISABLE_DEPRECATED
+		else {
 			inherits = custom_type_parents[p_type];
 			if (ClassDB::class_exists(inherits)) {
 				inherited_type = TypeCategory::CPP_TYPE;
 			}
 		}
+#endif
 	}
 
 	// Should never happen, but just in case...
@@ -432,11 +440,14 @@ void CreateDialog::_configure_search_option_item(TreeItem *r_item, const StringN
 			int button_index = r_item->get_button_count(0) - 1;
 			r_item->set_button_color(0, button_index, get_theme_color(SNAME("accent_color"), EditorStringName(Editor)));
 		}
-	} else {
+	}
+#ifndef DISABLE_DEPRECATED
+	else {
 		is_custom_type = true;
 		type_name = custom_type_parents[p_type];
 		text = p_type;
 	}
+#endif
 
 	if (!p_match_keyword.is_empty()) {
 		text += "      - " + vformat(TTR("Matches the \"%s\" keyword."), p_match_keyword);
@@ -485,12 +496,14 @@ void CreateDialog::_configure_search_option_item(TreeItem *r_item, const StringN
 	const String &description = DTR(class_doc ? class_doc->value.brief_description : "");
 	r_item->set_tooltip_text(0, description);
 
+#ifndef DISABLE_DEPRECATED
 	if (p_type_category == TypeCategory::OTHER_TYPE && !script_type) {
 		Ref<Texture2D> icon = EditorNode::get_editor_data().get_custom_types()[custom_type_parents[p_type]][custom_type_indices[p_type]].icon;
 		if (icon.is_valid()) {
 			r_item->set_icon(0, icon);
 		}
 	}
+#endif
 }
 
 float CreateDialog::_score_type(const String &p_type, const String &p_search) const {
@@ -543,8 +556,10 @@ void CreateDialog::_cleanup() {
 	favorite_list.clear();
 	favorites->clear();
 	recent->clear();
+#ifndef DISABLE_DEPRECATED
 	custom_type_parents.clear();
 	custom_type_indices.clear();
+#endif
 }
 
 void CreateDialog::_confirmed() {
@@ -716,10 +731,12 @@ String CreateDialog::get_selected_type() {
 		return type; // CPP type - from the core or GDExtensions
 	}
 
+#ifndef DISABLE_DEPRECATED
 	const EditorData::CustomType *custom_type = EditorNode::get_editor_data().get_custom_type_by_name(type);
 	if (custom_type != nullptr) {
 		return custom_type->script->get_path(); // Types via EditorPlugin::add_custom_type()
 	}
+#endif
 
 	return String(selected->get_meta("_script_path", "")); // Script types
 }
@@ -757,9 +774,12 @@ Variant CreateDialog::instantiate_selected() {
 			if (n) {
 				n->set_name(type_name);
 			}
-		} else {
+		}
+#ifndef DISABLE_DEPRECATED
+		else {
 			obj = EditorNode::get_editor_data().instantiate_custom_type(selected->get_text(0), type_name);
 		}
+#endif
 	} else {
 		obj = ClassDB::instantiate(type_name);
 	}

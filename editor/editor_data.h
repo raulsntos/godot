@@ -135,7 +135,9 @@ private:
 		String name;
 		Variant value;
 	};
+#ifndef DISABLE_DEPRECATED
 	HashMap<String, Vector<CustomType>> custom_types;
+#endif
 
 	List<PropertyData> clipboard;
 	EditorUndoRedoManager *undo_redo_manager;
@@ -189,12 +191,14 @@ public:
 	void remove_move_array_element_function(const StringName &p_class);
 	Callable get_move_array_element_function(const StringName &p_class) const;
 
+#ifndef DISABLE_DEPRECATED
 	void add_custom_type(const String &p_type, const String &p_inherits, const Ref<Script> &p_script, const Ref<Texture2D> &p_icon);
 	Variant instantiate_custom_type(const String &p_type, const String &p_inherits);
 	void remove_custom_type(const String &p_type);
 	const HashMap<String, Vector<CustomType>> &get_custom_types() const { return custom_types; }
 	const CustomType *get_custom_type_by_name(const String &p_name) const;
 	const CustomType *get_custom_type_by_path(const String &p_path) const;
+#endif
 	bool is_type_recognized(const String &p_type) const;
 
 	void instantiate_object_properties(Object *p_object);

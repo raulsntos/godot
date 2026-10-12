@@ -63,6 +63,7 @@
 #include "scene/3d/camera_3d.h"
 #include "scene/gui/popup_menu.h"
 
+#ifndef DISABLE_DEPRECATED
 void EditorPlugin::add_custom_type(const String &p_type, const String &p_base, const Ref<Script> &p_script, const Ref<Texture2D> &p_icon) {
 	EditorNode::get_editor_data().add_custom_type(p_type, p_base, p_script, p_icon);
 }
@@ -70,6 +71,7 @@ void EditorPlugin::add_custom_type(const String &p_type, const String &p_base, c
 void EditorPlugin::remove_custom_type(const String &p_type) {
 	EditorNode::get_editor_data().remove_custom_type(p_type);
 }
+#endif
 
 void EditorPlugin::add_autoload_singleton(const String &p_name, const String &p_path) {
 	if (p_path.begins_with("res://")) {
@@ -644,10 +646,10 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_tool_submenu_item", "name", "submenu"), &EditorPlugin::add_tool_submenu_item);
 	ClassDB::bind_method(D_METHOD("remove_tool_menu_item", "name"), &EditorPlugin::remove_tool_menu_item);
 	ClassDB::bind_method(D_METHOD("get_export_as_menu"), &EditorPlugin::get_export_as_menu);
-	ClassDB::bind_method(D_METHOD("add_custom_type", "type", "base", "script", "icon"), &EditorPlugin::add_custom_type);
-	ClassDB::bind_method(D_METHOD("remove_custom_type", "type"), &EditorPlugin::remove_custom_type);
 
 #ifndef DISABLE_DEPRECATED
+	ClassDB::bind_method(D_METHOD("add_custom_type", "type", "base", "script", "icon"), &EditorPlugin::add_custom_type);
+	ClassDB::bind_method(D_METHOD("remove_custom_type", "type"), &EditorPlugin::remove_custom_type);
 	ClassDB::bind_method(D_METHOD("add_control_to_dock", "slot", "control", "shortcut"), &EditorPlugin::add_control_to_dock, DEFVAL(Ref<Shortcut>()));
 	ClassDB::bind_method(D_METHOD("remove_control_from_docks", "control"), &EditorPlugin::remove_control_from_docks);
 	ClassDB::bind_method(D_METHOD("set_dock_tab_icon", "control", "icon"), &EditorPlugin::set_dock_tab_icon);

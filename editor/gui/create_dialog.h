@@ -83,8 +83,10 @@ class CreateDialog : public ConfirmationDialog {
 	EditorHelpBit *help_bit = nullptr;
 
 	HashMap<String, TreeItem *> search_options_types;
+#ifndef DISABLE_DEPRECATED
 	HashMap<String, String> custom_type_parents;
 	HashMap<String, int> custom_type_indices;
+#endif
 	List<TypeInfo> type_info_list;
 	HashSet<StringName> type_blacklist;
 	HashSet<StringName> custom_type_blocklist;

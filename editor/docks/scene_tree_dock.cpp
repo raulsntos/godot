@@ -3492,12 +3492,14 @@ void SceneTreeDock::_replace_node(Node *p_node, Node *p_by_node, bool p_keep_pro
 				default_oldnode->set_name(cts->get_global_name());
 				get_editor_data()->instantiate_object_properties(default_oldnode);
 			} else {
+#ifndef DISABLE_DEPRECATED
 				// Legacy custom type, registered with "add_custom_type()".
 				// TODO: Should probably be deprecated in 4.x.
 				const EditorData::CustomType *custom_type = get_editor_data()->get_custom_type_by_path(cts->get_path());
 				if (custom_type) {
 					default_oldnode = Object::cast_to<Node>(get_editor_data()->instantiate_custom_type(custom_type->name, cts->get_instance_base_type()));
 				}
+#endif
 			}
 		}
 
@@ -3964,6 +3966,7 @@ void SceneTreeDock::_script_dropped(const String &p_file, Node *p_to_node) {
 		undo_redo->add_undo_method(ed, "live_debug_remove_node", NodePath(String(edited_scene->get_path_to(p_to_node)).path_join(new_node->get_name())));
 		undo_redo->commit_action();
 	} else {
+#ifndef DISABLE_DEPRECATED
 		// Check if dropped script is compatible.
 		if (p_to_node->has_meta(SceneStringName(_custom_type_script))) {
 			Ref<Script> ct_scr = PropertyUtils::get_custom_type_script(p_to_node);
@@ -3984,6 +3987,7 @@ void SceneTreeDock::_script_dropped(const String &p_file, Node *p_to_node) {
 				return;
 			}
 		}
+#endif
 
 		undo_redo->create_action(TTR("Attach Script"), UndoRedo::MERGE_DISABLE, p_to_node);
 		undo_redo->add_do_method(InspectorDock::get_singleton(), "store_script_properties", p_to_node);

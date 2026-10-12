@@ -116,8 +116,10 @@ protected:
 	static void _bind_methods();
 	EditorUndoRedoManager *get_undo_redo();
 
+#ifndef DISABLE_DEPRECATED
 	void add_custom_type(const String &p_type, const String &p_base, const Ref<Script> &p_script, const Ref<Texture2D> &p_icon);
 	void remove_custom_type(const String &p_type);
+#endif
 
 	GDVIRTUAL1R(bool, _forward_canvas_gui_input, Ref<InputEvent>)
 	GDVIRTUAL1(_forward_canvas_draw_over_viewport, Control *)

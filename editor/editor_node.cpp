@@ -5820,6 +5820,7 @@ Ref<Script> EditorNode::get_object_custom_type_base(const Object *p_object) cons
 		// 	return name;
 		// }
 
+#ifndef DISABLE_DEPRECATED
 		// TODO: Should probably be deprecated in 4.x
 		StringName base = scr->get_instance_base_type();
 		if (base != StringName() && EditorNode::get_editor_data().get_custom_types().has(base)) {
@@ -5835,6 +5836,7 @@ Ref<Script> EditorNode::get_object_custom_type_base(const Object *p_object) cons
 				base_scr = base_scr->get_base_script();
 			}
 		}
+#endif
 	}
 
 	return nullptr;
@@ -5856,6 +5858,7 @@ StringName EditorNode::get_object_custom_type_name(const Object *p_object) const
 				return name;
 			}
 
+#ifndef DISABLE_DEPRECATED
 			// TODO: Should probably be deprecated in 4.x.
 			StringName base = base_scr->get_instance_base_type();
 			if (base != StringName() && EditorNode::get_editor_data().get_custom_types().has(base)) {
@@ -5866,6 +5869,8 @@ StringName EditorNode::get_object_custom_type_name(const Object *p_object) const
 					}
 				}
 			}
+#endif
+
 			base_scr = base_scr->get_base_script();
 		}
 	}
@@ -5942,12 +5947,14 @@ Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, cons
 		return ext_icon;
 	}
 
+#ifndef DISABLE_DEPRECATED
 	// Check if the class name is a custom type.
 	// TODO: Should probably be deprecated in 4.x
 	const EditorData::CustomType *ctype = ed.get_custom_type_by_name(p_class);
 	if (ctype && ctype->icon.is_valid()) {
 		return ctype->icon;
 	}
+#endif
 
 	// Look up the class name or the fallback name in the editor theme.
 	// This is only relevant for built-in classes.

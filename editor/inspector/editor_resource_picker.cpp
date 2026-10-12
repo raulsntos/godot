@@ -628,9 +628,11 @@ void EditorResourcePicker::_edit_menu_cbk(int p_which) {
 				obj = ClassDB::instantiate(intype);
 			}
 
+#ifndef DISABLE_DEPRECATED
 			if (!obj) {
 				obj = EditorNode::get_editor_data().instantiate_custom_type(intype, "Resource");
 			}
+#endif
 
 			Ref<Resource> resp(obj);
 			ERR_BREAK(resp.is_null());

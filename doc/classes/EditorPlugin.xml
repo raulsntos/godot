@@ -437,7 +437,7 @@
 				Optionally, you can specify a shortcut parameter. When pressed, this shortcut will open and focus the dock.
 			</description>
 		</method>
-		<method name="add_custom_type">
+		<method name="add_custom_type" deprecated="Use [code]class_name[/code] in GDScript or [code][GlobalClass][/code] in C# instead.">
 			<return type="void" />
 			<param index="0" name="type" type="String" />
 			<param index="1" name="base" type="String" />

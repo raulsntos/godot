@@ -542,6 +542,7 @@ EditorPlugin *EditorData::get_extension_editor_plugin(const StringName &p_class_
 	return plugin == nullptr ? nullptr : *plugin;
 }
 
+#ifndef DISABLE_DEPRECATED
 void EditorData::add_custom_type(const String &p_type, const String &p_inherits, const Ref<Script> &p_script, const Ref<Texture2D> &p_icon) {
 	ERR_FAIL_COND_MSG(p_script.is_null(), "It's not a reference to a valid Script object.");
 	CustomType ct;
@@ -602,10 +603,6 @@ const EditorData::CustomType *EditorData::get_custom_type_by_path(const String &
 	return nullptr;
 }
 
-bool EditorData::is_type_recognized(const String &p_type) const {
-	return ClassDB::class_exists(p_type) || ScriptServer::is_global_class(p_type) || get_custom_type_by_name(p_type);
-}
-
 void EditorData::remove_custom_type(const String &p_type) {
 	for (KeyValue<String, Vector<CustomType>> &E : custom_types) {
 		for (int i = 0; i < E.value.size(); i++) {
@@ -618,6 +615,15 @@ void EditorData::remove_custom_type(const String &p_type) {
 			}
 		}
 	}
+}
+#endif
+
+bool EditorData::is_type_recognized(const String &p_type) const {
+	return ClassDB::class_exists(p_type) || ScriptServer::is_global_class(p_type)
+#ifndef DISABLE_DEPRECATED
+			|| get_custom_type_by_name(p_type)
+#endif
+			;
 }
 
 void EditorData::instantiate_object_properties(Object *p_object) {
@@ -1222,6 +1228,7 @@ Ref<Texture2D> EditorData::get_script_icon(const String &p_script_path) {
 			return icon;
 		}
 
+#ifndef DISABLE_DEPRECATED
 		// Check for legacy custom classes defined by plugins.
 		// TODO: Should probably be deprecated in 4.x
 		const EditorData::CustomType *ctype = get_custom_type_by_path(base_scr->get_path());
@@ -1229,6 +1236,7 @@ Ref<Texture2D> EditorData::get_script_icon(const String &p_script_path) {
 			_script_icon_cache[p_script_path] = ctype->icon;
 			return ctype->icon;
 		}
+#endif
 
 		// Move to the base class.
 		base_scr = base_scr->get_base_script();
