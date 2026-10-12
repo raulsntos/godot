@@ -379,9 +379,15 @@ String BindingsGenerator::bbcode_to_text(const String &p_bbcode, const TypeInter
 			pos = brk_end + 1;
 			tag_stack.push_front(tag);
 		} else if (tag == "code" || tag.begins_with("code ")) {
-			code_tag = true;
-			pos = brk_end + 1;
-			tag_stack.push_front("code");
+			const int code_end = bbcode.find("[/code]", brk_end + 1);
+			if (code_end >= 0) {
+				output.append("'" + bbcode.substr(brk_end + 1, code_end - brk_end - 1) + "'");
+				pos = code_end + 7; // Skip [/code].
+			} else {
+				code_tag = true;
+				pos = brk_end + 1;
+				tag_stack.push_front("code");
+			}
 		} else if (tag == "kbd") {
 			// Keyboard combinations are not supported.
 			pos = brk_end + 1;
