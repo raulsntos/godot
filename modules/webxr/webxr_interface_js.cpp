@@ -539,7 +539,6 @@ TypedArray<Transform3D> WebXRInterfaceJS::get_camera_offsets(const StringName &p
 	return camera_offsets;
 }
 
-#ifndef DISABLE_DEPRECATED
 Transform3D WebXRInterfaceJS::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) {
 	XRServer *xr_server = XRServer::get_singleton();
 	ERR_FAIL_NULL_V(xr_server, p_cam_transform);
@@ -583,7 +582,6 @@ Projection WebXRInterfaceJS::get_projection_for_view(uint32_t p_view, double p_a
 
 	return view;
 }
-#endif
 
 bool WebXRInterfaceJS::pre_draw_viewport(RID p_render_target) {
 	GLES3::TextureStorage *texture_storage = GLES3::TextureStorage::get_singleton();

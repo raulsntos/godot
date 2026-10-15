@@ -1124,7 +1124,6 @@ TypedArray<Transform3D> OpenXRInterface::get_camera_offsets(const StringName &p_
 	return openxr_api->get_camera_offsets(p_tracker_name);
 }
 
-#ifndef DISABLE_DEPRECATED
 Transform3D OpenXRInterface::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) {
 	XRServer *xr_server = XRServer::get_singleton();
 	ERR_FAIL_NULL_V(xr_server, Transform3D());
@@ -1153,7 +1152,6 @@ Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_as
 
 	return cm;
 }
-#endif
 
 Rect2i OpenXRInterface::get_render_region() {
 	if (openxr_api) {
